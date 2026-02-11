@@ -1,5 +1,6 @@
 # detekt-rules-koin
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.krozov/detekt-rules-koin.svg)](https://central.sonatype.com/artifact/io.github.krozov/detekt-rules-koin)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 

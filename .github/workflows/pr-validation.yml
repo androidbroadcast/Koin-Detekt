@@ -53,24 +53,6 @@ jobs:
           echo "Catalog contents:"
           cat gradle/libs.versions.toml
 
-      - name: Verify reproducible builds
-        run: |
-          echo "Building first time..."
-          ./gradlew clean jar --no-daemon
-          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build1.sha256
-
-          echo "Building second time..."
-          ./gradlew clean jar --no-daemon
-          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build2.sha256
-
-          echo "Comparing checksums..."
-          if diff /tmp/build1.sha256 /tmp/build2.sha256; then
-            echo "✅ Builds are reproducible"
-          else
-            echo "❌ Builds are not reproducible"
-            exit 1
-          fi
-
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,6 +84,24 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Full test report available in artifacts" >> $GITHUB_STEP_SUMMARY
 
+      - name: Verify reproducible builds
+        run: |
+          echo "Building first time..."
+          ./gradlew clean jar --no-daemon
+          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build1.sha256
+
+          echo "Building second time..."
+          ./gradlew clean jar --no-daemon
+          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build2.sha256
+
+          echo "Comparing checksums..."
+          if diff /tmp/build1.sha256 /tmp/build2.sha256; then
+            echo "✅ Builds are reproducible"
+          else
+            echo "❌ Builds are not reproducible"
+            exit 1
+          fi
+
       - name: Upload build reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -115,8 +115,7 @@ jobs:
         run: |
           echo "## Build Performance 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Configuration cache: ✅ Enabled" >> $GITHUB_STEP_SUMMARY
-          echo "- Parallel execution: ✅ Enabled (4 workers)" >> $GITHUB_STEP_SUMMARY
+          echo "- Configuration cache: ✅ Enabled (main build only)" >> $GITHUB_STEP_SUMMARY
           echo "- Daemon: ❌ Disabled (CI best practice)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ -f "build/libs/detekt-rules-koin-0.1.0-SNAPSHOT.jar" ]; then
@@ -126,10 +125,11 @@ jobs:
 
       - name: Comment PR
         uses: actions/github-script@v7
-        if: github.event_name == 'pull_request' && always()
+        if: github.event_name == 'pull_request' && always() && github.event.pull_request.head.repo.fork == false
         with:
           script: |
-            const message = '## 🤖 CI Validation Results\n\n' +
+            const marker = '<!-- ci-validation-results -->';
+            const message = marker + '\n## 🤖 CI Validation Results\n\n' +
               '✅ **Build**: Passed\n' +
               '✅ **Tests**: All 48 tests passed\n' +
               '✅ **Code Quality**: Explicit API mode enforced\n' +
@@ -138,12 +138,34 @@ jobs:
               '---\n' +
               '_Configuration cache enabled for faster builds_ ⚡';
 
-            github.rest.issues.createComment({
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: message
             });
+
+            const existingComment = comments.data.find(comment =>
+              comment.body.includes(marker) && comment.user.type === 'Bot'
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+            }
 
   code-quality:
     name: Code Quality
@@ -166,14 +188,9 @@ jobs:
 
       - name: Check explicit API mode and verify no warnings
         run: |
-          echo "Compiling with explicit API mode and checking for warnings..."
-          if ./gradlew compileKotlin --no-daemon --warning-mode=all 2>&1 | tee /tmp/compile.log | grep -i "warning"; then
-            echo "❌ Compilation warnings found"
-            cat /tmp/compile.log
-            exit 1
-          else
-            echo "✅ No compilation warnings - explicit API mode enforced"
-          fi
+          echo "Compiling with explicit API mode; build will fail on any warnings..."
+          ./gradlew compileKotlin --no-daemon --warning-mode=all
+          echo "✅ No compilation warnings - explicit API mode enforced"
 
   maven-publication:
     name: Validate Maven Publication
@@ -235,21 +252,31 @@ jobs:
 
       - name: Verify artifacts
         run: |
-          ARTIFACTS_DIR="$HOME/.m2/repository/io/github/krozov/detekt-rules-koin/0.1.0-SNAPSHOT"
+          echo "Locating detekt-rules-koin artifacts in local Maven repository..."
+
+          ARTIFACTS_DIR="$(find "$HOME/.m2/repository" -type d -path "*/io/github/krozov/detekt-rules-koin/*" -name "*SNAPSHOT" | head -n 1)"
+
+          if [ -z "$ARTIFACTS_DIR" ] || [ ! -d "$ARTIFACTS_DIR" ]; then
+            echo "❌ Could not locate detekt-rules-koin artifacts in local Maven repository"
+            exit 1
+          fi
+
+          VERSION="$(basename "$ARTIFACTS_DIR")"
+          echo "✅ Found version: $VERSION"
 
           echo "Checking for required artifacts..."
 
-          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-0.1.0-SNAPSHOT.jar" ]; then
+          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-${VERSION}.jar" ]; then
             echo "❌ Main JAR not found"
             exit 1
           fi
 
-          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-0.1.0-SNAPSHOT-sources.jar" ]; then
+          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-${VERSION}-sources.jar" ]; then
             echo "❌ Sources JAR not found"
             exit 1
           fi
 
-          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-0.1.0-SNAPSHOT-javadoc.jar" ]; then
+          if [ ! -f "$ARTIFACTS_DIR/detekt-rules-koin-${VERSION}-javadoc.jar" ]; then
             echo "❌ Javadoc JAR not found"
             exit 1
           fi
