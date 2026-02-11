@@ -164,16 +164,15 @@ jobs:
         with:
           cache-read-only: false
 
-      - name: Check explicit API mode
-        run: ./gradlew compileKotlin --no-daemon --warning-mode=all
-
-      - name: Verify no warnings
+      - name: Check explicit API mode and verify no warnings
         run: |
-          if ./gradlew compileKotlin --no-daemon --warning-mode=all 2>&1 | grep -i "warning"; then
+          echo "Compiling with explicit API mode and checking for warnings..."
+          if ./gradlew compileKotlin --no-daemon --warning-mode=all 2>&1 | tee /tmp/compile.log | grep -i "warning"; then
             echo "❌ Compilation warnings found"
+            cat /tmp/compile.log
             exit 1
           else
-            echo "✅ No compilation warnings"
+            echo "✅ No compilation warnings - explicit API mode enforced"
           fi
 
   maven-publication:
