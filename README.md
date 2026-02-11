@@ -1,6 +1,7 @@
 # detekt-rules-koin
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.krozov/detekt-rules-koin)](https://search.maven.org/artifact/io.github.krozov/detekt-rules-koin)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.krozov/detekt-rules-koin.svg)](https://central.sonatype.com/artifact/io.github.krozov/detekt-rules-koin)
+[![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Detekt 1.x extension library with 14 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.

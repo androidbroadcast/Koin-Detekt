@@ -1,0 +1,23 @@
+HTTP/2.0 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset
+Content-Security-Policy: default-src 'none'
+Content-Type: application/json; charset=utf-8
+Date: Wed, 11 Feb 2026 14:34:27 GMT
+Github-Authentication-Token-Expiration: 2026-03-13 14:28:59 UTC
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Server: github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Vary: Accept-Encoding, Accept, X-Requested-With
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Github-Media-Type: github.v4; param=merge-info-preview.nebula-preview; format=json
+X-Github-Request-Id: 7E78:3B204:118516AE:103DDA8C:698C9372
+X-Ratelimit-Limit: 5000
+X-Ratelimit-Remaining: 4984
+X-Ratelimit-Reset: 1770823840
+X-Ratelimit-Resource: graphql
+X-Ratelimit-Used: 16
+X-Xss-Protection: 0
+
+{"data":{"WorkflowRun":{"fields":[{"name":"checkSuite"},{"name":"createdAt"},{"name":"databaseId"},{"name":"deploymentReviews"},{"name":"event"},{"name":"file"},{"name":"id"},{"name":"pendingDeploymentRequests"},{"name":"resourcePath"},{"name":"runNumber"},{"name":"updatedAt"},{"name":"url"},{"name":"workflow"}]}}}
