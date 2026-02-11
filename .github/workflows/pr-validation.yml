@@ -37,6 +37,24 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build --no-daemon --configuration-cache
 
+      - name: Verify reproducible builds
+        run: |
+          echo "Building first time..."
+          ./gradlew clean jar --no-daemon
+          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build1.sha256
+
+          echo "Building second time..."
+          ./gradlew clean jar --no-daemon
+          sha256sum build/libs/detekt-rules-koin-*.jar > /tmp/build2.sha256
+
+          echo "Comparing checksums..."
+          if diff /tmp/build1.sha256 /tmp/build2.sha256; then
+            echo "✅ Builds are reproducible"
+          else
+            echo "❌ Builds are not reproducible"
+            exit 1
+          fi
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
