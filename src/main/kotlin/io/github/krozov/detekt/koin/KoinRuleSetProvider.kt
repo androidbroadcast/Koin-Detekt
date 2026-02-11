@@ -4,8 +4,10 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 import io.github.krozov.detekt.koin.servicelocator.NoGetOutsideModuleDefinition
+import io.github.krozov.detekt.koin.servicelocator.NoGlobalContextAccess
 import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
 import io.github.krozov.detekt.koin.servicelocator.NoKoinComponentInterface
+import io.github.krozov.detekt.koin.servicelocator.NoKoinGetInApplication
 
 class KoinRuleSetProvider : RuleSetProvider {
 
@@ -18,6 +20,8 @@ class KoinRuleSetProvider : RuleSetProvider {
                 NoGetOutsideModuleDefinition(config),
                 NoInjectDelegate(config),
                 NoKoinComponentInterface(config),
+                NoGlobalContextAccess(config),
+                NoKoinGetInApplication(config),
             )
         )
     }
