@@ -23,8 +23,6 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
 
     private val deprecations = mapOf(
         "checkModules" to "verify()",
-        "KoinContext" to "KoinApplication",
-        "KoinAndroidContext" to "KoinApplication",
         "koinNavViewModel" to "koinViewModel()",
         "stateViewModel" to "viewModel()"
     )

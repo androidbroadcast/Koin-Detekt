@@ -42,8 +42,15 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
         if (!hasKoinComponent) return
 
         // Check if class extends an allowed super type
+        // Extract short type name (last part after dot) for comparison
         val hasAllowedSuperType = superTypes.any { superType ->
-            allowedSuperTypes.any { allowed -> superType.contains(allowed) }
+            // Remove generics, parentheses, and extract short name
+            val shortTypeName = superType
+                .substringBefore("<")
+                .substringBefore("(")
+                .substringAfterLast(".")
+                .trim()
+            allowedSuperTypes.any { allowed -> shortTypeName == allowed }
         }
 
         if (!hasAllowedSuperType) {

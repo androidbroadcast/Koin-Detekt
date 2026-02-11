@@ -10,6 +10,8 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class MissingScopeClose(config: Config) : Rule(config) {
@@ -25,13 +27,14 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
     private val classesWithScopeCreation = mutableSetOf<KtClass>()
     private val classesWithScopeClose = mutableSetOf<KtClass>()
 
-    override fun visitClass(klass: KtClass) {
+    override fun visitKtFile(file: KtFile) {
         classesWithScopeCreation.clear()
         classesWithScopeClose.clear()
 
-        super.visitClass(klass)
+        super.visitKtFile(file)
 
-        if (klass in classesWithScopeCreation && klass !in classesWithScopeClose) {
+        // Report all classes with scope creation but no close
+        (classesWithScopeCreation - classesWithScopeClose).forEach { klass ->
             report(
                 CodeSmell(
                     issue,
@@ -64,9 +67,10 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
                 containingClass?.let { classesWithScopeCreation.add(it) }
             }
             "close" -> {
-                // Check if receiver is 'scope'
+                // Check if receiver is exactly 'scope' or ends with '.scope'
                 val receiverText = expression.receiverExpression.text
-                if (receiverText.contains("scope")) {
+                val receiverName = (expression.receiverExpression as? KtNameReferenceExpression)?.getReferencedName()
+                if (receiverName == "scope" || receiverText.endsWith(".scope")) {
                     containingClass?.let { classesWithScopeClose.add(it) }
                 }
             }
