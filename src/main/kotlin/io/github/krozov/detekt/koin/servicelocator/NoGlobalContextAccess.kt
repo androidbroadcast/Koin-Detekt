@@ -10,9 +10,9 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
-class NoGlobalContextAccess(config: Config) : Rule(config) {
+internal class NoGlobalContextAccess(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "NoGlobalContextAccess",
         severity = Severity.Warning,
         description = "Detects direct access to GlobalContext.get() or KoinPlatformTools. " +

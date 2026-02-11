@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
-    id("maven-publish")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.maven.publish)
 }
 
 group = "io.github.krozov"
@@ -10,23 +10,119 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+    // Generate sources and javadoc JARs (required by Maven Central)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+
+            pom {
+                name.set("detekt-rules-koin")
+                description.set(
+                    "Detekt extension library with 14 rules for Koin 4.x to enforce " +
+                    "best practices and catch common anti-patterns via static analysis"
+                )
+                url.set("https://github.com/androidbroadcast/Koin-Detekt")
+                inceptionYear.set("2026")
+
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                        distribution.set("repo")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("kirich1409")
+                        name.set("Kirill Rozov")
+                        email.set("kirill@androidbroadcast.dev")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/androidbroadcast/Koin-Detekt.git")
+                    developerConnection.set("scm:git:ssh://github.com:androidbroadcast/Koin-Detekt.git")
+                    url.set("https://github.com/androidbroadcast/Koin-Detekt")
+                }
+
+                issueManagement {
+                    system.set("GitHub Issues")
+                    url.set("https://github.com/androidbroadcast/Koin-Detekt/issues")
+                }
+            }
+        }
+    }
+}
+
+// Configure reproducible builds
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+    dirPermissions {
+        unix("rwxr-xr-x")  // 0755
+    }
+    filePermissions {
+        unix("rw-r--r--")  // 0644
+    }
 }
 
 dependencies {
-    compileOnly("io.gitlab.arturbosch.detekt:detekt-api:1.23.8")
+    compileOnly(libs.detekt.api)
 
-    testImplementation("io.gitlab.arturbosch.detekt:detekt-test:1.23.8")
-    testImplementation("org.assertj:assertj-core:3.27.7")
+    testImplementation(libs.detekt.test)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.junit.jupiter)
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
 }
 
 tasks.test {
     useJUnitPlatform()
+
+    // Parallel test execution
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+
+    // Better test output
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+        showStackTraces = true
+        showCauses = true
+    }
+
+    // JVM arguments for tests
+    jvmArgs = listOf(
+        "-Xmx1g",
+        "-XX:MaxMetaspaceSize=256m"
+    )
 }
 
 kotlin {
     compilerOptions {
+        // Context receivers support
         freeCompilerArgs.add("-Xcontext-receivers")
+
+        // Explicit JVM target (matches Java toolchain)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+
+        // Progressive mode: Enable progressive compiler features
+        progressiveMode.set(true)
+
+        // Strict mode: All warnings as errors (library quality)
+        allWarningsAsErrors.set(true)
     }
+
+    // Explicit API mode: Enforce explicit visibility and return types
+    // Strict mode: All public APIs must have explicit visibility and return types
+    explicitApi()
 }

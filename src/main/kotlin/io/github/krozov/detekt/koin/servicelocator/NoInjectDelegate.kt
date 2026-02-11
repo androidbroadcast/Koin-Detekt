@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class NoInjectDelegate(config: Config) : Rule(config) {
+internal class NoInjectDelegate(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "NoInjectDelegate",
         severity = Severity.Warning,
         description = "Detects inject() property delegate usage (service locator pattern). " +

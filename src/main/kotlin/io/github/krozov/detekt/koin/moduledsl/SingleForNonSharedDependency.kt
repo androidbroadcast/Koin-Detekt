@@ -12,9 +12,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class SingleForNonSharedDependency(config: Config) : Rule(config) {
+internal class SingleForNonSharedDependency(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "SingleForNonSharedDependency",
         severity = Severity.Warning,
         description = "Detects single/singleOf for types that should not be singletons by naming convention. " +

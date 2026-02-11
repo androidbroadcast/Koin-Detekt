@@ -1,0 +1,21 @@
+[versions]
+# Build toolchain
+kotlin = "2.0.21"
+detekt = "1.23.8"
+
+# Test dependencies
+assertj = "3.27.7"
+junit = "5.11.4"
+
+[libraries]
+# Detekt API (compileOnly)
+detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
+
+# Test dependencies
+detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+maven-publish = { id = "maven-publish" }

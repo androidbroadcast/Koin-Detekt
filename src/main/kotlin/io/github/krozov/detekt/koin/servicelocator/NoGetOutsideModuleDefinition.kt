@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
+internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "NoGetOutsideModuleDefinition",
         severity = Severity.Warning,
         description = "Detects get() calls outside Koin module definition blocks. " +

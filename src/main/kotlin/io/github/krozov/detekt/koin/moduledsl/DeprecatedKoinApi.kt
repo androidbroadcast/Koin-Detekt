@@ -12,9 +12,9 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class DeprecatedKoinApi(config: Config) : Rule(config) {
+internal class DeprecatedKoinApi(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "DeprecatedKoinApi",
         severity = Severity.Warning,
         description = "Detects usage of APIs deprecated in Koin 4.x with suggested replacements.",

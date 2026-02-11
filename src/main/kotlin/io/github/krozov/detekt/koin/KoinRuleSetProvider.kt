@@ -18,7 +18,7 @@ import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
 import io.github.krozov.detekt.koin.servicelocator.NoKoinComponentInterface
 import io.github.krozov.detekt.koin.servicelocator.NoKoinGetInApplication
 
-class KoinRuleSetProvider : RuleSetProvider {
+public class KoinRuleSetProvider : RuleSetProvider {
 
     override val ruleSetId: String = "koin-rules"
 

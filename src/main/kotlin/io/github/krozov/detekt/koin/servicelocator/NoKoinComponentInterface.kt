@@ -10,9 +10,9 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtClass
 
-class NoKoinComponentInterface(config: Config) : Rule(config) {
+internal class NoKoinComponentInterface(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "NoKoinComponentInterface",
         severity = Severity.Warning,
         description = "Detects KoinComponent or KoinScopeComponent implementation in classes " +

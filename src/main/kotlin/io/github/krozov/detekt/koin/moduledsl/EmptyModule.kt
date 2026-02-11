@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class EmptyModule(config: Config) : Rule(config) {
+internal class EmptyModule(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "EmptyModule",
         severity = Severity.Warning,
         description = "Detects Koin modules without any definitions or includes(). " +

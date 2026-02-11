@@ -12,9 +12,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class ModuleIncludesOrganization(config: Config) : Rule(config) {
+internal class ModuleIncludesOrganization(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "ModuleIncludesOrganization",
         severity = Severity.Style,
         description = "Detects modules that mix many includes() with direct definitions. " +

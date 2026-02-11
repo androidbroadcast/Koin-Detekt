@@ -10,9 +10,9 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class KtorRequestScopeMisuse(config: Config) : Rule(config) {
+internal class KtorRequestScopeMisuse(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "KtorRequestScopeMisuse",
         severity = Severity.Warning,
         description = "Detects single {} or singleOf() inside requestScope {} in Ktor. " +

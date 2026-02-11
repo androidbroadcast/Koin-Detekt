@@ -11,4 +11,8 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
+    versionCatalogs {
+        // Explicitly acknowledge version catalog usage
+        // Default catalog 'libs' auto-created from gradle/libs.versions.toml
+    }
 }

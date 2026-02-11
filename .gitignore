@@ -11,3 +11,13 @@ local.properties
 *.tmp
 *.swp
 *~
+
+# Claude Code local files
+.claude/
+.claude.json
+.claude.json.backup.*
+.config/
+.gitconfig
+.kotlin/
+.m2/
+.npm/

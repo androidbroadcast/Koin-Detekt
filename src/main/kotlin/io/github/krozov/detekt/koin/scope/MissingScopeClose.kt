@@ -12,9 +12,9 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class MissingScopeClose(config: Config) : Rule(config) {
+internal class MissingScopeClose(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "MissingScopeClose",
         severity = Severity.Warning,
         description = "Detects classes that create or obtain a Scope but never call scope.close(). " +

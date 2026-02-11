@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
+internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "MissingScopedDependencyQualifier",
         severity = Severity.Warning,
         description = "Detects multiple definitions of the same type in one module without named() qualifier. " +
@@ -23,7 +23,7 @@ class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
 
     private val definitionsByModule = mutableMapOf<KtCallExpression, MutableList<TypeDefinition>>()
 
-    data class TypeDefinition(
+    internal data class TypeDefinition(
         val type: String,
         val hasQualifier: Boolean,
         val expression: KtCallExpression
