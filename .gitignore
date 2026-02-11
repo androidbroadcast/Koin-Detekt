@@ -6,3 +6,8 @@ build/
 *.iws
 .DS_Store
 /out/
+*.log
+local.properties
+*.tmp
+*.swp
+*~
