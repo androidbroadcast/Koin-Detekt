@@ -74,3 +74,199 @@ jobs:
           path: build/libs/*.jar
           retention-days: 1
           if-no-files-found: error
+
+  publish:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/libs/
+
+      - name: Generate checksums
+        id: checksums
+        run: |
+          cd build/libs
+          echo "Generating SHA-256 and SHA-512 checksums..."
+          for file in *.jar; do
+            if [ -f "$file" ]; then
+              sha256sum "$file" > "$file.sha256"
+              sha512sum "$file" > "$file.sha512"
+              echo "✅ Generated checksums for $file"
+            fi
+          done
+
+          echo "Verifying checksums..."
+          ls -lh *.sha*
+
+          echo "Sample checksum:"
+          head -1 *.sha256
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish --no-daemon
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+
+      - name: Upload checksums as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: |
+            build/libs/*.sha256
+            build/libs/*.sha512
+          retention-days: 1
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build, publish]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for CHANGELOG
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: artifacts/
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: checksums
+          path: artifacts/
+
+      - name: Verify all artifacts present
+        run: |
+          echo "Checking artifacts directory..."
+          ls -lh artifacts/
+
+          JAR_COUNT=$(find artifacts/ -name "*.jar" | wc -l)
+          CHECKSUM_COUNT=$(find artifacts/ -name "*.sha*" | wc -l)
+
+          echo "Found $JAR_COUNT JAR files"
+          echo "Found $CHECKSUM_COUNT checksum files"
+
+          if [ "$JAR_COUNT" -lt 3 ]; then
+            echo "::error::Expected at least 3 JAR files (main, sources, javadoc)"
+            exit 1
+          fi
+
+          if [ "$CHECKSUM_COUNT" -lt 6 ]; then
+            echo "::error::Expected at least 6 checksum files (SHA-256 and SHA-512 for each JAR)"
+            exit 1
+          fi
+
+          echo "✅ All artifacts present"
+
+      - name: Create Draft Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: ${{ needs.build.outputs.is_prerelease }}
+          generate_release_notes: true
+          files: |
+            artifacts/*.jar
+            artifacts/*.sha256
+            artifacts/*.sha512
+          fail_on_unmatched_files: true
+          name: Release ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get release notes
+        id: release_notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', '')
+            });
+            return release.data.body;
+          result-encoding: string
+
+      - name: Update CHANGELOG.md
+        run: |
+          echo "Creating updated CHANGELOG..."
+          {
+            echo "## ${{ github.ref_name }} - $(date +%Y-%m-%d)"
+            echo ""
+            echo "${{ steps.release_notes.outputs.result }}"
+            echo ""
+            cat CHANGELOG.md
+          } > new_changelog.md
+
+          mv new_changelog.md CHANGELOG.md
+
+          echo "CHANGELOG.md updated:"
+          head -20 CHANGELOG.md
+
+      - name: Commit CHANGELOG to main
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git checkout main
+
+          git add CHANGELOG.md
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: update CHANGELOG for ${{ github.ref_name }}
+
+          Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+            git push origin main
+            echo "✅ CHANGELOG committed to main"
+          fi
+
+      - name: Release summary
+        run: |
+          echo "## Release Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release**: ${{ needs.build.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL**: ${{ steps.create_release.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the draft release at the URL above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify all artifacts are attached" >> $GITHUB_STEP_SUMMARY
+          echo "3. Click 'Publish release' to make it public" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Release workflow failed for ${{ github.ref_name }}"
+          echo "## Release Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
