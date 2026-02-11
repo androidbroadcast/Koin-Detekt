@@ -1,14 +1,15 @@
 # Release Process
 
-This document describes the release process for the NuGet Package Template project.
+This document describes the release process for the detekt-rules-koin library.
 
 ## Overview
 
 Releases are automated through GitHub Actions. When a version tag is pushed, the workflow:
-1. Builds the package
-2. Publishes to GitHub Packages
-3. Creates a GitHub Release with changelog
-4. Generates release artifacts
+1. Builds the library (main JAR, sources JAR, javadoc JAR)
+2. Generates SHA-256 and SHA-512 checksums for all JARs
+3. Publishes artifacts to GitHub Packages (Maven repository)
+4. Creates a draft GitHub Release with artifacts and auto-generated release notes
+5. Updates CHANGELOG.md in the main branch
 
 ## Prerequisites
 
@@ -16,267 +17,249 @@ Before creating a release, ensure:
 
 - [ ] All changes are merged to `main` branch
 - [ ] CI/CD pipeline is passing on `main`
-- [ ] Code quality checks pass
+- [ ] All tests pass (`./gradlew test`)
+- [ ] Code quality checks pass (explicit API mode enforced)
 - [ ] Version number follows semantic versioning
 - [ ] CHANGELOG.md is up to date with unreleased changes
 
 ## Release Process
 
-### 1. Update Version Number
+### 1. Version Number
 
-The version number is defined in `src/Directory.Build.props`:
+The version is defined in `build.gradle.kts`:
 
-```xml
-<Version>1.0.0</Version>
+```kotlin
+version = "0.1.0-SNAPSHOT"
 ```
 
-Update this to your target release version following [Semantic Versioning](https://semver.org/):
-- **MAJOR**: Breaking changes
+**Important**: The workflow overrides this version with the git tag version during the release build. You don't need to manually update `build.gradle.kts` before tagging.
+
+Update the version in `build.gradle.kts` after the release to prepare for the next development cycle:
+
+```kotlin
+version = "0.2.0-SNAPSHOT"
+```
+
+Follow [Semantic Versioning](https://semver.org/):
+- **MAJOR**: Breaking changes to public API
 - **MINOR**: New features (backward compatible)
 - **PATCH**: Bug fixes (backward compatible)
 
 ### 2. Update CHANGELOG.md
 
-Move items from the `[Unreleased]` section to a new version section:
+Ensure CHANGELOG.md has an `## [Unreleased]` section with changes for this release:
 
 ```markdown
-## [1.0.0] - 2024-01-15
+# Changelog
+
+## [Unreleased]
 
 ### Added
-- New feature description
-
-### Changed
-- Changed behavior description
+- New detekt rule for Koin module validation
 
 ### Fixed
-- Bug fix description
+- Fixed false positive in dependency injection check
 ```
 
-### 3. Commit Changes
+The workflow will automatically insert a new release section after the `[Unreleased]` heading.
+
+### 3. Create and Push Tag
+
+Create a semantic version tag with `v` prefix:
 
 ```bash
-git add src/Directory.Build.props CHANGELOG.md
-git commit -m "chore: prepare release v1.0.0"
-git push origin main
+# For stable releases
+git tag -a v0.1.0 -m "Release version 0.1.0"
+git push origin v0.1.0
+
+# For pre-releases (alpha, beta, rc)
+git tag -a v0.1.0-alpha.1 -m "Release version 0.1.0-alpha.1"
+git push origin v0.1.0-alpha.1
 ```
 
-### 4. Create and Push Tag
+**Important**: The tag must:
+- Start with `v` (e.g., `v0.1.0`)
+- Follow semantic versioning format: `vMAJOR.MINOR.PATCH` or `vMAJOR.MINOR.PATCH-prerelease.N`
 
-```bash
-# Create an annotated tag
-git tag -a v1.0.0 -m "Release version 1.0.0"
-
-# Push the tag to trigger the release workflow
-git push origin v1.0.0
-```
-
-**Important**: The tag must start with `v` followed by the version number (e.g., `v1.0.0`).
-
-### 5. Monitor Release Workflow
+### 4. Monitor Release Workflow
 
 1. Go to the [Actions tab](../../actions) in GitHub
 2. Watch the "Release" workflow execution
 3. Verify all jobs complete successfully:
-   - **build**: Compiles and packages the library
-   - **publish**: Uploads to GitHub Packages
-   - **release**: Creates GitHub Release with changelog
+   - **build**: Validates version, builds JARs, runs tests
+   - **publish**: Generates checksums, publishes to GitHub Packages
+   - **release**: Creates draft GitHub Release, updates CHANGELOG.md
 
-### 6. Verify Release
+### 5. Review and Publish Draft Release
 
 After the workflow completes:
 
+1. Navigate to [Releases](../../releases)
+2. Find the new **draft** release
+3. Review the auto-generated release notes
+4. Verify all artifacts are attached:
+   - `detekt-koin-X.Y.Z.jar` (main library)
+   - `detekt-koin-X.Y.Z-sources.jar` (sources)
+   - `detekt-koin-X.Y.Z-javadoc.jar` (javadoc)
+   - `*.sha256` and `*.sha512` checksum files (6 files total)
+5. Click **"Publish release"** to make it public
+
+### 6. Verify Release
+
+After publishing the release:
+
 #### Check GitHub Release
 1. Navigate to [Releases](../../releases)
-2. Verify the new release is listed
-3. Confirm the changelog is included
-4. Download and inspect the `.nupkg` artifact
+2. Verify the release is published
+3. Confirm artifacts are downloadable
+4. Verify checksums match
 
 #### Check GitHub Packages
 1. Navigate to the [Packages](../../packages) page
 2. Verify the new version is published
-3. Confirm package metadata is correct
+3. Check package metadata (group, artifact, version)
+
+#### Check CHANGELOG Update
+```bash
+git pull origin main
+head -30 CHANGELOG.md
+```
+
+Verify:
+- New version section appears after `## [Unreleased]`
+- Release date is correct
+- Auto-generated release notes are included
 
 #### Test Package Installation
-```bash
-# Add GitHub Packages source (if not already configured)
-dotnet nuget add source \
-  --username YOUR_GITHUB_USERNAME \
-  --password YOUR_GITHUB_TOKEN \
-  --store-password-in-clear-text \
-  --name github \
-  "https://nuget.pkg.github.com/OWNER/index.json"
 
-# Install the package in a test project
-dotnet add package YourPackageName --version 1.0.0
+Add GitHub Packages repository to your `build.gradle.kts`:
+
+```kotlin
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/androidbroadcast/Koin-Detekt")
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+        }
+    }
+}
+
+dependencies {
+    detektPlugins("io.github.krozov:detekt-koin:0.1.0")
+}
+```
+
+Run detekt to verify the rules are loaded:
+```bash
+./gradlew detekt
 ```
 
 ## Version Formats
 
 ### Stable Releases
-Format: `v1.0.0`, `v2.1.3`, etc.
+Format: `v0.1.0`, `v1.0.0`, `v2.1.3`
 
-Tags matching this pattern create **stable releases** with:
+Creates **stable releases** with:
 - Pre-release flag: `false`
-- Full changelog extraction
 - Production-ready designation
+- Published to GitHub Packages
 
 ### Pre-releases
-Format: `v1.0.0-alpha.1`, `v2.0.0-beta.2`, `v1.5.0-rc.1`, etc.
+Format: `v0.1.0-alpha.1`, `v1.0.0-beta.2`, `v0.2.0-rc.1`
 
-Tags with pre-release identifiers create **pre-releases** with:
+Creates **pre-releases** with:
 - Pre-release flag: `true`
-- Limited changelog (since last stable release)
 - Development/testing designation
+- Published to GitHub Packages (can be installed with specific version)
 
 Common pre-release identifiers:
-- `alpha`: Early testing versions
-- `beta`: Feature-complete testing versions
-- `rc`: Release candidates
+- `alpha`: Early testing versions, API may change
+- `beta`: Feature-complete testing versions, API mostly stable
+- `rc`: Release candidates, API stable, final testing
 
 ## What Gets Published
 
-### GitHub Packages
-- NuGet package (`.nupkg`)
-- Symbols package (`.snupkg`)
-- Package metadata and description
-- Dependency information
+### GitHub Packages (Maven)
+- Main JAR: `detekt-koin-X.Y.Z.jar`
+- Sources JAR: `detekt-koin-X.Y.Z-sources.jar`
+- Javadoc JAR: `detekt-koin-X.Y.Z-javadoc.jar`
+- POM file with metadata and dependencies
+- Maven coordinates: `io.github.krozov:detekt-koin:X.Y.Z`
 
 ### GitHub Release
-- Release notes from CHANGELOG.md
-- Downloadable package artifacts
+- Auto-generated release notes from commits
+- All 3 JARs as downloadable artifacts
+- 6 checksum files (SHA-256 and SHA-512 for each JAR)
 - Source code archives (automatic)
 - Pre-release designation (if applicable)
 
 ### CHANGELOG.md
-The workflow extracts relevant sections from CHANGELOG.md:
-- **Stable releases**: All changes for that version
-- **Pre-releases**: All changes since the last stable release
+- New version section inserted after `## [Unreleased]`
+- Release date in `YYYY-MM-DD` format
+- Auto-generated release notes from GitHub
+- Committed back to main branch
 
 ## Troubleshooting
 
 ### Workflow Fails at Build Step
 
-**Symptoms**: Build job fails, no package created
+**Symptoms**: Build job fails, no artifacts created
 
 **Solutions**:
 - Check build logs for compilation errors
-- Verify all tests pass locally: `dotnet test`
-- Ensure `Directory.Build.props` version is valid
+- Verify all tests pass locally: `./gradlew test`
+- Ensure Kotlin version is compatible
 - Confirm all dependencies are available
 
 ### Workflow Fails at Publish Step
 
-**Symptoms**: Build succeeds, but package doesn't upload
+**Symptoms**: Build succeeds, but publish fails
 
 **Solutions**:
-- Verify `GITHUB_TOKEN` permissions in workflow
-- Check package name doesn't conflict with existing packages
-- Ensure GitHub Packages is enabled for the repository
-- Verify package version doesn't already exist
+- Verify `GITHUB_TOKEN` has `packages:write` permission
+- Check GitHub Packages is enabled for the repository
+- Ensure version doesn't already exist in GitHub Packages
+- Verify Maven coordinates are correct in `build.gradle.kts`
 
-### Workflow Fails at Release Step
+### Version Mismatch Error
 
-**Symptoms**: Package published, but GitHub Release not created
-
-**Solutions**:
-- Verify CHANGELOG.md has an entry for the version
-- Check changelog format matches expected structure
-- Ensure tag version matches CHANGELOG version
-- Verify `contents: write` permission is granted
-
-### Release Created but Empty Changelog
-
-**Symptoms**: Release exists but has no description
+**Symptoms**: Workflow uses wrong version (0.1.0-SNAPSHOT instead of tag version)
 
 **Solutions**:
-- Verify CHANGELOG.md format:
-  ```markdown
-  ## [1.0.0] - 2024-01-15
+- Verify tag format: must be `vX.Y.Z` or `vX.Y.Z-suffix`
+- Check workflow passes `-Pversion=X.Y.Z` to Gradle commands
+- Confirm `build.gradle.kts` accepts version override
 
-  ### Added
-  - Feature description
-  ```
-- Ensure version in tag matches CHANGELOG exactly
-- Check for proper heading levels (##)
-- Verify date format is correct
+### CHANGELOG Commit Fails
 
-### Package Not Showing in GitHub Packages
-
-**Symptoms**: Release successful, but package not visible
+**Symptoms**: Release created but CHANGELOG.md not updated in main
 
 **Solutions**:
-- Wait a few minutes (packages may take time to index)
-- Check repository settings > Packages
-- Verify package visibility settings
-- Confirm you have permissions to view packages
+- Check branch protection rules (may block github-actions bot)
+- Verify `GITHUB_TOKEN` has `contents:write` permission
+- Ensure no merge conflicts in CHANGELOG.md
+- Check step output: `changelog_updated` should be `true`
 
-## Manual Verification Steps
+### Git Checkout Fails
 
-After each release, manually verify:
+**Symptoms**: "Your local changes would be overwritten by checkout"
 
-1. **Version Consistency**
-   - Tag version matches `Directory.Build.props`
-   - Package version matches release version
-   - CHANGELOG version matches release version
-
-2. **Package Contents**
-   - Download `.nupkg` from release
-   - Extract and inspect assembly version
-   - Verify all expected files are included
-   - Check assembly attributes and metadata
-
-3. **Installation Test**
-   - Create a new test project
-   - Install the released package
-   - Verify package installs without errors
-   - Test basic functionality
-
-4. **Documentation**
-   - Release notes are accurate and complete
-   - Links in release notes work correctly
-   - Package description is correct on GitHub Packages
-
-## Rollback Procedure
-
-If a release has critical issues:
-
-### Delete the Release (GitHub UI)
-1. Go to [Releases](../../releases)
-2. Click "Edit" on the problematic release
-3. Click "Delete this release"
-4. Confirm deletion
-
-### Delete the Tag
-```bash
-# Delete local tag
-git tag -d v1.0.0
-
-# Delete remote tag
-git push origin :refs/tags/v1.0.0
-```
-
-### Delete Package Version
-1. Navigate to the package on GitHub
-2. Click "Package settings"
-3. Find the version under "Manage versions"
-4. Click "Delete" for that version
-
-### Create Fixed Release
-1. Fix the issues in code
-2. Increment version (e.g., `v1.0.0` → `v1.0.1`)
-3. Follow the normal release process
+**Solutions**:
+- Workflow now checks out main BEFORE modifying CHANGELOG.md (fixed)
+- If still occurring, check for uncommitted changes in release job
 
 ## Best Practices
 
 1. **Test Before Release**
-   - Always run full CI/CD pipeline on `main` before tagging
-   - Perform manual testing of critical functionality
-   - Review all changes in the release
+   - Run full test suite: `./gradlew test`
+   - Run detekt on the project itself: `./gradlew detekt`
+   - Verify reproducible builds: `./gradlew clean build && ./gradlew clean build`
 
 2. **Clear Communication**
-   - Write detailed, user-focused changelog entries
+   - Write descriptive commit messages
+   - Keep CHANGELOG.md up to date continuously
    - Highlight breaking changes prominently
-   - Include migration guides for major versions
 
 3. **Version Strategy**
    - Use pre-releases for testing (`alpha`, `beta`, `rc`)
@@ -284,18 +267,62 @@ git push origin :refs/tags/v1.0.0
    - Follow semantic versioning strictly
 
 4. **Regular Releases**
-   - Release early and often for minor changes
-   - Don't batch too many changes in one release
-   - Consider release cadence (weekly, bi-weekly, etc.)
+   - Release bug fixes quickly (PATCH versions)
+   - Batch related features in MINOR versions
+   - Communicate breaking changes well in advance of MAJOR versions
 
-5. **Documentation**
-   - Keep CHANGELOG.md up to date continuously
-   - Document breaking changes immediately
-   - Update version in `Directory.Build.props` just before release
+## Rollback Procedure
+
+If a release has critical issues:
+
+### Delete the GitHub Release
+```bash
+gh release delete v0.1.0 --yes
+```
+
+Or via GitHub UI:
+1. Go to [Releases](../../releases)
+2. Click "Edit" on the problematic release
+3. Click "Delete this release"
+
+### Delete the Git Tag
+```bash
+# Delete local tag
+git tag -d v0.1.0
+
+# Delete remote tag
+git push origin :refs/tags/v0.1.0
+```
+
+### Delete Package Version from GitHub Packages
+
+**Note**: GitHub Packages doesn't allow deleting public package versions. You must:
+1. Publish a new fixed version (e.g., `v0.1.1`)
+2. Mark the broken version as deprecated (if supported)
+3. Document the issue in release notes
+
+### Revert CHANGELOG.md Commit
+```bash
+# Find the CHANGELOG commit hash
+git log --oneline -n 5
+
+# Revert the commit
+git revert <commit-hash>
+git push origin main
+```
+
+### Create Fixed Release
+1. Fix the issues in code
+2. Increment version appropriately:
+   - Critical bug: `v0.1.0` → `v0.1.1` (PATCH)
+   - Major bug: `v0.1.0` → `v0.2.0` (MINOR if no breaking changes)
+3. Update CHANGELOG.md with fix details
+4. Follow normal release process
 
 ## Additional Resources
 
 - [Semantic Versioning Specification](https://semver.org/)
 - [Keep a Changelog](https://keepachangelog.com/)
-- [GitHub Packages Documentation](https://docs.github.com/packages)
-- [GitHub Actions Documentation](https://docs.github.com/actions)
+- [GitHub Packages - Maven](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Gradle Publishing Plugin](https://docs.gradle.org/current/userguide/publishing_maven.html)

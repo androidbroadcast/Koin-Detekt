@@ -62,10 +62,10 @@ jobs:
           cache-read-only: false
 
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon --configuration-cache
+        run: ./gradlew build --no-daemon --configuration-cache -Pversion=${{ steps.version.outputs.version }}
 
       - name: Generate all JARs
-        run: ./gradlew jar sourcesJar javadocJar --no-daemon
+        run: ./gradlew jar sourcesJar javadocJar --no-daemon -Pversion=${{ steps.version.outputs.version }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -121,7 +121,7 @@ jobs:
           head -1 *.sha256
 
       - name: Publish to GitHub Packages
-        run: ./gradlew publish --no-daemon
+        run: ./gradlew publish --no-daemon -Pversion=${{ needs.build.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -211,41 +211,54 @@ jobs:
             return release.data.body;
           result-encoding: string
 
-      - name: Update CHANGELOG.md
-        run: |
-          echo "Creating updated CHANGELOG..."
-          {
-            echo "## ${{ github.ref_name }} - $(date +%Y-%m-%d)"
-            echo ""
-            echo "${{ steps.release_notes.outputs.result }}"
-            echo ""
-            cat CHANGELOG.md
-          } > new_changelog.md
-
-          mv new_changelog.md CHANGELOG.md
-
-          echo "CHANGELOG.md updated:"
-          head -20 CHANGELOG.md
-
-      - name: Commit CHANGELOG to main
+      - name: Update and commit CHANGELOG to main
+        id: changelog_commit
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Checkout main branch first (before making any changes)
           git fetch origin main
           git checkout main
 
+          # Build the new release section in a temporary file
+          SECTION_FILE="$(mktemp)"
+          {
+            echo ""
+            echo "## ${{ github.ref_name }} - $(date +%Y-%m-%d)"
+            echo ""
+            echo "${{ steps.release_notes.outputs.result }}"
+            echo ""
+          } > "$SECTION_FILE"
+
+          # Insert the new section after the Unreleased heading if present,
+          # otherwise insert it after the main Changelog title.
+          if grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+            sed '/^## \[Unreleased\]/r '"$SECTION_FILE"'' CHANGELOG.md > new_changelog.md
+          else
+            sed '/^# Changelog/r '"$SECTION_FILE"'' CHANGELOG.md > new_changelog.md
+          fi
+
+          mv new_changelog.md CHANGELOG.md
+          rm "$SECTION_FILE"
+
+          echo "CHANGELOG.md updated:"
+          head -20 CHANGELOG.md
+
+          # Commit and push changes
           git add CHANGELOG.md
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
+            echo "changelog_updated=false" >> $GITHUB_OUTPUT
           else
             git commit -m "docs: update CHANGELOG for ${{ github.ref_name }}
 
           Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
             git push origin main
             echo "✅ CHANGELOG committed to main"
+            echo "changelog_updated=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Release summary
@@ -261,7 +274,11 @@ jobs:
           echo "2. Verify all artifacts are attached" >> $GITHUB_STEP_SUMMARY
           echo "3. Click 'Publish release' to make it public" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changelog_commit.outputs.changelog_updated }}" == "true" ]; then
+            echo "✅ CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ CHANGELOG.md update failed or was skipped (check logs above)" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Notify on failure
         if: failure()
