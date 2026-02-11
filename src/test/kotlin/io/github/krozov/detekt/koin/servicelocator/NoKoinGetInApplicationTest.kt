@@ -43,4 +43,23 @@ class NoKoinGetInApplicationTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports inject() inside startKoin block`() {
+        val code = """
+            import org.koin.core.context.startKoin
+
+            fun main() {
+                startKoin {
+                    val service: MyService by inject()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty)
+            .lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("startKoin")
+    }
 }

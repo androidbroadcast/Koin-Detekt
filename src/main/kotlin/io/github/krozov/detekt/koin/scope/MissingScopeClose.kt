@@ -10,8 +10,10 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class MissingScopeClose(config: Config) : Rule(config) {
@@ -47,11 +49,22 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
 
     override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression)
+        checkCloseCall(expression)
+    }
 
-        val selectorCall = expression.selectorExpression as? KtCallExpression
+    override fun visitSafeQualifiedExpression(expression: KtSafeQualifiedExpression) {
+        super.visitSafeQualifiedExpression(expression)
+        checkCloseCall(expression)
+    }
+
+    private fun checkCloseCall(expression: KtExpression) {
+        val selectorCall = when (expression) {
+            is KtDotQualifiedExpression -> expression.selectorExpression as? KtCallExpression
+            is KtSafeQualifiedExpression -> expression.selectorExpression as? KtCallExpression
+            else -> null
+        }
         val callName = selectorCall?.getCallNameExpression()?.text
 
-        // Find containing class by traversing parent hierarchy
         var parent = expression.parent
         var containingClass: KtClass? = null
         while (parent != null) {
@@ -67,9 +80,13 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
                 containingClass?.let { classesWithScopeCreation.add(it) }
             }
             "close" -> {
-                // Check if receiver is exactly 'scope' or ends with '.scope'
-                val receiverText = expression.receiverExpression.text
-                val receiverName = (expression.receiverExpression as? KtNameReferenceExpression)?.getReferencedName()
+                val receiverExpression = when (expression) {
+                    is KtDotQualifiedExpression -> expression.receiverExpression
+                    is KtSafeQualifiedExpression -> expression.receiverExpression
+                    else -> null
+                }
+                val receiverText = receiverExpression?.text ?: ""
+                val receiverName = (receiverExpression as? KtNameReferenceExpression)?.getReferencedName()
                 if (receiverName == "scope" || receiverText.endsWith(".scope")) {
                     containingClass?.let { classesWithScopeClose.add(it) }
                 }

@@ -47,16 +47,15 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
     override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression)
 
-        // Check for Application.koin (Ktor)
         val selectorText = expression.selectorExpression?.text
         if (selectorText == "koin") {
-            val receiverType = (expression.receiverExpression as? KtNameReferenceExpression)?.text
-            if (receiverType == "Application") {
+            val receiverName = (expression.receiverExpression as? KtNameReferenceExpression)?.text
+            if (receiverName == "application") {
                 report(
                     CodeSmell(
                         issue,
                         Entity.from(expression),
-                        "'Application.koin' is deprecated in Koin 4.x (Ktor). Use 'Application.koinModules()' instead."
+                        "'application.koin' is deprecated in Koin 4.x (Ktor). Use 'application.koinModules()' instead."
                     )
                 )
             }
