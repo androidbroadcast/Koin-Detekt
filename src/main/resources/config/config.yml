@@ -1,0 +1,59 @@
+koin-rules:
+  active: true
+
+  # Service Locator Rules
+  NoGetOutsideModuleDefinition:
+    active: true
+
+  NoInjectDelegate:
+    active: true
+
+  NoKoinComponentInterface:
+    active: true
+    allowedSuperTypes:
+      - 'Application'
+      - 'Activity'
+      - 'Fragment'
+      - 'Service'
+      - 'BroadcastReceiver'
+      - 'ViewModel'
+
+  NoGlobalContextAccess:
+    active: true
+
+  NoKoinGetInApplication:
+    active: true
+
+  # Module DSL Rules
+  EmptyModule:
+    active: true
+
+  SingleForNonSharedDependency:
+    active: true
+    namePatterns:
+      - '.*UseCase'
+      - '.*Interactor'
+      - '.*Mapper'
+
+  MissingScopedDependencyQualifier:
+    active: true
+
+  DeprecatedKoinApi:
+    active: true
+
+  ModuleIncludesOrganization:
+    active: false
+    maxIncludesWithDefinitions: 3
+
+  # Scope Management Rules
+  MissingScopeClose:
+    active: true
+
+  ScopedDependencyOutsideScopeBlock:
+    active: true
+
+  FactoryInScopeBlock:
+    active: false
+
+  KtorRequestScopeMisuse:
+    active: true
