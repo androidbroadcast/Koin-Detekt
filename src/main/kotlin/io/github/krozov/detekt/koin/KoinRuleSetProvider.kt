@@ -5,6 +5,7 @@ import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 import io.github.krozov.detekt.koin.servicelocator.NoGetOutsideModuleDefinition
 import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
+import io.github.krozov.detekt.koin.servicelocator.NoKoinComponentInterface
 
 class KoinRuleSetProvider : RuleSetProvider {
 
@@ -16,6 +17,7 @@ class KoinRuleSetProvider : RuleSetProvider {
             listOf(
                 NoGetOutsideModuleDefinition(config),
                 NoInjectDelegate(config),
+                NoKoinComponentInterface(config),
             )
         )
     }
