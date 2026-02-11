@@ -52,4 +52,17 @@ class DeprecatedKoinApiTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports stateViewModel usage`() {
+        val code = """
+            val vm = stateViewModel<MyViewModel>()
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty)
+            .lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("viewModel()")
+    }
 }

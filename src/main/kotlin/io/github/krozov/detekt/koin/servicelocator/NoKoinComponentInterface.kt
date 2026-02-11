@@ -35,23 +35,31 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
         super.visitClass(klass)
 
         val superTypes = klass.superTypeListEntries.mapNotNull { it.text }
-        val hasKoinComponent = superTypes.any {
+        val koinInterface = superTypes.firstOrNull {
             it.contains("KoinComponent") || it.contains("KoinScopeComponent")
         }
 
-        if (!hasKoinComponent) return
+        if (koinInterface == null) return
 
-        // Check if class extends an allowed super type
         val hasAllowedSuperType = superTypes.any { superType ->
-            allowedSuperTypes.any { allowed -> superType.contains(allowed) }
+            val shortTypeName = superType
+                .substringBefore("<")
+                .substringBefore("(")
+                .substringAfterLast(".")
+                .trim()
+            allowedSuperTypes.any { allowed -> shortTypeName == allowed }
         }
 
         if (!hasAllowedSuperType) {
+            val interfaceName = when {
+                koinInterface.contains("KoinScopeComponent") -> "KoinScopeComponent"
+                else -> "KoinComponent"
+            }
             report(
                 CodeSmell(
                     issue,
                     Entity.from(klass),
-                    "Class '${klass.name}' implements KoinComponent but is not a framework entry point. " +
+                    "Class '${klass.name}' implements $interfaceName but is not a framework entry point. " +
                             "Use constructor injection instead."
                 )
             )

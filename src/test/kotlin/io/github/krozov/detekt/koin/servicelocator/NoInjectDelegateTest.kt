@@ -52,4 +52,22 @@ class NoInjectDelegateTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports injectOrNull() delegate usage`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.injectOrNull
+
+            class MyRepository : KoinComponent {
+                val api: ApiService? by injectOrNull()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty)
+            .lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("injectOrNull()")
+    }
 }
