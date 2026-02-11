@@ -3,6 +3,7 @@ package io.github.krozov.detekt.koin
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
+import io.github.krozov.detekt.koin.servicelocator.NoGetOutsideModuleDefinition
 
 class KoinRuleSetProvider : RuleSetProvider {
 
@@ -12,7 +13,7 @@ class KoinRuleSetProvider : RuleSetProvider {
         return RuleSet(
             ruleSetId,
             listOf(
-                // Rules will be added here
+                NoGetOutsideModuleDefinition(config),
             )
         )
     }

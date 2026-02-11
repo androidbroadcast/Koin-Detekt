@@ -17,6 +17,7 @@ class KoinRuleSetProviderTest {
         val config = io.gitlab.arturbosch.detekt.api.Config.empty
         val ruleSet = provider.instance(config)
 
-        assertThat(ruleSet.rules).isEmpty() // Will add rules later
+        assertThat(ruleSet.rules).isNotEmpty()
+        assertThat(ruleSet.rules).hasSize(1)
     }
 }
