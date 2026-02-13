@@ -69,4 +69,34 @@ class NoKoinComponentInterfaceTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report FragmentActivity as Activity subclass`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import androidx.fragment.app.FragmentActivity
+
+            class MainActivity : FragmentActivity(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty)
+            .lint(code)
+
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report AppCompatActivity as Activity subclass`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import androidx.appcompat.app.AppCompatActivity
+
+            class MainActivity : AppCompatActivity(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty)
+            .lint(code)
+
+        assertThat(findings).isEmpty()
+    }
 }

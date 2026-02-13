@@ -47,7 +47,9 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
                 .substringBefore("(")
                 .substringAfterLast(".")
                 .trim()
-            allowedSuperTypes.any { allowed -> shortTypeName == allowed }
+            allowedSuperTypes.any { allowed ->
+                shortTypeName == allowed || shortTypeName.endsWith(allowed)
+            }
         }
 
         if (!hasAllowedSuperType) {
