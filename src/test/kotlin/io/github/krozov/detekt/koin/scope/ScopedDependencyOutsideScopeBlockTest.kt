@@ -59,4 +59,34 @@ class ScopedDependencyOutsideScopeBlockTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report scoped inside fragmentScope`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                fragmentScope {
+                    scoped { MyFragment() }
+                }
+            }
+        """.trimIndent()
+
+        val findings = ScopedDependencyOutsideScopeBlock(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports scoped at module level`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                scoped { MyService() }
+            }
+        """.trimIndent()
+
+        val findings = ScopedDependencyOutsideScopeBlock(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
