@@ -26,21 +26,17 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
         debt = Debt.TEN_MINS
     )
 
-    // Thread-safe state using ThreadLocal to support parallel file processing
-    private val classesWithScopeCreation = ThreadLocal.withInitial { mutableSetOf<KtClass>() }
-    private val classesWithScopeClose = ThreadLocal.withInitial { mutableSetOf<KtClass>() }
+    private val classesWithScopeCreation = mutableSetOf<KtClass>()
+    private val classesWithScopeClose = mutableSetOf<KtClass>()
 
     override fun visitKtFile(file: KtFile) {
-        val scopeCreation = classesWithScopeCreation.get()
-        val scopeClose = classesWithScopeClose.get()
-
-        scopeCreation.clear()
-        scopeClose.clear()
+        classesWithScopeCreation.clear()
+        classesWithScopeClose.clear()
 
         super.visitKtFile(file)
 
         // Report all classes with scope creation but no close
-        (scopeCreation - scopeClose).forEach { klass ->
+        (classesWithScopeCreation - classesWithScopeClose).forEach { klass ->
             report(
                 CodeSmell(
                     issue,
@@ -81,7 +77,7 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
 
         when (callName) {
             "createScope", "getOrCreateScope" -> {
-                containingClass?.let { classesWithScopeCreation.get().add(it) }
+                containingClass?.let { classesWithScopeCreation.add(it) }
             }
             "close" -> {
                 val receiverExpression = when (expression) {
@@ -92,7 +88,7 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
                 val receiverText = receiverExpression?.text ?: ""
                 val receiverName = (receiverExpression as? KtNameReferenceExpression)?.getReferencedName()
                 if (receiverName == "scope" || receiverText.endsWith(".scope")) {
-                    containingClass?.let { classesWithScopeClose.get().add(it) }
+                    containingClass?.let { classesWithScopeClose.add(it) }
                 }
             }
         }

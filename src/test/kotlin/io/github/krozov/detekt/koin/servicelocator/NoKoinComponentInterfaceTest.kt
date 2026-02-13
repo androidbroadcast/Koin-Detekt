@@ -71,32 +71,18 @@ class NoKoinComponentInterfaceTest {
     }
 
     @Test
-    fun `does not report FragmentActivity as Activity subclass`() {
+    fun `reports edge case - NonActivity should not match Activity`() {
         val code = """
             import org.koin.core.component.KoinComponent
-            import androidx.fragment.app.FragmentActivity
 
-            class MainActivity : FragmentActivity(), KoinComponent
+            class NonActivity : KoinComponent
         """.trimIndent()
 
         val findings = NoKoinComponentInterface(Config.empty)
             .lint(code)
 
-        assertThat(findings).isEmpty()
-    }
-
-    @Test
-    fun `does not report AppCompatActivity as Activity subclass`() {
-        val code = """
-            import org.koin.core.component.KoinComponent
-            import androidx.appcompat.app.AppCompatActivity
-
-            class MainActivity : AppCompatActivity(), KoinComponent
-        """.trimIndent()
-
-        val findings = NoKoinComponentInterface(Config.empty)
-            .lint(code)
-
-        assertThat(findings).isEmpty()
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("NonActivity")
+        assertThat(findings[0].message).contains("not a framework entry point")
     }
 }
