@@ -6,11 +6,11 @@
 ![Coverage](https://img.shields.io/badge/coverage-98.5%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Detekt 1.x extension library with 14 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
+Detekt 1.x extension library with 24 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
 
 ## Features
 
-✅ **14 Rules** across 3 categories: Service Locator, Module DSL, Scope Management
+✅ **24 Rules** across 5 categories: Service Locator, Module DSL, Scope Management, Platform, Architecture
 ✅ **Zero runtime overhead** — pure syntactic analysis via Kotlin PSI
 ✅ **No Koin dependency** in consumer projects
 ✅ **Configurable** — customize rules via detekt config
@@ -74,6 +74,26 @@ Run analysis:
 | `ScopedDependencyOutsideScopeBlock` | Warning | Active |
 | `FactoryInScopeBlock` | Style | Inactive |
 | `KtorRequestScopeMisuse` | Warning | Active |
+
+### Platform Rules (7)
+
+| Rule | Severity | Default |
+|------|----------|---------|
+| `KoinViewModelOutsideComposable` | Warning | Active |
+| `KoinInjectInPreview` | Warning | Active |
+| `RememberKoinModulesLeak` | Warning | Active |
+| `KtorApplicationKoinInit` | Warning | Active |
+| `KtorRouteScopeMisuse` | Warning | Active |
+| `AndroidContextNotFromKoin` | Warning | Active |
+| `ActivityFragmentKoinScope` | Warning | Active |
+
+### Architecture Rules (3)
+
+| Rule | Severity | Default |
+|------|----------|---------|
+| `LayerBoundaryViolation` | Warning | Inactive |
+| `PlatformImportRestriction` | Warning | Inactive |
+| `CircularModuleDependency` | Warning | Active |
 
 📖 **[Complete Rule Documentation](docs/rules.md)**
 
@@ -157,7 +177,7 @@ This enforces minimum coverage thresholds:
 - Generated code and providers are excluded
 - All public APIs must have tests
 - All rule implementations must have tests
-- 155+ unit tests covering all 14 rules
+- 205+ unit tests covering all 24 rules
 - 3 integration tests validating end-to-end functionality
 
 ## Requirements

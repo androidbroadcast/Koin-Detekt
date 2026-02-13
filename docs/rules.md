@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 14 Detekt rules for Koin.
+Complete reference for all 24 Detekt rules for Koin.
 
 ---
 
@@ -399,3 +399,347 @@ module {
 - ✅ Detects multiple violations and nested requestScope blocks
 - ✅ Allows `scoped {}`, `factory {}`, `viewModel {}`, and `worker {}` inside requestScope
 - ✅ Detects single in lambdas inside requestScope: `forEach { single { ... } }`
+
+---
+
+## Platform Rules
+
+### Compose Rules
+
+#### KoinViewModelOutsideComposable
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `koinViewModel()` calls outside `@Composable` functions.
+
+❌ **Bad:**
+```kotlin
+fun MyScreen() {
+    val vm = koinViewModel<MyViewModel>() // Runtime crash!
+}
+```
+
+✅ **Good:**
+```kotlin
+@Composable
+fun MyScreen() {
+    val vm = koinViewModel<MyViewModel>()
+}
+```
+
+**Edge Cases:**
+- ✅ Detects in init blocks and property initializers
+- ✅ Works with inline Composable functions
+- ✅ Handles qualified koinViewModel calls with parameters
+
+---
+
+#### KoinInjectInPreview
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `koinInject()` in `@Preview` functions.
+
+❌ **Bad:**
+```kotlin
+@Preview
+@Composable
+fun MyScreenPreview() {
+    val repo = koinInject<Repository>() // Preview crash!
+    MyScreen(repo)
+}
+```
+
+✅ **Good:**
+```kotlin
+@Preview
+@Composable
+fun MyScreenPreview() {
+    MyScreen(FakeRepository())
+}
+```
+
+**Edge Cases:**
+- ✅ Detects koinInject in any Preview-annotated function
+- ✅ Regular Composable functions without @Preview are allowed
+
+---
+
+#### RememberKoinModulesLeak
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `loadKoinModules()` inside `remember {}` without corresponding unload.
+
+❌ **Bad:**
+```kotlin
+@Composable
+fun FeatureScreen() {
+    remember { loadKoinModules(featureModule) } // Memory leak!
+}
+```
+
+✅ **Good:**
+```kotlin
+@Composable
+fun FeatureScreen() {
+    DisposableEffect(Unit) {
+        loadKoinModules(featureModule)
+        onDispose { unloadKoinModules(featureModule) }
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects loadKoinModules specifically inside remember blocks
+- ✅ DisposableEffect with onDispose is the recommended pattern
+
+---
+
+### Ktor Rules
+
+#### KtorApplicationKoinInit
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `install(Koin)` in routing blocks or route handlers.
+
+❌ **Bad:**
+```kotlin
+fun Application.module() {
+    routing {
+        install(Koin) { } // Wrong place!
+        get("/api") { }
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+fun Application.module() {
+    install(Koin) { }
+    routing {
+        get("/api") { }
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects install(Koin) at any depth inside routing blocks
+- ✅ Koin should be initialized once at Application level
+
+---
+
+#### KtorRouteScopeMisuse
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects shared `koinScope()` across HTTP requests.
+
+❌ **Bad:**
+```kotlin
+val sharedScope = koinScope() // Shared across requests!
+get("/api") {
+    val service = sharedScope.get<Service>()
+}
+```
+
+✅ **Good:**
+```kotlin
+get("/api") {
+    call.koinScope().get<Service>() // Request-scoped
+}
+```
+
+**Edge Cases:**
+- ✅ Detects koinScope stored in properties outside route handlers
+- ✅ call.koinScope() is the correct request-scoped pattern
+
+---
+
+### Android Rules
+
+#### AndroidContextNotFromKoin
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `androidContext()` / `androidApplication()` called outside `startKoin`.
+
+❌ **Bad:**
+```kotlin
+val myModule = module {
+    single { androidContext() } // Wrong context!
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyApp : Application() {
+    override fun onCreate() {
+        startKoin {
+            androidContext(this@MyApp)
+            modules(appModule)
+        }
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects both androidContext() and androidApplication()
+- ✅ These should only be called once in startKoin block
+
+---
+
+#### ActivityFragmentKoinScope
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects misuse of `activityScope()` / `fragmentScope()`.
+
+❌ **Bad:**
+```kotlin
+class MyFragment : Fragment() {
+    val vm by activityScope().inject<MyViewModel>() // Wrong scope!
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyFragment : Fragment() {
+    val vm by fragmentScope().inject<MyViewModel>()
+}
+```
+
+**Edge Cases:**
+- ✅ Scopes must match component lifecycle
+- ✅ Detects activityScope in Fragment and fragmentScope in Activity
+- ✅ Prevents memory leaks from lifecycle mismatches
+
+---
+
+## Architecture Rules
+
+### LayerBoundaryViolation
+
+**Severity:** Warning
+**Active by default:** No (requires configuration)
+**Configurable:** Yes
+
+Enforces Clean Architecture by restricting Koin imports in specified layers.
+
+**Configuration:**
+```yaml
+LayerBoundaryViolation:
+  active: true
+  restrictedLayers:
+    - 'com.example.domain'
+    - 'com.example.core'
+  allowedImports:
+    - 'org.koin.core.qualifier.Qualifier'
+```
+
+❌ **Bad:**
+```kotlin
+package com.example.domain
+import org.koin.core.component.get
+
+class UseCase {
+    val repo = get<Repository>() // Violates Clean Architecture!
+}
+```
+
+✅ **Good:**
+```kotlin
+package com.example.domain
+
+class UseCase(
+    private val repo: Repository // Constructor injection
+)
+```
+
+**Edge Cases:**
+- ✅ Only active when restrictedLayers is configured
+- ✅ Supports allowedImports whitelist for specific APIs
+- ✅ Detects all org.koin.* imports in restricted packages
+- ✅ Star imports are always violations in restricted layers
+
+---
+
+### PlatformImportRestriction
+
+**Severity:** Warning
+**Active by default:** No (requires configuration)
+**Configurable:** Yes
+
+Restricts platform-specific Koin imports to appropriate modules.
+
+**Configuration:**
+```yaml
+PlatformImportRestriction:
+  active: true
+  restrictions:
+    - import: 'org.koin.android.*'
+      allowedPackages: ['com.example.app']
+    - import: 'org.koin.compose.*'
+      allowedPackages: ['com.example.ui']
+```
+
+❌ **Bad:**
+```kotlin
+package com.example.shared
+import org.koin.android.ext.koin.androidContext // Wrong module!
+```
+
+✅ **Good:**
+```kotlin
+package com.example.app
+import org.koin.android.ext.koin.androidContext
+```
+
+**Edge Cases:**
+- ✅ Only active when restrictions are configured
+- ✅ Supports wildcard patterns (org.koin.android.*)
+- ✅ Multiple restrictions can be defined
+- ✅ Prevents accidental platform dependencies in shared code
+
+---
+
+### CircularModuleDependency
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects circular dependencies between Koin modules via `includes()`.
+
+❌ **Bad:**
+```kotlin
+val moduleA = module {
+    includes(moduleB)
+}
+
+val moduleB = module {
+    includes(moduleA) // Circular!
+}
+```
+
+✅ **Good:**
+```kotlin
+val coreModule = module { }
+
+val featureModule = module {
+    includes(coreModule)
+}
+```
+
+**Edge Cases:**
+- ✅ Detects self-referencing modules
+- ✅ Detects direct circular dependencies (A -> B -> A)
+- ✅ Analyzes module dependencies within a single file
+- ✅ Ensures clean module hierarchy
