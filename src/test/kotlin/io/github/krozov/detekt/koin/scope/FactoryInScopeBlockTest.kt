@@ -78,4 +78,35 @@ class FactoryInScopeBlockTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports factoryOf inside activityScope`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.module.dsl.factoryOf
+
+            val m = module {
+                activityScope {
+                    factoryOf(::MyService)
+                }
+            }
+        """.trimIndent()
+
+        val findings = FactoryInScopeBlock(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `does not report factory outside any scope`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                factory { MyService() }
+            }
+        """.trimIndent()
+
+        val findings = FactoryInScopeBlock(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
