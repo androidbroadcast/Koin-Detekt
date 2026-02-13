@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.kover)
+    alias(libs.plugins.jmh)
 }
 
 group = "dev.androidbroadcast"
@@ -182,4 +183,13 @@ kover {
             }
         }
     }
+}
+
+// JMH benchmarking configuration
+jmh {
+    iterations = 3
+    benchmarkMode = listOf("avgt")  // Average time
+    timeUnit = "ms"
+    fork = 2
+    warmupIterations = 2
 }

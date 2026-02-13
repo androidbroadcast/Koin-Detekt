@@ -3,6 +3,7 @@
 kotlin = "2.0.21"
 detekt = "1.23.8"
 kover = "0.9.7"
+jmh = "0.7.2"
 
 # Test dependencies
 assertj = "3.27.7"
@@ -21,3 +22,4 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 maven-publish = { id = "maven-publish" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+jmh = { id = "me.champeau.jmh", version.ref = "jmh" }
