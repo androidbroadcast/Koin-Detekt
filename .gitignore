@@ -23,3 +23,6 @@ local.properties
 .kotlin/
 .m2/
 .npm/
+
+# Cache directories
+.cache/

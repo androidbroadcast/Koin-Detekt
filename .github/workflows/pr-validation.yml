@@ -32,13 +32,11 @@ jobs:
           cache-read-only: false
 
       # Gradle wrapper validation disabled due to frequent network timeouts in GitHub Actions
-      # The validation attempts to connect to services.gradle.org which often times out
-      # This is not a security concern as:
-      # 1. The wrapper is committed to the repository and reviewed in PRs
-      # 2. Other security checks (dependency scanning, code quality) are still active
-      # 3. The build itself will fail if the wrapper is corrupted
-      # - name: Validate Gradle wrapper
-      #   uses: gradle/actions/wrapper-validation@v3
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+        with:
+          allow-snapshots: false
+          min-wrapper-count: 1
 
       - name: Build with Gradle
         run: ./gradlew build --no-daemon --configuration-cache

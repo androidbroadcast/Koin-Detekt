@@ -98,9 +98,9 @@ After the workflow completes:
 2. Find the new **draft** release
 3. Review the auto-generated release notes
 4. Verify all artifacts are attached:
-   - `detekt-koin-X.Y.Z.jar` (main library)
-   - `detekt-koin-X.Y.Z-sources.jar` (sources)
-   - `detekt-koin-X.Y.Z-javadoc.jar` (javadoc)
+   - `detekt-rules-koin-X.Y.Z.jar` (main library)
+   - `detekt-rules-koin-X.Y.Z-sources.jar` (sources)
+   - `detekt-rules-koin-X.Y.Z-javadoc.jar` (javadoc)
    - `*.sha256` and `*.sha512` checksum files (6 files total)
 5. Click **"Publish release"** to make it public
 
@@ -139,14 +139,14 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/androidbroadcast/Koin-Detekt")
         credentials {
-            username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
         }
     }
 }
 
 dependencies {
-    detektPlugins("io.github.krozov:detekt-koin:0.1.0")
+    detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0")
 }
 ```
 
@@ -181,11 +181,11 @@ Common pre-release identifiers:
 ## What Gets Published
 
 ### GitHub Packages (Maven)
-- Main JAR: `detekt-koin-X.Y.Z.jar`
-- Sources JAR: `detekt-koin-X.Y.Z-sources.jar`
-- Javadoc JAR: `detekt-koin-X.Y.Z-javadoc.jar`
+- Main JAR: `detekt-rules-koin-X.Y.Z.jar`
+- Sources JAR: `detekt-rules-koin-X.Y.Z-sources.jar`
+- Javadoc JAR: `detekt-rules-koin-X.Y.Z-javadoc.jar`
 - POM file with metadata and dependencies
-- Maven coordinates: `io.github.krozov:detekt-koin:X.Y.Z`
+- Maven coordinates: `io.github.krozov:detekt-rules-koin:X.Y.Z`
 
 ### GitHub Release
 - Auto-generated release notes from commits

@@ -103,15 +103,15 @@ Check the following steps:
 Expected checksum generation output:
 ```
 Generating SHA-256 and SHA-512 checksums...
-✅ Generated checksums for detekt-koin-0.1.0-test.1.jar
-✅ Generated checksums for detekt-koin-0.1.0-test.1-sources.jar
-✅ Generated checksums for detekt-koin-0.1.0-test.1-javadoc.jar
+✅ Generated checksums for detekt-rules-koin-0.1.0-test.1.jar
+✅ Generated checksums for detekt-rules-koin-0.1.0-test.1-sources.jar
+✅ Generated checksums for detekt-rules-koin-0.1.0-test.1-javadoc.jar
 ```
 
 Expected publish output:
 ```
 Publishing to GitHubPackages
-Published io.github.krozov:detekt-koin:0.1.0-test.1 to https://maven.pkg.github.com/androidbroadcast/Koin-Detekt
+Published io.github.krozov:detekt-rules-koin:0.1.0-test.1 to https://maven.pkg.github.com/androidbroadcast/Koin-Detekt
 ```
 
 ### 4. Monitor Release Job
@@ -157,15 +157,15 @@ Verify the draft release:
 - [ ] Release body includes "What's Changed" section
 
 **Assets verification:**
-- [ ] `detekt-koin-X.Y.Z.jar` attached (main library)
-- [ ] `detekt-koin-X.Y.Z-sources.jar` attached (source code)
-- [ ] `detekt-koin-X.Y.Z-javadoc.jar` attached (API documentation)
-- [ ] `detekt-koin-X.Y.Z.jar.sha256` attached
-- [ ] `detekt-koin-X.Y.Z.jar.sha512` attached
-- [ ] `detekt-koin-X.Y.Z-sources.jar.sha256` attached
-- [ ] `detekt-koin-X.Y.Z-sources.jar.sha512` attached
-- [ ] `detekt-koin-X.Y.Z-javadoc.jar.sha256` attached
-- [ ] `detekt-koin-X.Y.Z-javadoc.jar.sha512` attached
+- [ ] `detekt-rules-koin-X.Y.Z.jar` attached (main library)
+- [ ] `detekt-rules-koin-X.Y.Z-sources.jar` attached (source code)
+- [ ] `detekt-rules-koin-X.Y.Z-javadoc.jar` attached (API documentation)
+- [ ] `detekt-rules-koin-X.Y.Z.jar.sha256` attached
+- [ ] `detekt-rules-koin-X.Y.Z.jar.sha512` attached
+- [ ] `detekt-rules-koin-X.Y.Z-sources.jar.sha256` attached
+- [ ] `detekt-rules-koin-X.Y.Z-sources.jar.sha512` attached
+- [ ] `detekt-rules-koin-X.Y.Z-javadoc.jar.sha256` attached
+- [ ] `detekt-rules-koin-X.Y.Z-javadoc.jar.sha512` attached
 - [ ] Total: 9 files (3 JARs + 6 checksums)
 
 ### 2. Verify GitHub Packages
@@ -177,7 +177,7 @@ https://github.com/androidbroadcast/Koin-Detekt/packages
 
 Verify:
 - [ ] Package version `X.Y.Z` appears in the versions list
-- [ ] Package shows correct Maven coordinates: `io.github.krozov:detekt-koin:X.Y.Z`
+- [ ] Package shows correct Maven coordinates: `io.github.krozov:detekt-rules-koin:X.Y.Z`
 - [ ] Package is linked to the tag commit
 - [ ] Package metadata includes description from `build.gradle.kts`
 - [ ] Installation instructions show Maven/Gradle configuration
@@ -186,14 +186,14 @@ Expected Maven coordinates:
 ```
 <dependency>
   <groupId>io.github.krozov</groupId>
-  <artifactId>detekt-koin</artifactId>
+  <artifactId>detekt-rules-koin</artifactId>
   <version>0.1.0-test.1</version>
 </dependency>
 ```
 
 Expected Gradle configuration:
 ```kotlin
-detektPlugins("io.github.krozov:detekt-koin:0.1.0-test.1")
+detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0-test.1")
 ```
 
 ### 3. Verify CHANGELOG Update
@@ -252,9 +252,9 @@ sha512sum -c *.sha512
 
 Expected output:
 ```
-detekt-koin-0.1.0-test.1.jar: OK
-detekt-koin-0.1.0-test.1-sources.jar: OK
-detekt-koin-0.1.0-test.1-javadoc.jar: OK
+detekt-rules-koin-0.1.0-test.1.jar: OK
+detekt-rules-koin-0.1.0-test.1-sources.jar: OK
+detekt-rules-koin-0.1.0-test.1-javadoc.jar: OK
 ```
 
 ### 5. Verify JAR Contents
@@ -263,16 +263,16 @@ Inspect the JAR files:
 
 ```bash
 # List contents of main JAR
-unzip -l detekt-koin-0.1.0-test.1.jar
+unzip -l detekt-rules-koin-0.1.0-test.1.jar
 
 # Check META-INF/MANIFEST.MF for version
-unzip -p detekt-koin-0.1.0-test.1.jar META-INF/MANIFEST.MF
+unzip -p detekt-rules-koin-0.1.0-test.1.jar META-INF/MANIFEST.MF
 
 # List contents of sources JAR
-unzip -l detekt-koin-0.1.0-test.1-sources.jar
+unzip -l detekt-rules-koin-0.1.0-test.1-sources.jar
 
 # List contents of javadoc JAR
-unzip -l detekt-koin-0.1.0-test.1-javadoc.jar
+unzip -l detekt-rules-koin-0.1.0-test.1-javadoc.jar
 ```
 
 Verify:
@@ -315,7 +315,7 @@ repositories {
 }
 
 dependencies {
-    detektPlugins("io.github.krozov:detekt-koin:0.1.0-test.1")
+    detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0-test.1")
 }
 
 detekt {
@@ -339,7 +339,7 @@ export GITHUB_TOKEN=your-token
 Verify:
 - [ ] Gradle resolves the dependency successfully
 - [ ] Detekt loads the custom rule provider
-- [ ] Rules from detekt-koin are available
+- [ ] Rules from detekt-rules-koin are available
 - [ ] No class loading errors or conflicts
 
 ## Version Format Tests
@@ -492,7 +492,7 @@ Use this checklist to confirm a successful release:
 - [ ] 9 artifacts attached to release (3 JARs + 6 checksums)
 - [ ] All checksums verify correctly
 - [ ] Package published to GitHub Packages with correct version
-- [ ] Maven coordinates are correct: `io.github.krozov:detekt-koin:X.Y.Z`
+- [ ] Maven coordinates are correct: `io.github.krozov:detekt-rules-koin:X.Y.Z`
 - [ ] CHANGELOG.md updated with new version section
 - [ ] CHANGELOG commit pushed to main branch
 - [ ] New section inserted after `## [Unreleased]`
