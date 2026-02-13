@@ -137,3 +137,20 @@ kotlin {
     // Strict mode: All public APIs must have explicit visibility and return types
     explicitApi()
 }
+
+// Code coverage configuration
+kover {
+    reports {
+        // Enable all report types
+        total {
+            html {
+                onCheck = true
+                htmlDir = layout.buildDirectory.dir("reports/kover/html")
+            }
+            xml {
+                onCheck = true
+                xmlFile = layout.buildDirectory.file("reports/kover/coverage.xml")
+            }
+        }
+    }
+}
