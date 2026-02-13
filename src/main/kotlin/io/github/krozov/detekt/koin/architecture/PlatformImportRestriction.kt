@@ -1,5 +1,6 @@
 package io.github.krozov.detekt.koin.architecture
 
+import io.github.krozov.detekt.koin.config.ConfigValidator
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -47,16 +48,36 @@ public class PlatformImportRestriction(config: Config = Config.empty) : Rule(con
         val allowedPackages: List<String>
     )
 
-    private val restrictions: List<ImportRestriction> = try {
-        val rawRestrictions = valueOrDefault<List<Map<String, Any>>>("restrictions", emptyList())
-        rawRestrictions.map { map ->
-            ImportRestriction(
-                importPattern = map["import"] as? String ?: "",
-                allowedPackages = (map["allowedPackages"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
-            )
+    private val restrictions: List<ImportRestriction> by lazy {
+        val rawValue = config.valueOrNull<Any>("restrictions")
+        val validation = ConfigValidator.validateList(
+            configKey = "restrictions",
+            value = rawValue,
+            required = false,
+            warnIfEmpty = true
+        )
+
+        if (!validation.isValid) {
+            // Invalid configuration - fall back to empty list (rule will be inactive)
+            return@lazy emptyList()
         }
-    } catch (e: Exception) {
-        emptyList()
+
+        // Note: validation.warnings would contain empty list warning
+        // but we can't log at this level in Detekt rules
+
+        try {
+            val rawRestrictions = rawValue as? List<*> ?: emptyList<Any>()
+            rawRestrictions.mapNotNull { item ->
+                val map = item as? Map<*, *> ?: return@mapNotNull null
+                ImportRestriction(
+                    importPattern = map["import"] as? String ?: "",
+                    allowedPackages = (map["allowedPackages"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+                )
+            }
+        } catch (e: Exception) {
+            // Failed to parse restrictions config - fall back to empty list
+            emptyList()
+        }
     }
 
     override fun visitKtFile(file: KtFile) {

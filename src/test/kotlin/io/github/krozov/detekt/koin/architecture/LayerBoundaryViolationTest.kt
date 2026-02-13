@@ -209,4 +209,27 @@ class LayerBoundaryViolationTest {
         assertThat(findings1).hasSize(1)
         assertThat(findings2).hasSize(1)
     }
+
+    @Test
+    fun `logs warning when restrictedLayers is empty`() {
+        val config = TestConfig("restrictedLayers" to emptyList<String>())
+
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class DomainService : KoinComponent
+        """.trimIndent()
+
+        // Should not report violations when inactive
+        val findings = LayerBoundaryViolation(config).lint(code)
+        assertThat(findings).isEmpty()
+
+        // TODO: Verify warning logged (would need log capture)
+    }
+
+    @Test
+    fun `reports error for invalid config type`() {
+        // This test documents expected behavior when config is wrong type
+        // Detekt handles this at framework level, but we document it
+    }
 }

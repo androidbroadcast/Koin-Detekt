@@ -1,5 +1,6 @@
 package io.github.krozov.detekt.koin.architecture
 
+import io.github.krozov.detekt.koin.config.ConfigValidator
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -49,8 +50,42 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
         debt = Debt.TWENTY_MINS
     )
 
-    private val restrictedLayers: List<String> = valueOrDefault("restrictedLayers", emptyList())
-    private val allowedImports: List<String> = valueOrDefault("allowedImports", emptyList())
+    private val restrictedLayers: List<String> by lazy {
+        val rawValue = config.valueOrNull<Any>("restrictedLayers")
+        val validation = ConfigValidator.validateList(
+            configKey = "restrictedLayers",
+            value = rawValue,
+            required = false,
+            warnIfEmpty = true
+        )
+
+        if (!validation.isValid) {
+            // Invalid configuration - fall back to empty list (rule will be inactive)
+            return@lazy emptyList()
+        }
+
+        // Note: validation.warnings would contain empty list warning
+        // but we can't log at this level in Detekt rules
+
+        (rawValue as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    }
+
+    private val allowedImports: List<String> by lazy {
+        val rawValue = config.valueOrNull<Any>("allowedImports")
+        val validation = ConfigValidator.validateList(
+            configKey = "allowedImports",
+            value = rawValue,
+            required = false,
+            warnIfEmpty = false
+        )
+
+        if (!validation.isValid) {
+            // Invalid configuration - fall back to empty list
+            return@lazy emptyList()
+        }
+
+        (rawValue as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    }
 
     override fun visitKtFile(file: KtFile) {
         super.visitKtFile(file)
