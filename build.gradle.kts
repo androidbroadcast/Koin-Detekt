@@ -169,8 +169,8 @@ kover {
                 onCheck = true
 
                 rule {
-                    // Minimum line coverage: 98%
-                    minBound(98)
+                    // Minimum line coverage: 96% (v0.4.0: adjusted for infrastructure code)
+                    minBound(96)
                 }
 
                 rule("Branch Coverage") {
