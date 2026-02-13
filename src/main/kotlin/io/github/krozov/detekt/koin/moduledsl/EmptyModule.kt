@@ -40,7 +40,13 @@ internal class EmptyModule(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Module is empty. Remove it or add definitions/includes()."
+                    """
+                    Empty module found → Increases boilerplate, provides no value
+                    → Remove it or add definitions/includes()
+
+                    ✗ Bad:  val appModule = module { }
+                    ✓ Good: val appModule = module { single { MyService() } }
+                    """.trimIndent()
                 )
             )
         }

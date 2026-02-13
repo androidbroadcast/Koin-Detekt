@@ -128,4 +128,40 @@ class DeprecatedKoinApiTest {
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports with enhanced message format for checkModules`() {
+        val code = """
+            import org.koin.test.check.checkModules
+
+            fun test() {
+                checkModules { }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
+    }
+
+    @Test
+    fun `reports with enhanced message format for application dot koin`() {
+        val code = """
+            import io.ktor.server.application.*
+
+            fun Application.module() {
+                val koinInstance = application.koin
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
+    }
 }

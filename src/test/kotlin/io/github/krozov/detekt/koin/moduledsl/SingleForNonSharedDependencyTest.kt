@@ -132,4 +132,22 @@ class SingleForNonSharedDependencyTest {
         val findings = SingleForNonSharedDependency(config).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports with enhanced message format`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                single { GetUserUseCase() }
+            }
+        """.trimIndent()
+
+        val findings = SingleForNonSharedDependency(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
+    }
 }

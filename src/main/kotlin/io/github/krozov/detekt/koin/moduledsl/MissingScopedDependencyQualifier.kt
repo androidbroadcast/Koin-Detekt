@@ -69,8 +69,14 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
                         CodeSmell(
                             issue,
                             Entity.from(expr),
-                            "Multiple definitions of type '$type' found without qualifiers. " +
-                                    "Use named() to distinguish them."
+                            """
+                            Multiple definitions of '$type' without qualifiers
+                            → Runtime DefinitionOverrideException when module loads
+                            → Use named() to distinguish between instances
+
+                            ✗ Bad:  single { HttpClient() }; single { HttpClient() }
+                            ✓ Good: single(named("cio")) { HttpClient() }; single(named("okhttp")) { HttpClient() }
+                            """.trimIndent()
                         )
                     )
                 }

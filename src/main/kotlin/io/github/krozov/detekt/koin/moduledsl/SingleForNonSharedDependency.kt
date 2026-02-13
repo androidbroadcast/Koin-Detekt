@@ -44,8 +44,14 @@ internal class SingleForNonSharedDependency(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Type '$typeName' matches pattern '${matchedPattern.pattern}' and should not be a singleton. " +
-                            "Use factory/factoryOf instead."
+                    """
+                    '$typeName' registered as singleton (matches pattern '${matchedPattern.pattern}')
+                    → Can cause memory leaks and stale state with per-request types
+                    → Use factory/factoryOf for non-shared dependencies
+
+                    ✗ Bad:  single { GetUserUseCase(get()) }
+                    ✓ Good: factory { GetUserUseCase(get()) }
+                    """.trimIndent()
                 )
             )
         }

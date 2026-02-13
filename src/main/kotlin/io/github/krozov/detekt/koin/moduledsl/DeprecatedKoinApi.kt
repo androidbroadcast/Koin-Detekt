@@ -40,7 +40,13 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "'$callName' is deprecated in Koin 4.x. Use '$replacement' instead."
+                    """
+                    Deprecated API '$callName' used → May be removed in future Koin versions
+                    → Migrate to '$replacement'
+
+                    ✗ Bad:  $callName()
+                    ✓ Good: $replacement
+                    """.trimIndent()
                 )
             )
         }
@@ -57,7 +63,13 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
                     CodeSmell(
                         issue,
                         Entity.from(expression),
-                        "'application.koin' is deprecated in Koin 4.x (Ktor). Use 'application.koinModules()' instead."
+                        """
+                        Deprecated API 'application.koin' used → May be removed in future Koin versions
+                        → Migrate to 'application.koinModules()'
+
+                        ✗ Bad:  val koin = application.koin
+                        ✓ Good: val modules = application.koinModules()
+                        """.trimIndent()
                     )
                 )
             }

@@ -19,7 +19,7 @@ class EmptyModuleTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("empty")
+        assertThat(findings[0].message).contains("Empty module")
     }
 
     @Test
@@ -130,5 +130,21 @@ class EmptyModuleTest {
 
         val findings = EmptyModule(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports with enhanced message format`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 }

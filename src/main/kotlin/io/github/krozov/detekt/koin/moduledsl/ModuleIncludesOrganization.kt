@@ -61,8 +61,14 @@ internal class ModuleIncludesOrganization(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Module has $includesCount includes() and direct definitions. " +
-                            "This is a sign of a \"God Module\". Consider extracting definitions to a separate module."
+                    """
+                    Module has $includesCount includes() and direct definitions (God Module pattern)
+                    → Harder to understand, test, and maintain
+                    → Extract definitions to a separate module
+
+                    ✗ Bad:  module { includes(a, b, c, d); single { X() }; factory { Y() } }
+                    ✓ Good: module { includes(a, b, c, d, localModule) }
+                    """.trimIndent()
                 )
             )
         }
