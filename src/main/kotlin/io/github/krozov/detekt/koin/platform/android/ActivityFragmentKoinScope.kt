@@ -55,7 +55,13 @@ public class ActivityFragmentKoinScope(config: Config = Config.empty) : Rule(con
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "activityScope() used in Fragment. Use fragmentScope() instead to match Fragment lifecycle."
+                    """
+                    activityScope() in Fragment → Scope outlives Fragment, memory leaks/crashes
+                    → Use fragmentScope() to match Fragment lifecycle
+
+                    ✗ Bad:  class MyFragment : Fragment() { val vm by activityScope().inject<VM>() }
+                    ✓ Good: class MyFragment : Fragment() { val vm by fragmentScope().inject<VM>() }
+                    """.trimIndent()
                 )
             )
         } else if (isActivity && callName == "fragmentScope") {
@@ -63,7 +69,13 @@ public class ActivityFragmentKoinScope(config: Config = Config.empty) : Rule(con
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "fragmentScope() used in Activity. Use activityScope() instead to match Activity lifecycle."
+                    """
+                    fragmentScope() in Activity → Wrong lifecycle scope, potential crashes
+                    → Use activityScope() to match Activity lifecycle
+
+                    ✗ Bad:  class MyActivity : Activity() { val vm by fragmentScope().inject<VM>() }
+                    ✓ Good: class MyActivity : Activity() { val vm by activityScope().inject<VM>() }
+                    """.trimIndent()
                 )
             )
         }

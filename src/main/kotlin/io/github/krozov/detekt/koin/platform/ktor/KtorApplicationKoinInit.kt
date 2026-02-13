@@ -58,9 +58,13 @@ public class KtorApplicationKoinInit(config: Config = Config.empty) : Rule(confi
                         CodeSmell(
                             issue,
                             Entity.from(expression),
-                            "install(Koin) called inside routing block. " +
-                                    "Koin should be initialized at Application level. " +
-                                    "Move install(Koin) outside routing {} block."
+                            """
+                            install(Koin) in routing {} → Causes multiple Koin configurations, conflicts
+                            → Initialize Koin once at Application level before routing
+
+                            ✗ Bad:  fun Application.module() { routing { install(Koin) { } } }
+                            ✓ Good: fun Application.module() { install(Koin) { }; routing { } }
+                            """.trimIndent()
                         )
                     )
                 }

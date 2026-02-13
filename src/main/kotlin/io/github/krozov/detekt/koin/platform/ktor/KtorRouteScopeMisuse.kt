@@ -52,9 +52,13 @@ public class KtorRouteScopeMisuse(config: Config = Config.empty) : Rule(config) 
                     CodeSmell(
                         issue,
                         Entity.from(property),
-                        "koinScope() stored in property creates shared scope across requests. " +
-                                "This causes state leaks between requests. " +
-                                "Use call.koinScope() inside route handlers for request-scoped dependencies."
+                        """
+                        koinScope() stored in property → Shared scope across all requests, state leaks
+                        → Use call.koinScope() inside route handler for per-request isolation
+
+                        ✗ Bad:  val scope = koinScope(); get("/api") { scope.get<Service>() }
+                        ✓ Good: get("/api") { call.koinScope().get<Service>() }
+                        """.trimIndent()
                     )
                 )
             }

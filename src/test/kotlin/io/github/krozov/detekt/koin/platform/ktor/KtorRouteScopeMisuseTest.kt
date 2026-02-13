@@ -23,8 +23,9 @@ class KtorRouteScopeMisuseTest {
         val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("koinScope")
-        assertThat(findings[0].message).contains("shared")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -53,7 +54,8 @@ class KtorRouteScopeMisuseTest {
 
         val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("shared scope across requests")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("state leaks")
     }
 
     @Test

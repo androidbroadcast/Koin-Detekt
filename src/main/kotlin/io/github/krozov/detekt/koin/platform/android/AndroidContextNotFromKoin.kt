@@ -67,8 +67,13 @@ public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(con
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "$callName() should only be called inside startKoin {} block in Application.onCreate. " +
-                            "Calling it elsewhere may set wrong context or cause initialization issues."
+                    """
+                    $callName() outside startKoin {} → May set wrong context, initialization errors
+                    → Call only once in Application.onCreate inside startKoin block
+
+                    ✗ Bad:  val myModule = module { single { androidContext() } }
+                    ✓ Good: class MyApp : Application() { override fun onCreate() { startKoin { androidContext(this@MyApp) } } }
+                    """.trimIndent()
                 )
             )
         }
