@@ -82,8 +82,13 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
                 CodeSmell(
                     issue,
                     Entity.from(directive),
-                    "Star import '$importPath.*' not allowed in restricted layer '$packageName'. " +
-                            "Domain/Core layers should not depend on Koin."
+                    """
+                    Koin import in restricted layer '$packageName' → Violates Clean Architecture boundaries
+                    → Domain/Core layers should be framework-agnostic and use constructor injection
+
+                    ✗ Bad:  import $importPath.*
+                    ✓ Good: class UseCase(private val repo: Repository)
+                    """.trimIndent()
                 )
             )
             return
@@ -94,8 +99,13 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
             CodeSmell(
                 issue,
                 Entity.from(directive),
-                "Import '$importPath' not allowed in restricted layer '$packageName'. " +
-                        "Domain/Core layers should use constructor injection instead of Koin APIs."
+                """
+                Koin import '$importPath' in restricted layer → Violates Clean Architecture boundaries
+                → Domain/Core layers should be framework-agnostic and use constructor injection
+
+                ✗ Bad:  import $importPath
+                ✓ Good: class UseCase(private val repo: Repository)
+                """.trimIndent()
             )
         )
     }

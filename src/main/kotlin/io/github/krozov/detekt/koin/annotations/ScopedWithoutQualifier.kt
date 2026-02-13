@@ -49,8 +49,13 @@ public class ScopedWithoutQualifier(config: Config = Config.empty) : Rule(config
                     CodeSmell(
                         issue,
                         Entity.from(scopedAnnotation),
-                        "@Scoped annotation should specify scope qualifier (e.g., @Scoped(name = \"userScope\")). " +
-                                "Default scope may be unclear."
+                        """
+                        @Scoped without qualifier → Default scope may be unclear
+                        → Specify scope name explicitly for clarity
+
+                        ✗ Bad:  @Scoped class MyService
+                        ✓ Good: @Scoped(name = "userScope") class MyService
+                        """.trimIndent()
                     )
                 )
             }

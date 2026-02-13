@@ -82,8 +82,13 @@ public class PlatformImportRestriction(config: Config = Config.empty) : Rule(con
                         CodeSmell(
                             issue,
                             Entity.from(directive),
-                            "Import '$importPath' not allowed in package '$packageName'. " +
-                                    "This platform-specific import is only allowed in: ${restriction.allowedPackages.joinToString(", ")}."
+                            """
+                            Platform-specific import in wrong package → Breaks multiplatform architecture
+                            → Move to appropriate platform module: ${restriction.allowedPackages.joinToString(", ")}
+
+                            ✗ Bad:  package $packageName; import $importPath
+                            ✓ Good: package ${restriction.allowedPackages.firstOrNull() ?: "platform.module"}; import $importPath
+                            """.trimIndent()
                         )
                     )
                 }

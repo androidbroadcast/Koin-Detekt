@@ -22,7 +22,9 @@ class AnnotationProcessorNotConfiguredTest {
         // This rule provides info-level message since we can't reliably detect
         // if annotation processor is configured in Detekt context
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("annotation processor")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

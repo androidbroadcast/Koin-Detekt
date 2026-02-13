@@ -55,8 +55,13 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
                     CodeSmell(
                         issue,
                         Entity.from(klass),
-                        "Class '${klass.name}' has @Single/@Factory/@Scoped but no @Module annotation. " +
-                                "Annotation processor won't discover these definitions without @Module."
+                        """
+                        @Single/@Factory/@Scoped without @Module → Definitions won't be discovered
+                        → Add @Module annotation to class for annotation processor
+
+                        ✗ Bad:  class ${klass.name ?: "MyServices"} { @Single fun provideRepo() = ... }
+                        ✓ Good: @Module class ${klass.name ?: "MyServices"} { @Single fun provideRepo() = ... }
+                        """.trimIndent()
                     )
                 )
             }

@@ -58,10 +58,15 @@ public class AnnotationProcessorNotConfigured(config: Config = Config.empty) : R
                 CodeSmell(
                     issue,
                     Entity.from(klass),
-                    "Class uses Koin annotations (@Single, @Factory, etc.). " +
-                            "Ensure KSP or KAPT annotation processor is configured with koin-ksp-compiler. " +
-                            "Otherwise, these definitions won't be generated. " +
-                            "Configure skipCheck=true to disable this warning if processor is set up."
+                    """
+                    Koin annotations used → May not work without processor
+                    → Ensure KSP/KAPT configured with koin-ksp-compiler
+
+                    ✗ Bad:  @Single class MyService // No processor
+                    ✓ Good: plugins { id("com.google.devtools.ksp") }; ksp("io.insert-koin:koin-ksp-compiler")
+
+                    Set skipCheck=true in config if processor is already configured
+                    """.trimIndent()
                 )
             )
         }

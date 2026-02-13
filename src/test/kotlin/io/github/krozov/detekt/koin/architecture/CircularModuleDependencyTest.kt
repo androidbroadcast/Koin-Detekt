@@ -22,7 +22,9 @@ class CircularModuleDependencyTest {
         val findings = CircularModuleDependency(Config.empty).lint(code)
 
         assertThat(findings).hasSize(2) // Both modules reported
-        assertThat(findings[0].message).contains("Circular")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -51,7 +53,9 @@ class CircularModuleDependencyTest {
 
         val findings = CircularModuleDependency(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("includes itself")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -112,6 +116,8 @@ class CircularModuleDependencyTest {
 
         val findings = CircularModuleDependency(Config.empty).lint(code)
         assertThat(findings).hasSize(2)
-        assertThat(findings.map { it.message }).allMatch { it.contains("Circular") }
+        assertThat(findings.map { it.message }).allMatch { it.contains("→") }
+        assertThat(findings.map { it.message }).allMatch { it.contains("✗ Bad") }
+        assertThat(findings.map { it.message }).allMatch { it.contains("✓ Good") }
     }
 }

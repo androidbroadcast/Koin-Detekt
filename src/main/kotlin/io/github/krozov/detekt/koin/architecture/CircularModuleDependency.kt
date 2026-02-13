@@ -95,7 +95,13 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
                     CodeSmell(
                         issue,
                         Entity.from(module.property),
-                        "Module '${module.name}' includes itself. Remove self-reference."
+                        """
+                        Module includes itself → Causes initialization errors
+                        → Remove self-reference from includes()
+
+                        ✗ Bad:  val ${module.name} = module { includes(${module.name}) }
+                        ✓ Good: val ${module.name} = module { /* no self-reference */ }
+                        """.trimIndent()
                     )
                 )
                 return@forEach // Skip circular dependency check for self-reference
@@ -109,8 +115,13 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
                         CodeSmell(
                             issue,
                             Entity.from(module.property),
-                            "Circular dependency between modules '${module.name}' and '$depName'. " +
-                                    "Refactor to hierarchical dependency structure."
+                            """
+                            Circular dependency: '${module.name}' ↔ '$depName' → Causes initialization errors
+                            → Refactor to hierarchical structure (A → B, not A ↔ B)
+
+                            ✗ Bad:  val ${module.name} = module { includes($depName) }; val $depName = module { includes(${module.name}) }
+                            ✓ Good: val coreModule = module { }; val featureModule = module { includes(coreModule) }
+                            """.trimIndent()
                         )
                     )
                 }

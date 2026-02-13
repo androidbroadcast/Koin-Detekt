@@ -64,8 +64,13 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
                     CodeSmell(
                         issue,
                         Entity.from(element as org.jetbrains.kotlin.psi.KtElement),
-                        "Type '$type' defined in both DSL and Annotations. " +
-                                "This creates a runtime conflict. Use only one approach."
+                        """
+                        Type '$type' defined in both DSL and Annotations → Runtime conflict: which wins?
+                        → Use only one approach per type
+
+                        ✗ Bad:  @Single fun provideRepo(): Repository = ...; val m = module { single<Repository> { ... } }
+                        ✓ Good: @Single fun provideRepo(): Repository = ...
+                        """.trimIndent()
                     )
                 )
             }

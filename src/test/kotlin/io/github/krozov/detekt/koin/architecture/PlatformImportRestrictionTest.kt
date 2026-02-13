@@ -30,8 +30,9 @@ class PlatformImportRestrictionTest {
         val findings = PlatformImportRestriction(config).lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("org.koin.android")
-        assertThat(findings[0].message).contains("com.example.app")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -117,8 +118,9 @@ class PlatformImportRestrictionTest {
 
         val findings = PlatformImportRestriction(config).lint(code)
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("org.koin.compose")
-        assertThat(findings[0].message).contains("com.example.ui")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

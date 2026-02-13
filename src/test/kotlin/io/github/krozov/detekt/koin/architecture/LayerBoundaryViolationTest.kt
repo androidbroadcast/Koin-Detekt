@@ -27,8 +27,9 @@ class LayerBoundaryViolationTest {
         val findings = LayerBoundaryViolation(config).lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("com.example.domain")
-        assertThat(findings[0].message).contains("org.koin.core.component.get")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -100,7 +101,9 @@ class LayerBoundaryViolationTest {
 
         val findings = LayerBoundaryViolation(config).lint(code)
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("Star import")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

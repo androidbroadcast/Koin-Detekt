@@ -78,8 +78,13 @@ public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(confi
                 CodeSmell(
                     issue,
                     Entity.from(moduleCallElement!!),
-                    "mixing DSL (module {}) and Annotations (@Module, @Single) in same file. " +
-                            "Choose one approach for consistency."
+                    """
+                    Mixing DSL and Annotations in same file → Inconsistent, harder to maintain
+                    → Choose one approach per file for consistency
+
+                    ✗ Bad:  @Module class MyModule; val dslModule = module { }
+                    ✓ Good: val module = module { single { Repo() }; single { Api() } }
+                    """.trimIndent()
                 )
             )
         }
