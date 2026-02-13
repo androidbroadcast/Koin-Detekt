@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v0.4.0 - 2026-02-13
+
+**Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.3.0...v0.4.0
+
+
 ## v0.3.0 - 2026-02-13
 
 ### Changed
