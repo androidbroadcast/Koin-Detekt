@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.krozov"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 
 java {
     toolchain {
