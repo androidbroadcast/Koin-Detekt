@@ -88,4 +88,94 @@ class KoinViewModelOutsideComposableTest {
         val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    // Edge Case: Nested composables
+    @Test
+    fun `allows koinViewModel in nested Composable function`() {
+        val code = """
+            @Composable
+            fun ParentScreen() {
+                @Composable
+                fun NestedScreen() {
+                    val viewModel = koinViewModel<MyViewModel>()
+                }
+                NestedScreen()
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows koinViewModel in Composable lambda parameter`() {
+        val code = """
+            @Composable
+            fun ScreenWithLambda(content: @Composable () -> Unit) {
+                content()
+            }
+
+            @Composable
+            fun MyScreen() {
+                ScreenWithLambda {
+                    val viewModel = koinViewModel<MyViewModel>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows koinViewModel with multiple type parameters`() {
+        val code = """
+            @Composable
+            fun MyScreen() {
+                val viewModel = koinViewModel<MyViewModel<String, Int>>()
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports koinViewModel in companion object`() {
+        val code = """
+            class MyClass {
+                companion object {
+                    val viewModel = koinViewModel<MyViewModel>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows koinViewModel in Composable extension function`() {
+        val code = """
+            @Composable
+            fun MyScreen.Content() {
+                val viewModel = koinViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports koinViewModel in regular extension function`() {
+        val code = """
+            fun MyScreen.content() {
+                val viewModel = koinViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
