@@ -84,4 +84,30 @@ class KoinRulesIntegrationTest {
             "NoGetOutsideModuleDefinition"
         )
     }
+
+    @Test
+    fun `custom configuration is applied to rules`() {
+        val config = TestConfig(
+            "NoKoinComponentInterface" to mapOf(
+                "allowedSuperTypes" to listOf("Application", "Activity", "CustomFramework")
+            )
+        )
+
+        val provider = KoinRuleSetProvider()
+        val ruleSet = provider.instance(config)
+
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyApp : CustomFramework(), KoinComponent
+        """.trimIndent()
+
+        val rule = ruleSet.rules.find { it.ruleId == "NoKoinComponentInterface" }
+        assertThat(rule).isNotNull()
+
+        val findings = rule!!.lint(code)
+
+        // Should NOT report violation because CustomFramework is in allowedSuperTypes
+        assertThat(findings).isEmpty()
+    }
 }
