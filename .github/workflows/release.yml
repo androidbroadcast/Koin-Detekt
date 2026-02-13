@@ -203,10 +203,10 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const release = await github.rest.repos.getReleaseByTag({
+            const release = await github.rest.repos.getRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag: context.ref.replace('refs/tags/', '')
+              release_id: '${{ steps.create_release.outputs.id }}'
             });
             return release.data.body;
           result-encoding: string
