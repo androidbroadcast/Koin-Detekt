@@ -106,4 +106,69 @@ class MissingScopeCloseTest {
         val findings = MissingScopeClose(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `detects safe qualified createScope without close`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    val scope = koin?.createScope("id")
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `detects safe qualified close call`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    val scope = koin?.createScope("id")
+                }
+                fun destroy() {
+                    scope?.close()
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `detects nested scope property close`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    val scope = koin.createScope("id")
+                }
+                fun destroy() {
+                    myObject.scope.close()
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `ignores close on non-scope objects`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    val scope = koin.createScope("id")
+                }
+                fun destroy() {
+                    connection.close()
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

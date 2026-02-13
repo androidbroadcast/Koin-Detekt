@@ -97,4 +97,38 @@ class EmptyModuleTest {
         val findings = EmptyModule(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `handles module with value argument syntax`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module({ })
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `handles module with value argument and definitions`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module({ single { Service() } })
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `ignores non-module call expressions`() {
+        val code = """
+            fun myFunction() = someCall { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

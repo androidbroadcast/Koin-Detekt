@@ -108,4 +108,66 @@ class ModuleIncludesOrganizationTest {
         val findings = ModuleIncludesOrganization(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `handles module with value argument syntax`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module({
+                includes(a, b, c, d)
+                single { Service() }
+            })
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `counts multiple definition types`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                includes(a, b, c, d)
+                factory { FactoryService() }
+                scoped { ScopedService() }
+                viewModel { MyViewModel() }
+                worker { MyWorker() }
+            }
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `ignores non-call statements`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                includes(a, b, c, d)
+                val x = 5
+                single { Service() }
+            }
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `ignores non-module call expressions`() {
+        val code = """
+            fun myFunction() {
+                includes(a, b, c)
+                single { Service() }
+            }
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

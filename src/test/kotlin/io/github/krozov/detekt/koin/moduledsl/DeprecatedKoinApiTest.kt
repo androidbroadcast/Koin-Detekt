@@ -91,4 +91,41 @@ class DeprecatedKoinApiTest {
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports application dot koin in Ktor`() {
+        val code = """
+            import io.ktor.server.application.*
+
+            fun Application.module() {
+                val koinInstance = application.koin
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("application.koinModules()")
+    }
+
+    @Test
+    fun `does not report non-application dot koin`() {
+        val code = """
+            class MyClass {
+                val koinInstance = someOther.koin
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `handles call expression without name`() {
+        val code = """
+            val result = unknownFunction()
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
