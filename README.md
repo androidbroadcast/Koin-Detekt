@@ -3,7 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases/latest)
 [![Release Date](https://img.shields.io/github/release-date/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
-![Coverage](https://img.shields.io/badge/coverage-98.5%25-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Detekt 1.x extension library with 29 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
@@ -22,7 +22,7 @@ Detekt 1.x extension library with 29 rules for Koin 4.x to enforce best practice
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.1.0-SNAPSHOT")
+    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.4.0")
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    detektPlugins 'dev.androidbroadcast:detekt-rules-koin:0.1.0-SNAPSHOT'
+    detektPlugins 'dev.androidbroadcast:detekt-rules-koin:0.4.0'
 }
 ```
 
