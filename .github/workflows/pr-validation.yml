@@ -272,11 +272,15 @@ jobs:
 
           # Get version from Gradle
           VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')
+          if [ -z "$VERSION" ]; then
+            echo "❌ Failed to extract version from Gradle"
+            exit 1
+          fi
           echo "Project version: $VERSION"
 
           ARTIFACTS_DIR="$HOME/.m2/repository/io/github/krozov/detekt-rules-koin/$VERSION"
 
-          if [ -z "$ARTIFACTS_DIR" ] || [ ! -d "$ARTIFACTS_DIR" ]; then
+          if [ ! -d "$ARTIFACTS_DIR" ]; then
             echo "❌ Could not locate detekt-rules-koin artifacts at: $ARTIFACTS_DIR"
             echo "Searching for any version..."
             find "$HOME/.m2/repository/io/github/krozov" -type d 2>/dev/null || true
