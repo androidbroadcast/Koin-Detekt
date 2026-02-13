@@ -12,7 +12,9 @@ local.properties
 *.swp
 *~
 
-# Claude Code local files
+# Claude Code / Agent artifacts
+# Plans, research, tasks, and temporary files created by AI agents
+# These are one-time task artifacts that shouldn't be committed
 .claude/
 .claude.json
 .claude.json.backup.*
@@ -21,3 +23,6 @@ local.properties
 .kotlin/
 .m2/
 .npm/
+
+# Cache directories
+.cache/
