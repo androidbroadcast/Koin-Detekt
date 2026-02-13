@@ -168,14 +168,14 @@ kover {
                 onCheck = true
 
                 rule {
-                    // Minimum line coverage: 80%
-                    minBound(80)
+                    // Minimum line coverage: 98%
+                    minBound(98)
                 }
 
                 rule("Branch Coverage") {
-                    // Minimum branch coverage: 55%
+                    // Minimum branch coverage: 70%
                     bound {
-                        minValue = 55
+                        minValue = 70
                         coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
                     }
                 }
