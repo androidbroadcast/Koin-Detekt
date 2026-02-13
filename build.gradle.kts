@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.krozov"
-version = "0.1.0"
+version = "0.2.0"
 
 java {
     toolchain {
@@ -28,7 +28,7 @@ publishing {
             pom {
                 name.set("detekt-rules-koin")
                 description.set(
-                    "Detekt extension library with 14 rules for Koin 4.x to enforce " +
+                    "Detekt extension library with 24 rules for Koin 4.x to enforce " +
                     "best practices and catch common anti-patterns via static analysis"
                 )
                 url.set("https://github.com/androidbroadcast/Koin-Detekt")
