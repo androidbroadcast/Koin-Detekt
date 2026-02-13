@@ -3,7 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases/latest)
 [![Release Date](https://img.shields.io/github/release-date/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
-![Coverage](https://img.shields.io/badge/coverage-94.67%25-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-98.5%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Detekt 1.x extension library with 14 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
@@ -101,6 +101,30 @@ koin-rules:
     maxIncludesWithDefinitions: 5
 ```
 
+## Example Output
+
+When Detekt finds violations, you'll see clear messages:
+
+```bash
+src/main/kotlin/com/example/MyRepository.kt:5:1: [koin-rules] NoKoinComponentInterface
+  Class 'MyRepository' implements KoinComponent but is not a framework entry point.
+  Use constructor injection instead.
+
+src/main/kotlin/com/example/di/AppModule.kt:10:5: [koin-rules] EmptyModule
+  Module is empty. Remove it or add definitions/includes().
+
+src/main/kotlin/com/example/MyService.kt:12:9: [koin-rules] NoGetOutsideModuleDefinition
+  Found get() call outside module definition. Use constructor injection or define inside module { }.
+```
+
+Run analysis:
+
+```bash
+./gradlew detekt
+```
+
+View results in `build/reports/detekt/detekt.html`.
+
 ## Code Coverage
 
 This project uses [Kover](https://github.com/Kotlin/kotlinx-kover) for code coverage tracking.
@@ -122,8 +146,8 @@ Coverage verification runs automatically with:
 ```
 
 This enforces minimum coverage thresholds:
-- **Line coverage**: 80%
-- **Branch coverage**: 55%
+- **Line coverage**: 98%
+- **Branch coverage**: 70%
 
 > **Note:** The coverage badge in this README is updated manually. After significant coverage changes, update the badge percentage to reflect the latest `koverHtmlReport` results.
 
@@ -133,6 +157,8 @@ This enforces minimum coverage thresholds:
 - Generated code and providers are excluded
 - All public APIs must have tests
 - All rule implementations must have tests
+- 155+ unit tests covering all 14 rules
+- 3 integration tests validating end-to-end functionality
 
 ## Requirements
 
