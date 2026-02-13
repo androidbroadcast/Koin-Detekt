@@ -109,6 +109,8 @@ Run analysis:
 
 ## Configuration
 
+### Quick Start
+
 Create or update `.detekt.yml`:
 
 ```yaml
@@ -130,6 +132,13 @@ koin-rules:
     active: true
     maxIncludesWithDefinitions: 5
 ```
+
+📖 **[Comprehensive Configuration Guide](docs/configuration.md)** - Includes:
+- Advanced per-rule configuration
+- Baseline file usage for existing projects
+- Exclude patterns and multi-module setup
+- Real-world examples (Android, KMP, Ktor, Compose)
+- Migration strategies for legacy codebases
 
 ## Example Output
 
