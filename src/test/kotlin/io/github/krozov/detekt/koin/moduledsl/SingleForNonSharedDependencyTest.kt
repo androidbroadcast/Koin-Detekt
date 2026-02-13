@@ -78,4 +78,58 @@ class SingleForNonSharedDependencyTest {
 
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports single for Interactor`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                single { DataInteractor() }
+            }
+        """.trimIndent()
+
+        val config = io.gitlab.arturbosch.detekt.test.TestConfig(
+            "namePatterns" to listOf(".*Interactor", ".*Worker")
+        )
+
+        val findings = SingleForNonSharedDependency(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports single for Worker`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                single { BackgroundWorker() }
+            }
+        """.trimIndent()
+
+        val config = io.gitlab.arturbosch.detekt.test.TestConfig(
+            "namePatterns" to listOf(".*Interactor", ".*Worker")
+        )
+
+        val findings = SingleForNonSharedDependency(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports single for Handler`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                single { EventHandler() }
+            }
+        """.trimIndent()
+
+        val config = io.gitlab.arturbosch.detekt.test.TestConfig(
+            "namePatterns" to listOf(".*Handler")
+        )
+
+        val findings = SingleForNonSharedDependency(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
