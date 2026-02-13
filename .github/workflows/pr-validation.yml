@@ -251,15 +251,20 @@ jobs:
         run: |
           echo "Locating detekt-rules-koin artifacts in local Maven repository..."
 
-          ARTIFACTS_DIR="$(find "$HOME/.m2/repository" -type d -path "*/io/github/krozov/detekt-rules-koin/*" -name "*SNAPSHOT" | head -n 1)"
+          # Get version from Gradle
+          VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')
+          echo "Project version: $VERSION"
+
+          ARTIFACTS_DIR="$HOME/.m2/repository/io/github/krozov/detekt-rules-koin/$VERSION"
 
           if [ -z "$ARTIFACTS_DIR" ] || [ ! -d "$ARTIFACTS_DIR" ]; then
-            echo "❌ Could not locate detekt-rules-koin artifacts in local Maven repository"
+            echo "❌ Could not locate detekt-rules-koin artifacts at: $ARTIFACTS_DIR"
+            echo "Searching for any version..."
+            find "$HOME/.m2/repository/io/github/krozov" -type d 2>/dev/null || true
             exit 1
           fi
 
-          VERSION="$(basename "$ARTIFACTS_DIR")"
-          echo "✅ Found version: $VERSION"
+          echo "✅ Found artifacts at: $ARTIFACTS_DIR"
 
           echo "Checking for required artifacts..."
 
