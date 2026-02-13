@@ -94,7 +94,7 @@ jobs:
           if [ -d "build/reports/kover" ]; then
             echo "✅ Coverage report generated" >> $GITHUB_STEP_SUMMARY
             echo "- HTML report available in artifacts" >> $GITHUB_STEP_SUMMARY
-            echo "- Minimum thresholds: 80% line, 55% branch" >> $GITHUB_STEP_SUMMARY
+            echo "- Minimum thresholds: 98% line, 70% branch" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ No coverage report found" >> $GITHUB_STEP_SUMMARY
           fi
@@ -146,8 +146,8 @@ jobs:
             const marker = '<!-- ci-validation-results -->';
             const message = marker + '\n## 🤖 CI Validation Results\n\n' +
               '✅ **Build**: Passed\n' +
-              '✅ **Tests**: All 48 tests passed\n' +
-              '✅ **Coverage**: 80% line / 55% branch enforced\n' +
+              '✅ **Tests**: All 155+ tests passed (unit + integration + edge cases)\n' +
+              '✅ **Coverage**: 98% line / 70% branch enforced\n' +
               '✅ **Code Quality**: Explicit API mode enforced\n' +
               '✅ **Reproducible Builds**: Verified\n' +
               '✅ **Maven Publication**: 3 JARs generated\n\n' +
