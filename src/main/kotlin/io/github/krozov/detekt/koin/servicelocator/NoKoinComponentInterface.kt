@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 internal class NoKoinComponentInterface(config: Config) : Rule(config) {
 
@@ -24,6 +25,7 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
         listOf(
             "Application",
             "Activity",
+            "ComponentActivity",
             "Fragment",
             "Service",
             "BroadcastReceiver",
@@ -33,8 +35,17 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
+        checkKoinComponent(klass.superTypeListEntries.mapNotNull { it.text }, klass.name, klass)
+    }
 
-        val superTypes = klass.superTypeListEntries.mapNotNull { it.text }
+    override fun visitObjectDeclaration(declaration: KtObjectDeclaration) {
+        super.visitObjectDeclaration(declaration)
+        if (declaration.isCompanion()) {
+            checkKoinComponent(declaration.superTypeListEntries.mapNotNull { it.text }, declaration.name, declaration)
+        }
+    }
+
+    private fun checkKoinComponent(superTypes: List<String>, name: String?, element: org.jetbrains.kotlin.psi.KtClassOrObject) {
         val koinInterface = superTypes.firstOrNull {
             it.contains("KoinComponent") || it.contains("KoinScopeComponent")
         }
@@ -58,8 +69,8 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
             report(
                 CodeSmell(
                     issue,
-                    Entity.from(klass),
-                    "Class '${klass.name}' implements $interfaceName but is not a framework entry point. " +
+                    Entity.from(element),
+                    "Class '${name}' implements $interfaceName but is not a framework entry point. " +
                             "Use constructor injection instead."
                 )
             )

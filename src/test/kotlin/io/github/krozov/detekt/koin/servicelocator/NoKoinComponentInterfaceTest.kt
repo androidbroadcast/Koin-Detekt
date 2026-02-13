@@ -85,4 +85,54 @@ class NoKoinComponentInterfaceTest {
         assertThat(findings[0].message).contains("NonActivity")
         assertThat(findings[0].message).contains("not a framework entry point")
     }
+
+    @Test
+    fun `does not report ViewModel with generic parameter`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyViewModel<T> : ViewModel(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `recognizes fully qualified ComponentActivity`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyActivity : androidx.activity.ComponentActivity(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report Activity with multiple interfaces`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyActivity : Activity(), SomeInterface, KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports KoinComponent in companion object`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyClass {
+                companion object : KoinComponent
+            }
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
