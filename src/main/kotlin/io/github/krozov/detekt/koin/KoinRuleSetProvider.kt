@@ -31,6 +31,12 @@ import io.github.krozov.detekt.koin.platform.android.AndroidContextNotFromKoin
 import io.github.krozov.detekt.koin.architecture.CircularModuleDependency
 import io.github.krozov.detekt.koin.architecture.LayerBoundaryViolation
 import io.github.krozov.detekt.koin.architecture.PlatformImportRestriction
+// Annotation rules
+import io.github.krozov.detekt.koin.annotations.MixingDslAndAnnotations
+import io.github.krozov.detekt.koin.annotations.MissingModuleAnnotation
+import io.github.krozov.detekt.koin.annotations.ConflictingBindings
+import io.github.krozov.detekt.koin.annotations.ScopedWithoutQualifier
+import io.github.krozov.detekt.koin.annotations.AnnotationProcessorNotConfigured
 
 public class KoinRuleSetProvider : RuleSetProvider {
 
@@ -71,6 +77,12 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 LayerBoundaryViolation(config),
                 PlatformImportRestriction(config),
                 CircularModuleDependency(config),
+                // Annotation rules
+                MixingDslAndAnnotations(config),
+                MissingModuleAnnotation(config),
+                ConflictingBindings(config),
+                ScopedWithoutQualifier(config),
+                AnnotationProcessorNotConfigured(config)
             )
         )
     }

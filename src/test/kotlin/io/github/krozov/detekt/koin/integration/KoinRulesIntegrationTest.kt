@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(24)
+        assertThat(ruleSet.rules).hasSize(29)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -63,7 +63,13 @@ class KoinRulesIntegrationTest {
             // Architecture Rules
             "LayerBoundaryViolation",
             "PlatformImportRestriction",
-            "CircularModuleDependency"
+            "CircularModuleDependency",
+            // Annotation rules
+            "MixingDslAndAnnotations",
+            "MissingModuleAnnotation",
+            "ConflictingBindings",
+            "ScopedWithoutQualifier",
+            "AnnotationProcessorNotConfigured"
         )
     }
 
