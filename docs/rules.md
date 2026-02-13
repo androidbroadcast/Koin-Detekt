@@ -27,6 +27,12 @@ module {
 }
 ```
 
+**Edge Cases:**
+- ✅ Detects `get()`, `getOrNull()`, and `getAll()` variants
+- ✅ Detects in init blocks and property initializers
+- ✅ Detects in companion objects
+- ✅ Allows `get()` inside `single {}`, `factory {}`, and other module definitions
+
 ---
 
 ### NoInjectDelegate
@@ -47,6 +53,12 @@ class MyService : KoinComponent {
 ```kotlin
 class MyService(private val repo: Repository)
 ```
+
+**Edge Cases:**
+- ✅ Detects both `inject()` and `injectOrNull()` delegates
+- ✅ Detects in companion objects
+- ✅ Detects multiple inject delegates in one class
+- ✅ Detects lazy inject with type parameter: `by inject<Repository>()`
 
 ---
 
@@ -76,6 +88,13 @@ NoKoinComponentInterface:
     - 'ViewModel'
 ```
 
+**Edge Cases:**
+- ✅ Generic types: `class MyViewModel<T> : ViewModel(), KoinComponent`
+- ✅ Fully qualified names: `androidx.activity.ComponentActivity`
+- ✅ Multiple inheritance: `class A : Activity(), SomeInterface, KoinComponent`
+- ✅ Companion objects implementing KoinComponent are detected
+- ✅ Partial name matches don't count (NonActivity doesn't match Activity)
+
 ---
 
 ### NoGlobalContextAccess
@@ -89,6 +108,13 @@ Detects direct `GlobalContext.get()` or `KoinPlatformTools` access.
 ```kotlin
 val koin = GlobalContext.get()
 ```
+
+**Edge Cases:**
+- ✅ Detects all GlobalContext methods: `get()`, `getOrNull()`, `stopKoin()`, `getKoinApplicationOrNull()`
+- ✅ Detects `KoinPlatformTools.defaultContext().get()`
+- ✅ Detects in nested functions and lambdas
+- ✅ Ignores similar-named classes that aren't the real GlobalContext
+- ✅ Does not report `startKoin` usage (allowed)
 
 ---
 
@@ -106,6 +132,13 @@ startKoin {
 }
 ```
 
+**Edge Cases:**
+- ✅ Detects both `get()` and `inject()` inside `startKoin` and `koinConfiguration` blocks
+- ✅ Detects with qualifiers: `get<MyService>(named("special"))`
+- ✅ Detects with parameters: `inject { parametersOf("param") }`
+- ✅ Detects in nested lambdas inside startKoin
+- ✅ Does not report `get()` in module definitions passed to `modules()`
+
 ---
 
 ## Module DSL Rules
@@ -121,6 +154,12 @@ Detects modules without definitions or includes.
 ```kotlin
 val emptyModule = module { }
 ```
+
+**Edge Cases:**
+- ✅ Whitespace-only modules: `module {   }`
+- ✅ Comments-only modules: `module { /* TODO */ }`
+- ✅ Value argument syntax: `module({ })`
+- ✅ Does not report modules with `includes()` only
 
 ---
 
@@ -154,6 +193,12 @@ SingleForNonSharedDependency:
     - '.*Command'
 ```
 
+**Edge Cases:**
+- ✅ Detects both `single {}` and `singleOf()`
+- ✅ Supports regex patterns: `.*UseCase`, `.*Mapper`, `.*Command`, `.*Handler`
+- ✅ Respects custom configuration patterns
+- ✅ Default patterns include UseCase, Mapper, Interactor, Worker, Handler
+
 ---
 
 ### MissingScopedDependencyQualifier
@@ -179,6 +224,15 @@ module {
 }
 ```
 
+**Edge Cases:**
+- ✅ Detects all definition types: `single`, `factory`, `scoped`, `viewModel`, `worker`
+- ✅ Detects mixed definition types for same type: `single { Repo() }` + `factory { Repo() }`
+- ✅ Recognizes both `named()` and `qualifier()` functions
+- ✅ Reports when one has qualifier but another doesn't
+- ✅ Handles constructor references: `single(::ApiService)`
+- ✅ Does not report duplicates across different modules
+- ✅ Handles value argument syntax: `single(createdAtStart = true) { Service() }`
+
 ---
 
 ### DeprecatedKoinApi
@@ -193,6 +247,13 @@ Detects deprecated Koin 4.x APIs.
 | `checkModules()` | `verify()` |
 | `koinNavViewModel()` | `koinViewModel()` |
 | `stateViewModel()` | `viewModel()` |
+
+**Edge Cases:**
+- ✅ Detects `checkModules()`, `koinNavViewModel()`, `stateViewModel()`
+- ✅ Detects deprecated `viewModel {}` DSL (Koin 3.x style)
+- ✅ Detects `getViewModel<T>()`
+- ✅ Detects `application.koin` in Ktor (use `application.koinModules()` instead)
+- ✅ Ignores non-application property accesses like `someOther.koin`
 
 ---
 
@@ -210,6 +271,13 @@ ModuleIncludesOrganization:
   active: true
   maxIncludesWithDefinitions: 3
 ```
+
+**Edge Cases:**
+- ✅ Counts includes and definitions together
+- ✅ Counts all definition types: `single`, `factory`, `scoped`, `viewModel`, `worker`
+- ✅ Handles value argument syntax: `module({ includes(a, b) })`
+- ✅ Ignores non-call statements like variable declarations
+- ✅ Default threshold is 3 includes with definitions
 
 ---
 
@@ -237,6 +305,13 @@ class SessionManager : KoinComponent {
 }
 ```
 
+**Edge Cases:**
+- ✅ Detects `createScope()` and `getOrCreateScope()` without matching `close()`
+- ✅ Detects scope creation in conditional blocks and nested classes
+- ✅ Recognizes safe qualified calls: `koin?.createScope()` and `scope?.close()`
+- ✅ Recognizes nested property close: `myObject.scope.close()`
+- ✅ Reports class-level detection (multiple scopes = one finding per class)
+
 ---
 
 ### ScopedDependencyOutsideScopeBlock
@@ -262,6 +337,11 @@ module {
 }
 ```
 
+**Edge Cases:**
+- ✅ Recognizes `scope<T> {}`, `activityScope {}`, and `fragmentScope {}` blocks
+- ✅ Detects `scoped {}` at module level (outside any scope block)
+- ✅ Allows `scoped {}` inside any recognized scope block
+
 ---
 
 ### FactoryInScopeBlock
@@ -279,6 +359,12 @@ module {
     }
 }
 ```
+
+**Edge Cases:**
+- ✅ Detects both `factory {}` and `factoryOf()`
+- ✅ Detects inside `scope<T> {}` and `activityScope {}` blocks
+- ✅ Does not report factory outside scope blocks
+- ✅ Does not report `scoped {}` inside scope blocks (allowed)
 
 ---
 
@@ -306,3 +392,10 @@ module {
     }
 }
 ```
+
+**Edge Cases:**
+- ✅ Detects both `single {}` and `singleOf()` inside `requestScope {}`
+- ✅ Detects with qualifiers: `single(named("logger")) { ... }`
+- ✅ Detects multiple violations and nested requestScope blocks
+- ✅ Allows `scoped {}`, `factory {}`, `viewModel {}`, and `worker {}` inside requestScope
+- ✅ Detects single in lambdas inside requestScope: `forEach { single { ... } }`
