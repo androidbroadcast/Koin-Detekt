@@ -32,3 +32,6 @@ local.properties
 *.bin
 kover/
 .kover/
+
+# Git worktrees
+.worktrees/
