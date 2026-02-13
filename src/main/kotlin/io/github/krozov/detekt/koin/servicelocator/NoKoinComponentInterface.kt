@@ -70,8 +70,13 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(element),
-                    "Class '${name}' implements $interfaceName but is not a framework entry point. " +
-                            "Use constructor injection instead."
+                    """
+                    $interfaceName interface found → Breaks dependency inversion, harder to test
+                    → Use constructor injection instead
+
+                    ✗ Bad:  class MyRepo : KoinComponent { val api = get<Api>() }
+                    ✓ Good: class MyRepo(private val api: Api)
+                    """.trimIndent()
                 )
             )
         }

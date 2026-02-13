@@ -82,8 +82,8 @@ class NoKoinComponentInterfaceTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("NonActivity")
-        assertThat(findings[0].message).contains("not a framework entry point")
+        assertThat(findings[0].message).contains("KoinComponent")
+        assertThat(findings[0].message).contains("→")
     }
 
     @Test
@@ -134,5 +134,21 @@ class NoKoinComponentInterfaceTest {
 
         val findings = NoKoinComponentInterface(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports with enhanced message format`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyClass : KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 }
