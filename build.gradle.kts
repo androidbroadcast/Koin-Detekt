@@ -141,6 +141,17 @@ kotlin {
 // Code coverage configuration
 kover {
     reports {
+        // Configure what to exclude from coverage
+        filters {
+            excludes {
+                // Exclude generated code
+                classes("*.*BuildConfig*")
+
+                // Exclude test utilities if any exist in main source set
+                packages("io.github.krozov.detekt.koin.test")
+            }
+        }
+
         // Enable all report types
         total {
             html {
