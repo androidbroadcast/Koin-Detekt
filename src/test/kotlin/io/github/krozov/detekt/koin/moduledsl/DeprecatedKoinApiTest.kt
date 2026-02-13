@@ -65,4 +65,30 @@ class DeprecatedKoinApiTest {
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("viewModel()")
     }
+
+    @Test
+    fun `reports viewModel usage`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+
+            val m = module {
+                viewModel { MyViewModel() }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports getViewModel usage`() {
+        val code = """
+            class MyActivity {
+                val vm = getViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

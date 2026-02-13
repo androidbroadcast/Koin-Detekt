@@ -24,7 +24,9 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
     private val deprecations = mapOf(
         "checkModules" to "verify()",
         "koinNavViewModel" to "koinViewModel()",
-        "stateViewModel" to "viewModel()"
+        "stateViewModel" to "viewModel()",
+        "viewModel" to "viewModelOf()",
+        "getViewModel" to "get()"
     )
 
     override fun visitCallExpression(expression: KtCallExpression) {
