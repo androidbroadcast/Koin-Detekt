@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-group = "io.github.krozov"
+group = "dev.androidbroadcast"
 version = "0.3.0"
 
 java {

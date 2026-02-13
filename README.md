@@ -22,7 +22,7 @@ Detekt 1.x extension library with 29 rules for Koin 4.x to enforce best practice
 
 ```kotlin
 dependencies {
-    detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0-SNAPSHOT")
+    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.1.0-SNAPSHOT")
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    detektPlugins 'io.github.krozov:detekt-rules-koin:0.1.0-SNAPSHOT'
+    detektPlugins 'dev.androidbroadcast:detekt-rules-koin:0.1.0-SNAPSHOT'
 }
 ```
 

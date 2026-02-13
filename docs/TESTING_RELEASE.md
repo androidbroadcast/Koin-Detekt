@@ -111,7 +111,7 @@ Generating SHA-256 and SHA-512 checksums...
 Expected publish output:
 ```
 Publishing to GitHubPackages
-Published io.github.krozov:detekt-rules-koin:0.1.0-test.1 to https://maven.pkg.github.com/androidbroadcast/Koin-Detekt
+Published dev.androidbroadcast:detekt-rules-koin:0.1.0-test.1 to https://maven.pkg.github.com/androidbroadcast/Koin-Detekt
 ```
 
 ### 4. Monitor Release Job
@@ -177,7 +177,7 @@ https://github.com/androidbroadcast/Koin-Detekt/packages
 
 Verify:
 - [ ] Package version `X.Y.Z` appears in the versions list
-- [ ] Package shows correct Maven coordinates: `io.github.krozov:detekt-rules-koin:X.Y.Z`
+- [ ] Package shows correct Maven coordinates: `dev.androidbroadcast:detekt-rules-koin:X.Y.Z`
 - [ ] Package is linked to the tag commit
 - [ ] Package metadata includes description from `build.gradle.kts`
 - [ ] Installation instructions show Maven/Gradle configuration
@@ -185,7 +185,7 @@ Verify:
 Expected Maven coordinates:
 ```
 <dependency>
-  <groupId>io.github.krozov</groupId>
+  <groupId>dev.androidbroadcast</groupId>
   <artifactId>detekt-rules-koin</artifactId>
   <version>0.1.0-test.1</version>
 </dependency>
@@ -193,7 +193,7 @@ Expected Maven coordinates:
 
 Expected Gradle configuration:
 ```kotlin
-detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0-test.1")
+detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.1.0-test.1")
 ```
 
 ### 3. Verify CHANGELOG Update
@@ -315,7 +315,7 @@ repositories {
 }
 
 dependencies {
-    detektPlugins("io.github.krozov:detekt-rules-koin:0.1.0-test.1")
+    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.1.0-test.1")
 }
 
 detekt {
@@ -492,7 +492,7 @@ Use this checklist to confirm a successful release:
 - [ ] 9 artifacts attached to release (3 JARs + 6 checksums)
 - [ ] All checksums verify correctly
 - [ ] Package published to GitHub Packages with correct version
-- [ ] Maven coordinates are correct: `io.github.krozov:detekt-rules-koin:X.Y.Z`
+- [ ] Maven coordinates are correct: `dev.androidbroadcast:detekt-rules-koin:X.Y.Z`
 - [ ] CHANGELOG.md updated with new version section
 - [ ] CHANGELOG commit pushed to main branch
 - [ ] New section inserted after `## [Unreleased]`
