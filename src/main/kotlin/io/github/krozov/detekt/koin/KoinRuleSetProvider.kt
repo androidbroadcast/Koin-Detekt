@@ -17,6 +17,20 @@ import io.github.krozov.detekt.koin.servicelocator.NoGlobalContextAccess
 import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
 import io.github.krozov.detekt.koin.servicelocator.NoKoinComponentInterface
 import io.github.krozov.detekt.koin.servicelocator.NoKoinGetInApplication
+// Platform rules - Compose
+import io.github.krozov.detekt.koin.platform.compose.KoinInjectInPreview
+import io.github.krozov.detekt.koin.platform.compose.KoinViewModelOutsideComposable
+import io.github.krozov.detekt.koin.platform.compose.RememberKoinModulesLeak
+// Platform rules - Ktor
+import io.github.krozov.detekt.koin.platform.ktor.KtorApplicationKoinInit
+import io.github.krozov.detekt.koin.platform.ktor.KtorRouteScopeMisuse
+// Platform rules - Android
+import io.github.krozov.detekt.koin.platform.android.ActivityFragmentKoinScope
+import io.github.krozov.detekt.koin.platform.android.AndroidContextNotFromKoin
+// Architecture rules
+import io.github.krozov.detekt.koin.architecture.CircularModuleDependency
+import io.github.krozov.detekt.koin.architecture.LayerBoundaryViolation
+import io.github.krozov.detekt.koin.architecture.PlatformImportRestriction
 
 public class KoinRuleSetProvider : RuleSetProvider {
 
@@ -43,6 +57,20 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 ScopedDependencyOutsideScopeBlock(config),
                 FactoryInScopeBlock(config),
                 KtorRequestScopeMisuse(config),
+                // Platform Rules - Compose
+                KoinViewModelOutsideComposable(config),
+                KoinInjectInPreview(config),
+                RememberKoinModulesLeak(config),
+                // Platform Rules - Ktor
+                KtorApplicationKoinInit(config),
+                KtorRouteScopeMisuse(config),
+                // Platform Rules - Android
+                AndroidContextNotFromKoin(config),
+                ActivityFragmentKoinScope(config),
+                // Architecture Rules
+                LayerBoundaryViolation(config),
+                PlatformImportRestriction(config),
+                CircularModuleDependency(config),
             )
         )
     }

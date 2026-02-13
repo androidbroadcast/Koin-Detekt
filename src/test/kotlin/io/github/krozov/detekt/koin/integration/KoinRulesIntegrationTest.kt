@@ -28,25 +28,42 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(14)
+        assertThat(ruleSet.rules).hasSize(24)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
         assertThat(ruleIds).containsExactlyInAnyOrder(
+            // Service Locator Anti-patterns
             "NoGetOutsideModuleDefinition",
             "NoInjectDelegate",
             "NoKoinComponentInterface",
             "NoGlobalContextAccess",
             "NoKoinGetInApplication",
+            // Module DSL Rules
             "EmptyModule",
             "SingleForNonSharedDependency",
             "MissingScopedDependencyQualifier",
             "DeprecatedKoinApi",
             "ModuleIncludesOrganization",
+            // Scope Management Rules
             "MissingScopeClose",
             "ScopedDependencyOutsideScopeBlock",
             "FactoryInScopeBlock",
-            "KtorRequestScopeMisuse"
+            "KtorRequestScopeMisuse",
+            // Platform Rules - Compose
+            "KoinViewModelOutsideComposable",
+            "KoinInjectInPreview",
+            "RememberKoinModulesLeak",
+            // Platform Rules - Ktor
+            "KtorApplicationKoinInit",
+            "KtorRouteScopeMisuse",
+            // Platform Rules - Android
+            "AndroidContextNotFromKoin",
+            "ActivityFragmentKoinScope",
+            // Architecture Rules
+            "LayerBoundaryViolation",
+            "PlatformImportRestriction",
+            "CircularModuleDependency"
         )
     }
 

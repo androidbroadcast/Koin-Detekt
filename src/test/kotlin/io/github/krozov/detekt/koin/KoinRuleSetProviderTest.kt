@@ -18,6 +18,6 @@ class KoinRuleSetProviderTest {
         val ruleSet = provider.instance(config)
 
         assertThat(ruleSet.rules).isNotEmpty()
-        assertThat(ruleSet.rules).hasSize(14)
+        assertThat(ruleSet.rules).hasSize(24)
     }
 }
