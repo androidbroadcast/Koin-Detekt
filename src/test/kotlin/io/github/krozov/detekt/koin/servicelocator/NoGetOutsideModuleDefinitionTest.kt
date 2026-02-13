@@ -92,4 +92,44 @@ class NoGetOutsideModuleDefinitionTest {
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("getAll()")
     }
+
+    @Test
+    fun `reports get in init block`() {
+        val code = """
+            class MyRepo {
+                init {
+                    val service = get<ApiService>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports get in property initializer`() {
+        val code = """
+            class MyRepo {
+                val service = get<ApiService>()
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports get in companion object`() {
+        val code = """
+            class MyRepo {
+                companion object {
+                    val service = get<ApiService>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
