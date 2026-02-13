@@ -87,11 +87,27 @@ class KoinRulesIntegrationTest {
 
     @Test
     fun `custom configuration is applied to rules`() {
-        val config = TestConfig(
-            "NoKoinComponentInterface" to mapOf(
-                "allowedSuperTypes" to listOf("Application", "Activity", "CustomFramework")
-            )
+        // Test that custom config for a rule is properly applied
+        // when instantiated through the RuleSetProvider.
+        // Pass config directly to the rule since RuleSetProvider passes the same
+        // config to all rules and each rule uses subConfig to get its specific config.
+        val ruleSpecificConfig = TestConfig(
+            "allowedSuperTypes" to listOf("Application", "Activity", "CustomFramework")
         )
+
+        // Create a wrapper config that provides the rule-specific config as a sub-config
+        val config = object : Config {
+            override fun subConfig(key: String): Config {
+                return if (key == "NoKoinComponentInterface") ruleSpecificConfig else Config.empty
+            }
+
+            override fun <T : Any> valueOrDefault(key: String, default: T): T {
+                @Suppress("UNCHECKED_CAST")
+                return default
+            }
+
+            override fun <T : Any> valueOrNull(key: String): T? = null
+        }
 
         val provider = KoinRuleSetProvider()
         val ruleSet = provider.instance(config)
