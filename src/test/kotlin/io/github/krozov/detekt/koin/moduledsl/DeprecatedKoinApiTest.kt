@@ -164,4 +164,122 @@ class DeprecatedKoinApiTest {
         assertThat(findings[0].message).contains("✗ Bad")
         assertThat(findings[0].message).contains("✓ Good")
     }
+
+    // Edge case: Multiple deprecated APIs in one file
+    @Test
+    fun `reports multiple deprecated API usages in single file`() {
+        val code = """
+            import org.koin.test.check.checkModules
+
+            class MyTest {
+                fun test1() {
+                    checkModules { }
+                    val vm1 = koinNavViewModel<ViewModel1>()
+                    val vm2 = stateViewModel<ViewModel2>()
+                    val vm3 = getViewModel<ViewModel3>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(4)
+    }
+
+    // Edge case: Deprecated API in companion object
+    @Test
+    fun `reports deprecated API in companion object`() {
+        val code = """
+            import org.koin.test.check.checkModules
+
+            class AppTest {
+                companion object {
+                    fun setup() {
+                        checkModules { }
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: application.koin in nested function
+    @Test
+    fun `reports application dot koin in nested function`() {
+        val code = """
+            import io.ktor.server.application.*
+
+            fun Application.configureKoin() {
+                fun getKoin() = application.koin
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Deprecated viewModel in multiple modules
+    @Test
+    fun `reports viewModel usage in multiple modules`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.dsl.module
+
+            val moduleA = module {
+                viewModel { ViewModelA() }
+            }
+
+            val moduleB = module {
+                viewModel { ViewModelB() }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(2)
+    }
+
+    // Edge case: Mix of deprecated and current APIs
+    @Test
+    fun `reports only deprecated APIs when mixed with current ones`() {
+        val code = """
+            import org.koin.test.verify.verify
+            import org.koin.test.check.checkModules
+
+            fun test() {
+                verify { }  // Current API
+                checkModules { }  // Deprecated
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("checkModules")
+    }
+
+    // Edge case: Deprecated API with qualified imports
+    @Test
+    fun `reports deprecated API with fully qualified call`() {
+        val code = """
+            fun test() {
+                org.koin.test.check.checkModules { }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: stateViewModel in extension function
+    @Test
+    fun `reports stateViewModel in extension function`() {
+        val code = """
+            fun ComponentActivity.setupViewModel() {
+                val vm = stateViewModel<MainViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

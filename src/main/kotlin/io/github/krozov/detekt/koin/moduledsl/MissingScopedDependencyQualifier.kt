@@ -111,7 +111,7 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
     private fun hasQualifierArgument(expression: KtCallExpression): Boolean {
         return expression.valueArguments.any { arg ->
             val argText = arg.getArgumentExpression()?.text ?: ""
-            argText.contains("named(") || argText.contains("qualifier(")
+            argText.contains("named(") || argText.contains("qualifier(") || argText.contains("StringQualifier(")
         }
     }
 }

@@ -637,4 +637,134 @@ class MissingScopedDependencyQualifierTest {
         assertThat(findings[0].message).contains("✗ Bad")
         assertThat(findings[0].message).contains("✓ Good")
     }
+
+    // Edge case: Duplicate with StringQualifier
+    @Test
+    fun `does not report when using StringQualifier`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.StringQualifier
+
+            val myModule = module {
+                single(StringQualifier("first")) { HttpClient() }
+                single(StringQualifier("second")) { HttpClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    // Edge case: Complex nested module structure with duplicates
+    @Test
+    fun `reports duplicates within nested inline module`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val compositeModule = module {
+                includes(
+                    module {
+                        single { Service() }
+                        single { Service() }
+                    }
+                )
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Duplicate definitions with scoped and viewModel
+    @Test
+    fun `reports mixed scoped and viewModel duplicates`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val myModule = module {
+                scoped { ViewModel() }
+                viewModel { ViewModel() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Multiple types with duplicates
+    @Test
+    fun `reports all types with duplicates separately`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val myModule = module {
+                single { TypeA() }
+                single { TypeA() }
+                factory { TypeB() }
+                factory { TypeB() }
+                scoped { TypeC() }
+                scoped { TypeC() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(3)
+    }
+
+    // Edge case: One qualified, multiple unqualified
+    @Test
+    fun `reports when one qualified and two unqualified exist`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.named
+
+            val myModule = module {
+                single(named("special")) { Logger() }
+                single { Logger() }
+                factory { Logger() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Definitions with createdAtStart parameter
+    @Test
+    fun `reports duplicates with createdAtStart parameter`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val myModule = module {
+                single(createdAtStart = true) { DatabaseClient() }
+                single(createdAtStart = false) { DatabaseClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Definitions across multiple includes in same module
+    @Test
+    fun `does not report duplicates in separate included modules`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val moduleA = module {
+                single { Service() }
+            }
+
+            val moduleB = module {
+                single { Service() }
+            }
+
+            val composite = module {
+                includes(moduleA, moduleB)
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

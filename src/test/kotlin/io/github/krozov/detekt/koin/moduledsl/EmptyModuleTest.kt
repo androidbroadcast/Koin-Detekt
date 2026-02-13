@@ -147,4 +147,75 @@ class EmptyModuleTest {
         assertThat(findings[0].message).contains("✗ Bad")
         assertThat(findings[0].message).contains("✓ Good")
     }
+
+    // Edge case: Multiple empty modules in same file
+    @Test
+    fun `reports multiple empty modules in same file`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val moduleA = module { }
+            val moduleB = module { }
+            val moduleC = module { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(3)
+    }
+
+    // Edge case: Empty module with named parameters
+    @Test
+    fun `reports empty module with named createdAtStart parameter`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module(createdAtStart = true) { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Empty module as nested expression
+    @Test
+    fun `reports empty module returned from function`() {
+        val code = """
+            import org.koin.dsl.module
+
+            fun createModule() = module { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    // Edge case: Empty module in list initialization
+    @Test
+    fun `reports empty modules in list`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val allModules = listOf(
+                module { },
+                module { single { Service() } },
+                module { }
+            )
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(2)
+    }
+
+    // Edge case: Empty module with trailing lambda syntax
+    @Test
+    fun `reports empty module with explicit lambda receiver`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
