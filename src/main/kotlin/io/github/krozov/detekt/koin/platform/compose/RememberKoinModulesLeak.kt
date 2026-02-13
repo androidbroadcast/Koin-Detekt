@@ -58,8 +58,13 @@ public class RememberKoinModulesLeak(config: Config = Config.empty) : Rule(confi
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "loadKoinModules() inside remember {} without unloadKoinModules() causes memory leak. " +
-                            "Use DisposableEffect with onDispose { unloadKoinModules() } instead."
+                    """
+                    loadKoinModules() in remember {} without unload → Memory leak on recomposition
+                    → Use DisposableEffect with onDispose { unloadKoinModules() }
+
+                    ✗ Bad:  remember { loadKoinModules(featureModule) }
+                    ✓ Good: DisposableEffect(Unit) { loadKoinModules(featureModule); onDispose { unloadKoinModules(featureModule) } }
+                    """.trimIndent()
                 )
             )
         }

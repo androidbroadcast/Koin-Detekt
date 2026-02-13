@@ -52,8 +52,13 @@ public class KoinViewModelOutsideComposable(config: Config = Config.empty) : Rul
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "koinViewModel() called outside @Composable function. " +
-                            "This will cause a runtime crash. Add @Composable annotation to the function."
+                    """
+                    koinViewModel() called outside @Composable → Runtime crash, requires Composition context
+                    → Add @Composable annotation to the function
+
+                    ✗ Bad:  fun MyScreen() { val vm = koinViewModel<MyVM>() }
+                    ✓ Good: @Composable fun MyScreen() { val vm = koinViewModel<MyVM>() }
+                    """.trimIndent()
                 )
             )
             return
@@ -66,8 +71,13 @@ public class KoinViewModelOutsideComposable(config: Config = Config.empty) : Rul
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "koinViewModel() called outside @Composable function. " +
-                            "This will cause a runtime crash. Add @Composable annotation to the function."
+                    """
+                    koinViewModel() called outside @Composable → Runtime crash, requires Composition context
+                    → Add @Composable annotation to the function
+
+                    ✗ Bad:  fun MyScreen() { val vm = koinViewModel<MyVM>() }
+                    ✓ Good: @Composable fun MyScreen() { val vm = koinViewModel<MyVM>() }
+                    """.trimIndent()
                 )
             )
         }

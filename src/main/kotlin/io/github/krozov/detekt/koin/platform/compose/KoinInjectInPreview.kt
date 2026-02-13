@@ -56,9 +56,13 @@ public class KoinInjectInPreview(config: Config = Config.empty) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "koinInject() called in @Preview function. " +
-                            "Previews run without Koin context and will crash. " +
-                            "Use fake/mock implementations or @Preview parameters instead."
+                    """
+                    koinInject() in @Preview function → Preview crash, no Koin context available
+                    → Use fake/mock implementations or @Preview parameters instead
+
+                    ✗ Bad:  @Preview @Composable fun MyPreview() { val repo = koinInject<Repo>() }
+                    ✓ Good: @Preview @Composable fun MyPreview() { MyScreen(FakeRepo()) }
+                    """.trimIndent()
                 )
             )
         }

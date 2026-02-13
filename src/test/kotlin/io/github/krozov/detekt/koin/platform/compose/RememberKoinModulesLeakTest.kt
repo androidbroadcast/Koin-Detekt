@@ -19,8 +19,9 @@ class RememberKoinModulesLeakTest {
         val findings = RememberKoinModulesLeak(Config.empty).lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("loadKoinModules")
-        assertThat(findings[0].message).contains("remember")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
