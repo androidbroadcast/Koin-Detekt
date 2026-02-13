@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v0.3.0 - 2026-02-13
+
+### Changed
+* **BREAKING**: Maven group ID changed from `io.github.krozov` to `dev.androidbroadcast` by @kirich1409
+* Updated CHANGELOG.md for v0.2.0 release by @kirich1409
+
+**Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.2.0...v0.3.0
+
 ## v0.2.0 - 2026-02-13
 
 ## What's Changed
