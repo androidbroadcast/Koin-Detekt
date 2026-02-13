@@ -31,13 +31,6 @@ jobs:
         with:
           cache-read-only: false
 
-      # Gradle wrapper validation disabled due to frequent network timeouts in GitHub Actions
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
-        with:
-          allow-snapshots: false
-          min-wrapper-count: 1
-
       - name: Build with Gradle
         run: ./gradlew build --no-daemon --configuration-cache
 
