@@ -26,3 +26,9 @@ local.properties
 
 # Cache directories
 .cache/
+
+# Coverage reports
+*.exec
+*.bin
+kover/
+.kover/

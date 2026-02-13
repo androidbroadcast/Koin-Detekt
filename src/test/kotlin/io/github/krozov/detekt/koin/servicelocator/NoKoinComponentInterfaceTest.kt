@@ -69,4 +69,20 @@ class NoKoinComponentInterfaceTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports edge case - NonActivity should not match Activity`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class NonActivity : KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty)
+            .lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("NonActivity")
+        assertThat(findings[0].message).contains("not a framework entry point")
+    }
 }

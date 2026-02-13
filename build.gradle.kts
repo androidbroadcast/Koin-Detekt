@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.kover)
 }
 
 group = "io.github.krozov"
@@ -135,4 +136,50 @@ kotlin {
     // Explicit API mode: Enforce explicit visibility and return types
     // Strict mode: All public APIs must have explicit visibility and return types
     explicitApi()
+}
+
+// Code coverage configuration
+kover {
+    reports {
+        // Configure what to exclude from coverage
+        filters {
+            excludes {
+                // Exclude generated code
+                classes("*.*BuildConfig*")
+
+                // Exclude test utilities if any exist in main source set
+                packages("io.github.krozov.detekt.koin.test")
+            }
+        }
+
+        // Enable all report types
+        total {
+            html {
+                onCheck = true
+                htmlDir = layout.buildDirectory.dir("reports/kover/html")
+            }
+            xml {
+                onCheck = true
+                xmlFile = layout.buildDirectory.file("reports/kover/coverage.xml")
+            }
+
+            // Verification rules - enforce minimum coverage
+            verify {
+                onCheck = true
+
+                rule {
+                    // Minimum line coverage: 80%
+                    minBound(80)
+                }
+
+                rule("Branch Coverage") {
+                    // Minimum branch coverage: 55%
+                    bound {
+                        minValue = 55
+                        coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
+                    }
+                }
+            }
+        }
+    }
 }
