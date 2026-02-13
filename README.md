@@ -3,6 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases/latest)
 [![Release Date](https://img.shields.io/github/release-date/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
+[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](build/reports/kover/html/index.html)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Detekt 1.x extension library with 14 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
@@ -99,6 +100,37 @@ koin-rules:
     active: true
     maxIncludesWithDefinitions: 5
 ```
+
+## Code Coverage
+
+This project maintains high code coverage standards using [Kover](https://github.com/Kotlin/kotlinx-kover) (95% minimum).
+
+### Generate Coverage Reports
+
+```bash
+./gradlew koverHtmlReport
+```
+
+View the HTML report at `build/reports/kover/html/index.html`.
+
+### Verify Coverage
+
+Coverage verification runs automatically with:
+
+```bash
+./gradlew check
+```
+
+This enforces minimum coverage thresholds:
+- **Line coverage**: 95%
+- **Branch coverage**: 90%
+
+### Coverage Rules
+
+- Test code is excluded from coverage
+- Generated code and providers are excluded
+- All public APIs must have tests
+- All rule implementations must have tests
 
 ## Requirements
 
