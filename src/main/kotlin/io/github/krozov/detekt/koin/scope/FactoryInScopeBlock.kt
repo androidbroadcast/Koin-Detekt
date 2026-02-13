@@ -41,8 +41,13 @@ internal class FactoryInScopeBlock(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "'$callName' inside a scope block may be unintended. " +
-                            "Factory creates new instances on every call regardless of scope. Consider using scoped {} instead."
+                    """
+                    Factory inside scope block → Creates new instance every time, ignores scope lifecycle
+                    → Use scoped { } to respect scope lifecycle, or move factory outside scope block
+
+                    ✗ Bad:  scope<Activity> { factory { Presenter() } }
+                    ✓ Good: scope<Activity> { scoped { Presenter() } }
+                    """.trimIndent()
                 )
             )
         }

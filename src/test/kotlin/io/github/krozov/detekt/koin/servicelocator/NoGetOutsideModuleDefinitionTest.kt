@@ -22,7 +22,9 @@ class NoGetOutsideModuleDefinitionTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("get()")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -72,7 +74,9 @@ class NoGetOutsideModuleDefinitionTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("getOrNull()")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -90,7 +94,9 @@ class NoGetOutsideModuleDefinitionTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("getAll()")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

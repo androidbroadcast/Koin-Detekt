@@ -41,7 +41,13 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(klass),
-                    "Class '${klass.name}' creates a Scope but never calls close(). This may cause memory leaks."
+                    """
+                    Scope created but never closed → Memory leak risk, scope instances never cleaned up
+                    → Call scope.close() when scope lifecycle ends
+
+                    ✗ Bad:  class Manager { val scope = koin.createScope("id") }
+                    ✓ Good: class Manager { val scope = koin.createScope("id"); fun destroy() = scope.close() }
+                    """.trimIndent()
                 )
             )
         }

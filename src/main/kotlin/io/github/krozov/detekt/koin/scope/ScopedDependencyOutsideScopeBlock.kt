@@ -41,7 +41,13 @@ internal class ScopedDependencyOutsideScopeBlock(config: Config) : Rule(config) 
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "'$callName' must be defined inside a scope {} block (scope, activityScope, fragmentScope, etc.)."
+                    """
+                    Scoped dependency outside scope block → Scoped lifecycle has no scope to bind to
+                    → Define inside scope { }, activityScope { }, or other scope blocks
+
+                    ✗ Bad:  module { scoped { UserSession() } }
+                    ✓ Good: module { scope<MainActivity> { scoped { UserSession() } } }
+                    """.trimIndent()
                 )
             )
         }

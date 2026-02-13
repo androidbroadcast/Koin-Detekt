@@ -21,7 +21,9 @@ class NoGlobalContextAccessTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("GlobalContext")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -70,7 +72,9 @@ class NoGlobalContextAccessTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("KoinPlatformTools")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -87,7 +91,9 @@ class NoGlobalContextAccessTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("GlobalContext")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -104,7 +110,9 @@ class NoGlobalContextAccessTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("GlobalContext")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

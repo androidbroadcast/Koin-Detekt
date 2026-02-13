@@ -41,7 +41,13 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Avoid using $callName() outside module definitions. Use constructor injection instead."
+                    """
+                    $callName() used outside module definition → Service locator pattern, harder to test
+                    → Use constructor injection instead
+
+                    ✗ Bad:  class MyRepo : KoinComponent { val api = get<Api>() }
+                    ✓ Good: class MyRepo(private val api: Api)
+                    """.trimIndent()
                 )
             )
         }

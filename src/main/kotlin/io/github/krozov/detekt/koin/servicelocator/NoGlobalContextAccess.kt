@@ -30,7 +30,13 @@ internal class NoGlobalContextAccess(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Avoid direct access to $receiverText. Use dependency injection instead."
+                    """
+                    $receiverText access found → Global state, hardcoded dependency, untestable
+                    → Use constructor injection instead
+
+                    ✗ Bad:  val koin = GlobalContext.get()
+                    ✓ Good: class MyRepo(private val api: Api)
+                    """.trimIndent()
                 )
             )
         }

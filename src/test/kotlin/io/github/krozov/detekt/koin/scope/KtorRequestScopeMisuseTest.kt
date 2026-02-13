@@ -23,7 +23,9 @@ class KtorRequestScopeMisuseTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("singleton")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -152,7 +154,9 @@ class KtorRequestScopeMisuseTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("single")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -172,7 +176,9 @@ class KtorRequestScopeMisuseTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("singleOf")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -285,7 +291,9 @@ class KtorRequestScopeMisuseTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("single")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

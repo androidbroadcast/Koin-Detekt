@@ -23,7 +23,9 @@ class NoKoinGetInApplicationTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("startKoin")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -60,7 +62,9 @@ class NoKoinGetInApplicationTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("startKoin")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -79,7 +83,9 @@ class NoKoinGetInApplicationTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("koinConfiguration")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
@@ -98,7 +104,9 @@ class NoKoinGetInApplicationTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("koinConfiguration")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test

@@ -40,8 +40,13 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "Avoid using $callName() inside startKoin/koinConfiguration blocks. " +
-                            "Use modules() to define dependencies instead."
+                    """
+                    $callName() used in startKoin block → Service locator at app initialization
+                    → Define dependencies in modules instead
+
+                    ✗ Bad:  startKoin { val api = get<Api>() }
+                    ✓ Good: startKoin { modules(appModule) }
+                    """.trimIndent()
                 )
             )
         }

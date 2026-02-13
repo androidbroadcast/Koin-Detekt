@@ -45,7 +45,13 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(property),
-                    "Avoid using $callName() property delegate. Use constructor injection instead."
+                    """
+                    $callName() property delegate found → Lazy service locator, harder to test
+                    → Use constructor injection instead
+
+                    ✗ Bad:  class MyRepo : KoinComponent { val api: Api by inject() }
+                    ✓ Good: class MyRepo(private val api: Api)
+                    """.trimIndent()
                 )
             )
         }

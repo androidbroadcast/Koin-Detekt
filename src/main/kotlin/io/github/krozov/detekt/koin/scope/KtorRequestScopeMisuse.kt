@@ -40,8 +40,13 @@ internal class KtorRequestScopeMisuse(config: Config) : Rule(config) {
                 CodeSmell(
                     issue,
                     Entity.from(expression),
-                    "'$callName' inside requestScope is semantically incorrect. " +
-                            "A singleton should not be scoped to a request. Use scoped {} instead."
+                    """
+                    Singleton in requestScope → Semantic conflict: singleton lives app-wide, not per-request
+                    → Use scoped { } to tie lifecycle to request, or move singleton outside requestScope
+
+                    ✗ Bad:  requestScope { single { Logger() } }
+                    ✓ Good: requestScope { scoped { Logger() } }
+                    """.trimIndent()
                 )
             )
         }

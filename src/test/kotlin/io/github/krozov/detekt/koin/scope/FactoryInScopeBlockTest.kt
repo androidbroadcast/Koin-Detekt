@@ -23,7 +23,9 @@ class FactoryInScopeBlockTest {
             .lint(code)
 
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("factory")
+        assertThat(findings[0].message).contains("→")
+        assertThat(findings[0].message).contains("✗ Bad")
+        assertThat(findings[0].message).contains("✓ Good")
     }
 
     @Test
