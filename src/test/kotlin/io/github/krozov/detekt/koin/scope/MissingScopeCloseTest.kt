@@ -56,4 +56,54 @@ class MissingScopeCloseTest {
 
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports class with multiple scopes without close`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    val scope1 = koin.createScope()
+                    val scope2 = koin.createScope()
+                    // Missing close() for both
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports scope in conditional block without close`() {
+        val code = """
+            class MyClass {
+                fun onCreate() {
+                    if (condition) {
+                        val scope = koin.createScope()
+                        // Missing close()
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `detects scope in nested class without close`() {
+        val code = """
+            class Outer {
+                inner class Inner {
+                    fun onCreate() {
+                        val scope = koin.createScope()
+                        // Missing close()
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
