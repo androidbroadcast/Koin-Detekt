@@ -162,6 +162,24 @@ kover {
                 onCheck = true
                 xmlFile = layout.buildDirectory.file("reports/kover/coverage.xml")
             }
+
+            // Verification rules - enforce minimum coverage
+            verify {
+                onCheck = true
+
+                rule {
+                    // Minimum line coverage: 80%
+                    minBound(80)
+                }
+
+                rule("Branch Coverage") {
+                    // Minimum branch coverage: 55%
+                    bound {
+                        minValue = 55
+                        coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
+                    }
+                }
+            }
         }
     }
 }
