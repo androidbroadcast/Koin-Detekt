@@ -53,4 +53,48 @@ class EmptyModuleTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports module with only whitespace`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+
+
+            }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports module with only comments`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                // TODO: Add definitions
+                /* Work in progress */
+            }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports module with empty nested lambda`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+
+            }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
