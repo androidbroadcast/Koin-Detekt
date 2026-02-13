@@ -78,4 +78,34 @@ class ModuleIncludesOrganizationTest {
 
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report exactly at threshold`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                includes(a, b, c)  // Exactly 3
+                single { Service() }
+            }
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports one over threshold`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                includes(a, b, c, d)  // 4 includes
+                single { Service() }
+            }
+        """.trimIndent()
+
+        val findings = ModuleIncludesOrganization(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
