@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 24 Detekt rules for Koin.
+Complete reference for all 29 Detekt rules for Koin.
 
 ---
 
@@ -743,3 +743,239 @@ val featureModule = module {
 - ✅ Detects direct circular dependencies (A -> B -> A)
 - ✅ Analyzes module dependencies within a single file
 - ✅ Ensures clean module hierarchy
+
+---
+
+## Koin Annotations Rules
+
+### MixingDslAndAnnotations
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects mixing DSL (`module {}`) and Annotations (`@Module`, `@Single`) approaches in the same file.
+
+Mixing both approaches in the same file creates inconsistency and makes code harder to maintain. Choose one approach per file for clarity.
+
+❌ **Bad:**
+```kotlin
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
+import org.koin.dsl.module
+
+@Module
+class AnnotatedModule {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl()
+}
+
+val dslModule = module {
+    single { ApiService() }
+}
+```
+
+✅ **Good:**
+```kotlin
+// Either all DSL:
+val module = module {
+    single { Repository() }
+    single { ApiService() }
+}
+
+// Or all Annotations:
+@Module
+class MyModule {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl()
+    @Single
+    fun provideApi(): ApiService = ApiServiceImpl()
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `module {}` DSL calls
+- ✅ Detects `@Module`, `@Single`, `@Factory` annotations
+- ✅ Reports at file level when both approaches are mixed
+- ✅ Files with only DSL or only Annotations pass without issues
+- ✅ Detection works across different declarations in the same file
+
+---
+
+### MissingModuleAnnotation
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects classes with `@Single`, `@Factory`, or `@Scoped` annotations but missing the `@Module` annotation.
+
+The Koin annotation processor requires `@Module` on the class to discover the definitions inside. Without it, your definitions will be silently ignored at runtime.
+
+❌ **Bad:**
+```kotlin
+import org.koin.core.annotation.Single
+
+class MyServices {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl() // Won't be discovered!
+}
+```
+
+✅ **Good:**
+```kotlin
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
+
+@Module
+class MyServices {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl()
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `@Single`, `@Factory`, and `@Scoped` without `@Module`
+- ✅ Reports on the class that's missing `@Module`
+- ✅ Checks both function-level and property-level annotations
+- ✅ Allows classes without Koin annotations (no false positives)
+- ✅ Works with nested classes and companion objects
+
+---
+
+### ConflictingBindings
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects the same type being defined in both DSL (`module {}`) and Annotations (`@Single`, etc.).
+
+When the same type is defined in both approaches, you create a runtime conflict. Depending on module loading order, one definition will override the other unpredictably.
+
+❌ **Bad:**
+```kotlin
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
+import org.koin.dsl.module
+
+@Module
+class AnnotatedModule {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl()
+}
+
+val dslModule = module {
+    single<Repository> { RepositoryImpl() } // Conflict!
+}
+```
+
+✅ **Good:**
+```kotlin
+// Choose one approach per type:
+@Module
+class AnnotatedModule {
+    @Single
+    fun provideRepo(): Repository = RepositoryImpl()
+}
+
+// Different types are fine:
+val dslModule = module {
+    single { ApiService() }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects type conflicts from function return types in annotations
+- ✅ Detects type conflicts from type parameters in DSL (`single<Type>`)
+- ✅ Compares simple type names (ignores packages)
+- ✅ Reports conflicts for `single`, `factory`, and `scoped` definitions
+- ✅ Allows the same type with different qualifiers (not detected as conflict)
+- ✅ Analyzes entire file for conflicts
+
+---
+
+### ScopedWithoutQualifier
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Scoped` annotations without explicit scope name or qualifier.
+
+Using `@Scoped` without specifying which scope can lead to confusion about the actual scope lifecycle. Being explicit improves code clarity and prevents scope-related bugs.
+
+❌ **Bad:**
+```kotlin
+import org.koin.core.annotation.Scoped
+
+@Scoped
+class MyService // Which scope?
+```
+
+✅ **Good:**
+```kotlin
+import org.koin.core.annotation.Scoped
+
+@Scoped(name = "userScope")
+class MyService
+```
+
+**Edge Cases:**
+- ✅ Detects `@Scoped` without any parameters
+- ✅ Allows `@Scoped` with `name` parameter
+- ✅ Does not flag `@Single` or `@Factory` (they don't need qualifiers)
+- ✅ Reports on the annotation itself
+- ✅ Parameterless `@Scoped()` is also detected
+
+---
+
+### AnnotationProcessorNotConfigured
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Warns when Koin annotations are used but the annotation processor (KSP/KAPT) may not be configured.
+
+This rule provides informational warnings since Detekt cannot reliably detect if the annotation processor is configured in your build system. If you've already configured KSP/KAPT, you can disable this rule via configuration.
+
+❌ **Bad:**
+```kotlin
+// build.gradle.kts missing KSP setup
+
+import org.koin.core.annotation.Single
+
+@Single
+class MyService // Won't work without processor!
+```
+
+✅ **Good:**
+```kotlin
+// build.gradle.kts:
+plugins {
+    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+}
+
+dependencies {
+    ksp("io.insert-koin:koin-ksp-compiler:2.0.0")
+}
+
+// MyService.kt:
+import org.koin.core.annotation.Single
+
+@Single
+class MyService
+```
+
+**Configuration:**
+```yaml
+AnnotationProcessorNotConfigured:
+  active: true
+  skipCheck: false  # Set to true to disable if processor is configured
+```
+
+**Edge Cases:**
+- ✅ Detects `@Single`, `@Factory`, `@Scoped`, and `@Module` annotations
+- ✅ Reports on every class with Koin annotations (informational)
+- ✅ Can be disabled globally via `skipCheck: true` configuration
+- ✅ Useful for projects adopting Koin Annotations to ensure proper setup
+- ✅ Does not check actual build configuration (limitation of static analysis)
+
+---
