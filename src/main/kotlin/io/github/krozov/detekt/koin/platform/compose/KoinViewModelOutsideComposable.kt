@@ -44,7 +44,21 @@ public class KoinViewModelOutsideComposable(config: Config = Config.empty) : Rul
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "koinViewModel") return
 
-        val containingFunction = expression.getStrictParentOfType<KtNamedFunction>() ?: return
+        val containingFunction = expression.getStrictParentOfType<KtNamedFunction>()
+
+        // If no containing function (e.g., in init block or property), report it
+        if (containingFunction == null) {
+            report(
+                CodeSmell(
+                    issue,
+                    Entity.from(expression),
+                    "koinViewModel() called outside @Composable function. " +
+                            "This will cause a runtime crash. Add @Composable annotation to the function."
+                )
+            )
+            return
+        }
+
         val annotations = containingFunction.annotationEntries.mapNotNull { it.shortName?.asString() }
 
         if ("Composable" !in annotations) {
