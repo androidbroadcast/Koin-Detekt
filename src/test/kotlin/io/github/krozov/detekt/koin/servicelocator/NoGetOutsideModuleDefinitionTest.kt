@@ -102,6 +102,8 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in init block`() {
         val code = """
+            import org.koin.core.component.get
+
             class MyRepo {
                 init {
                     val service = get<ApiService>()
@@ -116,6 +118,8 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in property initializer`() {
         val code = """
+            import org.koin.core.component.get
+
             class MyRepo {
                 val service = get<ApiService>()
             }
@@ -128,6 +132,8 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in companion object`() {
         val code = """
+            import org.koin.core.component.get
+
             class MyRepo {
                 companion object {
                     val service = get<ApiService>()
