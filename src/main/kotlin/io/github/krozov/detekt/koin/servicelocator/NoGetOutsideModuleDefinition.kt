@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
@@ -22,9 +23,24 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
     private var insideDefinitionBlock = false
     private val definitionFunctions = setOf("single", "factory", "scoped", "viewModel", "worker")
+    private val koinImports = mutableSetOf<String>()
+
+    override fun visitImportDirective(importDirective: KtImportDirective) {
+        val importPath = importDirective.importPath?.pathStr
+        if (importPath?.startsWith("org.koin.") == true) {
+            importDirective.importedName?.asString()?.let { koinImports.add(it) }
+        }
+        super.visitImportDirective(importDirective)
+    }
 
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
+
+        // Check if function is imported from Koin - skip if not
+        if (callName != null && callName in setOf("get", "getOrNull", "getAll") && callName !in koinImports) {
+            super.visitCallExpression(expression)
+            return
+        }
 
         // Track entering definition blocks
         if (callName in definitionFunctions) {
@@ -35,7 +51,7 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
             return
         }
 
-        // Check for get() calls
+        // Check for get() calls from Koin
         if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock) {
             report(
                 CodeSmell(
