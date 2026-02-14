@@ -8,6 +8,8 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class NoKoinGetInApplication(config: Config) : Rule(config) {
@@ -22,6 +24,22 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
 
     private var insideStartKoinBlock = false
 
+    // Track Koin function imports per file (cleared in visitKtFile)
+    private val koinImports = mutableSetOf<String>()
+
+    override fun visitKtFile(file: KtFile) {
+        koinImports.clear()
+        super.visitKtFile(file)
+    }
+
+    override fun visitImportDirective(importDirective: KtImportDirective) {
+        val importPath = importDirective.importPath?.pathStr
+        if (importPath?.startsWith("org.koin.") == true) {
+            importDirective.importedName?.asString()?.let { koinImports.add(it) }
+        }
+        super.visitImportDirective(importDirective)
+    }
+
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
 
@@ -34,7 +52,13 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
             return
         }
 
-        // Check for get()/inject() inside application blocks
+        // Check if function is imported from Koin - skip if not
+        if (callName != null && callName in setOf("get", "inject") && callName !in koinImports) {
+            super.visitCallExpression(expression)
+            return
+        }
+
+        // Check for get()/inject() from Koin inside application blocks
         if (callName in setOf("get", "inject") && insideStartKoinBlock) {
             report(
                 CodeSmell(
