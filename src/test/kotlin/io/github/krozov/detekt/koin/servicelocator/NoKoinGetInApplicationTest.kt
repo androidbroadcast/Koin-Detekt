@@ -10,6 +10,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports get() inside startKoin block`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.startKoin
 
             fun main() {
@@ -49,6 +50,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports inject() inside startKoin block`() {
         val code = """
+            import org.koin.core.component.inject
             import org.koin.core.context.startKoin
 
             fun main() {
@@ -70,6 +72,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports get() inside koinConfiguration block`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.koinConfiguration
 
             fun configure() {
@@ -91,6 +94,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports inject() inside koinConfiguration block`() {
         val code = """
+            import org.koin.core.component.inject
             import org.koin.core.context.koinConfiguration
 
             fun configure() {
@@ -112,6 +116,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports multiple get() calls inside startKoin`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.startKoin
 
             fun main() {
@@ -132,6 +137,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports nested get() inside startKoin with lambda`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.startKoin
 
             fun main() {
@@ -183,6 +189,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `handles nested startKoin blocks correctly`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.startKoin
 
             fun main() {
@@ -225,6 +232,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports get() with qualifier inside startKoin`() {
         val code = """
+            import org.koin.core.component.get
             import org.koin.core.context.startKoin
             import org.koin.core.qualifier.named
 
@@ -244,6 +252,7 @@ class NoKoinGetInApplicationTest {
     @Test
     fun `reports inject() with parameters inside startKoin`() {
         val code = """
+            import org.koin.core.component.inject
             import org.koin.core.context.startKoin
 
             fun main() {

@@ -27,10 +27,11 @@ class MyRepository : KoinComponent {
 
 ✅ **Good:**
 ```kotlin
+import org.koin.core.component.get
 import org.koin.dsl.module
 
 module {
-    single { MyRepository(get()) }
+    single { MyRepository(get()) }  // get() is provided by Koin DSL scope
 }
 ```
 
