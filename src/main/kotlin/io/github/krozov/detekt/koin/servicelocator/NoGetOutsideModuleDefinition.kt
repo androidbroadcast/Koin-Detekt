@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
@@ -23,7 +24,13 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
     private var insideDefinitionBlock = false
     private val definitionFunctions = setOf("single", "factory", "scoped", "viewModel", "worker")
+    // Track Koin function imports per file (cleared in visitKtFile)
     private val koinImports = mutableSetOf<String>()
+
+    override fun visitKtFile(file: KtFile) {
+        koinImports.clear()
+        super.visitKtFile(file)
+    }
 
     override fun visitImportDirective(importDirective: KtImportDirective) {
         val importPath = importDirective.importPath?.pathStr
