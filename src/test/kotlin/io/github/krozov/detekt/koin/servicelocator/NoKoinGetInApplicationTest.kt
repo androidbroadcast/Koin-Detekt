@@ -277,4 +277,43 @@ class NoKoinGetInApplicationTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report non-Koin get() without import`() {
+        val code = """
+            import org.koin.core.context.startKoin
+
+            fun main() {
+                startKoin {
+                    val map = mapOf("key" to "value")
+                    val value = map.get("key")
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report non-Koin inject() without import`() {
+        val code = """
+            import org.koin.core.context.startKoin
+
+            class CustomDelegate {
+                operator fun getValue(thisRef: Any?, property: Any?): String = "value"
+            }
+
+            fun inject(): CustomDelegate = CustomDelegate()
+
+            fun main() {
+                startKoin {
+                    val service: String by inject()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
