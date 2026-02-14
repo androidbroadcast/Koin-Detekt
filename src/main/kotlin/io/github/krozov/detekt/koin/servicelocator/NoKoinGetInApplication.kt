@@ -10,8 +10,8 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class NoKoinGetInApplication(config: Config) : Rule(config) {
@@ -25,16 +25,35 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
     )
 
     private var insideStartKoinBlock = false
-    private val localFunctionNames = mutableSetOf<String>()
+    // Track Koin function imports per file (cleared in visitKtFile)
+    private val koinImports = mutableSetOf<String>()
+    // Track top-level function names to avoid false positives
+    private val topLevelFunctionNames = mutableSetOf<String>()
 
     override fun visitKtFile(file: KtFile) {
-        // Collect all locally defined function names to avoid false positives
-        localFunctionNames.clear()
-        localFunctionNames.addAll(
-            file.collectDescendantsOfType<KtNamedFunction>()
-                .mapNotNull { it.name }
+        koinImports.clear()
+        insideStartKoinBlock = false
+        // Collect only top-level function names to avoid false negatives
+        topLevelFunctionNames.clear()
+        topLevelFunctionNames.addAll(
+            file.declarations.filterIsInstance<KtNamedFunction>().mapNotNull { it.name }
         )
         super.visitKtFile(file)
+    }
+
+    override fun visitImportDirective(importDirective: KtImportDirective) {
+        val importPath = importDirective.importPath
+        val pathStr = importPath?.pathStr
+        if (pathStr?.startsWith("org.koin.") == true) {
+            val importedName = importDirective.importedName?.asString()
+            if (importedName != null) {
+                koinImports.add(importedName)
+            } else if (importPath.isAllUnder) {
+                // Star import from Koin package: assume common service locator functions may be used
+                koinImports.addAll(listOf("get", "inject"))
+            }
+        }
+        super.visitImportDirective(importDirective)
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
@@ -49,18 +68,20 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
             return
         }
 
-        // Inside startKoin: check for Koin get()/inject() (top-level calls without receiver)
+        // Inside startKoin: check for Koin get()/inject() using import-based detection
         if (callName in setOf("get", "inject") && insideStartKoinBlock) {
-            // Skip if this is a locally defined function (not from Koin)
-            if (callName in localFunctionNames) {
+            // Skip if this is a locally defined top-level function (not from Koin)
+            if (callName in topLevelFunctionNames) {
                 super.visitCallExpression(expression)
                 return
             }
 
             // Check if this is a receiver call (e.g., map.get()) vs top-level call (e.g., get<T>())
             val parent = expression.parent
-            if (parent !is KtDotQualifiedExpression || parent.receiverExpression == expression) {
-                // This is a top-level call (get<T>()) or the call IS the receiver - report it
+            val isReceiverCall = parent is KtDotQualifiedExpression && parent.receiverExpression != expression
+
+            // Report only if: imported from Koin AND not a receiver call
+            if (callName in koinImports && !isReceiverCall) {
                 report(
                     CodeSmell(
                         issue,
@@ -75,7 +96,6 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
                     )
                 )
             }
-            // If it's a receiver call (map.get()), don't report (it's not Koin)
         }
 
         super.visitCallExpression(expression)

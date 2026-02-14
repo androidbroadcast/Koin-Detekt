@@ -29,25 +29,27 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
     override fun visitKtFile(file: KtFile) {
         koinImports.clear()
+        insideDefinitionBlock = false
         super.visitKtFile(file)
     }
 
     override fun visitImportDirective(importDirective: KtImportDirective) {
-        val importPath = importDirective.importPath?.pathStr
-        if (importPath?.startsWith("org.koin.") == true) {
-            importDirective.importedName?.asString()?.let { koinImports.add(it) }
+        val importPath = importDirective.importPath
+        val pathStr = importPath?.pathStr
+        if (pathStr?.startsWith("org.koin.") == true) {
+            val importedName = importDirective.importedName?.asString()
+            if (importedName != null) {
+                koinImports.add(importedName)
+            } else if (importPath.isAllUnder) {
+                // Star import from Koin package: assume common service locator functions may be used
+                koinImports.addAll(listOf("get", "getOrNull", "getAll"))
+            }
         }
         super.visitImportDirective(importDirective)
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
-
-        // Check if function is imported from Koin - skip if not
-        if (callName != null && callName in setOf("get", "getOrNull", "getAll") && callName !in koinImports) {
-            super.visitCallExpression(expression)
-            return
-        }
 
         // Track entering definition blocks
         if (callName in definitionFunctions) {
@@ -58,8 +60,8 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
             return
         }
 
-        // Check for get() calls from Koin
-        if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock) {
+        // Check for get() calls from Koin (must be imported AND outside definition block)
+        if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock && callName in koinImports) {
             report(
                 CodeSmell(
                     issue,
