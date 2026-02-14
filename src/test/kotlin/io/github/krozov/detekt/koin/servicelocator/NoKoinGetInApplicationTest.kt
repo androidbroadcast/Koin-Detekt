@@ -325,4 +325,40 @@ class NoKoinGetInApplicationTest {
         val findings = NoKoinGetInApplication(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports get() with Koin star import in startKoin`() {
+        val code = """
+            import org.koin.core.component.*
+            import org.koin.core.context.startKoin
+
+            fun main() {
+                startKoin {
+                    val service = get<MyService>()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("get() used in startKoin block")
+    }
+
+    @Test
+    fun `does not report non-Koin star import in startKoin`() {
+        val code = """
+            import java.util.concurrent.atomic.*
+            import org.koin.core.context.startKoin
+
+            fun main() {
+                startKoin {
+                    val ref = AtomicReference("value")
+                    val current = ref.get()
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

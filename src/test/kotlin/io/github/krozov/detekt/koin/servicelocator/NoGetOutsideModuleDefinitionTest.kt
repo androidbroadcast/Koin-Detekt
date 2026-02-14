@@ -214,4 +214,34 @@ class NoGetOutsideModuleDefinitionTest {
         val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports get() with Koin star import`() {
+        val code = """
+            import org.koin.core.component.*
+
+            class MyRepo {
+                val service = get<ApiService>()
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("get() used outside module definition")
+    }
+
+    @Test
+    fun `does not report non-Koin star import`() {
+        val code = """
+            import java.util.concurrent.atomic.*
+
+            class MyClass {
+                val ref = AtomicReference("value")
+                val current = ref.get()
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
