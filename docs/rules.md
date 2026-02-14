@@ -11,27 +11,50 @@ Complete reference for all 29 Detekt rules for Koin.
 **Severity:** Warning
 **Active by default:** Yes
 
-Detects `get()` / `getOrNull()` / `getAll()` calls outside Koin module definition blocks.
+Detects `get()` / `getOrNull()` / `getAll()` calls **from Koin API** outside module definition blocks.
+
+**Note:** The rule checks only Koin functions imported from `org.koin.*` packages. Other methods with the same names (e.g., `AtomicReference.get()`, `Map.get()`) are ignored.
 
 ❌ **Bad:**
 ```kotlin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+
 class MyRepository : KoinComponent {
-    val api = get<ApiService>()
+    val api = get<ApiService>()  // ← Koin get()
 }
 ```
 
 ✅ **Good:**
 ```kotlin
+import org.koin.dsl.module
+
 module {
     single { MyRepository(get()) }
 }
 ```
 
+**Not reported (non-Koin APIs):**
+```kotlin
+// java.util.concurrent.atomic
+val ref = AtomicReference("value")
+val current = ref.get()  // ✓ OK
+
+// kotlinx.coroutines.channels
+val channel = Channel<String>()
+val value = channel.getOrNull()  // ✓ OK
+
+// Map, List, etc.
+val map = mapOf("key" to "value")
+val value = map.get("key")  // ✓ OK
+```
+
 **Edge Cases:**
-- ✅ Detects `get()`, `getOrNull()`, and `getAll()` variants
+- ✅ Detects `get()`, `getOrNull()`, and `getAll()` variants from Koin
 - ✅ Detects in init blocks and property initializers
 - ✅ Detects in companion objects
 - ✅ Allows `get()` inside `single {}`, `factory {}`, and other module definitions
+- ✅ Ignores non-Koin methods with the same names
 
 ---
 
