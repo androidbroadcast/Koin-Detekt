@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v0.4.1 - 2026-02-14
+
+### Fixed
+- **NoGetOutsideModuleDefinition**: Fixed false positive on non-Koin `get()` methods
+  - Rule now checks only Koin functions imported from `org.koin.*` packages
+  - No longer reports `AtomicReference.get()`, `SendChannel.getOrNull()`, `Map.get()`, etc.
+  - Fully backward compatible - only reduces false positives
+- **NoKoinGetInApplication**: Fixed false positive on non-Koin `get()` and `inject()` methods
+  - Uses receiver-based and local function detection
+  - Only top-level Koin API calls inside startKoin blocks are now reported
+  - No longer reports `map.get()` or custom `inject()` functions
+
+**Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.4.0...v0.4.1
+
 ## v0.4.0 - 2026-02-14
 
 ### Added
