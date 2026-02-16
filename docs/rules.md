@@ -281,6 +281,74 @@ ModuleIncludesOrganization:
 
 ---
 
+### ConstructorDslAmbiguousParameters
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `factoryOf(::)` / `singleOf(::)` / `viewModelOf(::)` with duplicate parameter types.
+
+❌ **Bad:**
+```kotlin
+class MyService(val a: Int, val b: Int)
+
+val m = module {
+    factoryOf(::MyService)  // b gets value of a
+}
+```
+
+✅ **Good:**
+```kotlin
+val m = module {
+    factory { MyService(get(), get()) }
+}
+```
+
+**Why this matters:**
+Koin's constructor DSL incorrectly resolves parameters of the same type. Use lambda syntax for explicit parameter resolution.
+
+**Edge Cases:**
+- ✅ Detects factoryOf, singleOf, and viewModelOf
+- ✅ Detects duplicate types including nullable variants (Int and Int? are treated as duplicates)
+- ✅ Reports all duplicate types in the message
+- ✅ Does not report when all parameter types are different
+- ✅ Does not report lambda-based factories
+
+---
+
+### ParameterTypeMatchesReturnType
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects factory definitions where the return type matches a parameter type.
+
+❌ **Bad:**
+```kotlin
+factory<Int>(named("random")) { limit: Int ->
+    Random.nextInt(limit)  // Never executes - returns `limit`
+}
+```
+
+✅ **Good:**
+```kotlin
+factory(named("random")) { params ->
+    val limit = params.get<Int>()
+    Random.nextInt(limit)
+}
+```
+
+**Why this matters:**
+Koin has undocumented short-circuit behavior: when parametersOf() provides a value matching the factory's return type, Koin returns that value directly without executing the factory lambda.
+
+**Edge Cases:**
+- ✅ Detects when factory type argument matches lambda parameter type
+- ✅ Normalizes nullable types (Int and Int? are treated as same type)
+- ✅ Does not report factories without explicit type arguments
+- ✅ Does not report when parameter type differs from return type
+
+---
+
 ## Scope Management Rules
 
 ### MissingScopeClose

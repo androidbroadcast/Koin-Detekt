@@ -33,7 +33,7 @@ publishing {
             pom {
                 name.set("detekt-koin-rules")
                 description.set(
-                    "Detekt extension library with 29 rules for Koin 4.x to enforce " +
+                    "Detekt extension library with 31 rules for Koin 4.x to enforce " +
                     "best practices and catch common anti-patterns via static analysis"
                 )
                 url.set("https://github.com/androidbroadcast/Koin-Detekt")
