@@ -3,13 +3,11 @@ package io.github.krozov.detekt.koin.moduledsl
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ExcessiveCreatedAtStartTest {
 
     @Test
-    @Disabled("TODO: Fix - rule not detecting properly")
     fun `reports when more than 10 createdAtStart in one module`() {
         val code = """
             import org.koin.dsl.module
@@ -128,7 +126,6 @@ class ExcessiveCreatedAtStartTest {
     }
 
     @Test
-    @Disabled("TODO: Fix - rule not detecting properly")
     fun `reports exact count in message`() {
         val code = """
             import org.koin.dsl.module

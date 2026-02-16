@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
 /**
@@ -66,27 +67,7 @@ public class ExcessiveCreatedAtStart(config: Config = Config.empty) : Rule(confi
         val bodyExpression = lambda.bodyExpression ?: return
 
         // Count createdAtStart = true definitions in this module
-        var count = 0
-        bodyExpression.accept(object : org.jetbrains.kotlin.psi.KtVisitorVoid() {
-            override fun visitCallExpression(callExpression: KtCallExpression) {
-                super.visitCallExpression(callExpression)
-
-                val definitionCallName = callExpression.calleeExpression?.text
-                if (definitionCallName in setOf("single", "factory", "scoped")) {
-                    val hasCreatedAtStart = callExpression.valueArguments.any { arg ->
-                        val argName = arg.getArgumentName()?.asName?.asString()
-                        if (argName == "createdAtStart") {
-                            val argValue = arg.getArgumentExpression()?.text
-                            return@any argValue == "true"
-                        }
-                        false
-                    }
-                    if (hasCreatedAtStart) {
-                        count++
-                    }
-                }
-            }
-        })
+        val count = countCreatedAtStartInStatements(bodyExpression.statements)
 
         if (count > maxCreatedAtStart) {
             report(
@@ -104,5 +85,28 @@ public class ExcessiveCreatedAtStart(config: Config = Config.empty) : Rule(confi
                 )
             )
         }
+    }
+
+    private fun countCreatedAtStartInStatements(statements: List<KtExpression>): Int {
+        var count = 0
+        for (statement in statements) {
+            if (statement is KtCallExpression) {
+                val callName = statement.calleeExpression?.text
+                if (callName in setOf("single", "factory", "scoped")) {
+                    val hasCreatedAtStart = statement.valueArguments.any { arg ->
+                        val argName = arg.getArgumentName()?.asName?.asString()
+                        if (argName == "createdAtStart") {
+                            val argValue = arg.getArgumentExpression()?.text
+                            return@any argValue == "true"
+                        }
+                        false
+                    }
+                    if (hasCreatedAtStart) {
+                        count++
+                    }
+                }
+            }
+        }
+        return count
     }
 }
