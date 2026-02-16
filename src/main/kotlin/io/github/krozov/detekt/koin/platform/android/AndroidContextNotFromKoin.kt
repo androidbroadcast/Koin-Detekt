@@ -12,14 +12,14 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
 /**
- * Detects `androidContext()` / `androidApplication()` called outside `startKoin`.
+ * Detects `androidContext()` / `androidApplication()` called outside Koin context.
  *
- * These should only be set once at app initialization in Application.onCreate.
- * Calling them elsewhere may set wrong context or cause initialization issues.
+ * These functions should only be called inside `startKoin {}` or Koin module definition blocks
+ * (`module {}`, `single {}`, `factory {}`, `scoped {}`, `viewModel {}`, `worker {}`).
  *
  * <noncompliant>
- * val myModule = module {
- *     single { androidContext() } // Wrong!
+ * fun setupContext() {
+ *     val ctx = androidContext() // Wrong — not in Koin context
  * }
  * </noncompliant>
  *
@@ -32,14 +32,22 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
  *         }
  *     }
  * }
+ *
+ * val myModule = module {
+ *     single { MyRepository(androidContext()) } // OK — inside module definition
+ * }
  * </compliant>
  */
 public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "AndroidContextNotFromKoin",
         severity = Severity.Warning,
-        description = "androidContext/androidApplication should only be called in startKoin",
+        description = "androidContext/androidApplication should only be called in startKoin or module definitions",
         debt = Debt.FIVE_MINS
+    )
+
+    private val validParentCalls: Set<String> = setOf(
+        "startKoin", "module", "single", "factory", "scoped", "viewModel", "worker"
     )
 
     override fun visitCallExpression(expression: KtCallExpression) {
@@ -48,31 +56,31 @@ public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(con
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "androidContext" && callName != "androidApplication") return
 
-        // Check if inside startKoin lambda
+        // Check if inside a valid Koin context (startKoin or module definitions)
         var current = expression.parent
-        var inStartKoin = false
+        var inKoinContext = false
         while (current != null) {
             if (current is KtLambdaExpression) {
                 val parentCall = current.parent?.parent as? KtCallExpression
-                if (parentCall?.calleeExpression?.text == "startKoin") {
-                    inStartKoin = true
+                if (parentCall?.calleeExpression?.text in validParentCalls) {
+                    inKoinContext = true
                     break
                 }
             }
             current = current.parent
         }
 
-        if (!inStartKoin) {
+        if (!inKoinContext) {
             report(
                 CodeSmell(
                     issue,
                     Entity.from(expression),
                     """
-                    $callName() outside startKoin {} → May set wrong context, initialization errors
-                    → Call only once in Application.onCreate inside startKoin block
+                    $callName() outside Koin context → May set wrong context, initialization errors
+                    → Call inside startKoin {} or module definition blocks
 
-                    ✗ Bad:  val myModule = module { single { androidContext() } }
-                    ✓ Good: class MyApp : Application() { override fun onCreate() { startKoin { androidContext(this@MyApp) } } }
+                    ✗ Bad:  fun setup() { val ctx = androidContext() }
+                    ✓ Good: startKoin { androidContext(this@MyApp) } or module { single { MyRepo(androidContext()) } }
                     """.trimIndent()
                 )
             )
