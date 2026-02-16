@@ -35,13 +35,15 @@ internal class CloseableWithoutOnClose(config: Config) : Rule(config) {
         val bodyText = lambda.bodyExpression?.text ?: return
         val isCloseable = bodyText.contains("Closeable") ||
                          bodyText.contains("Connection") ||
+                         bodyText.contains("Resource") ||
                          bodyText.contains("Stream")
 
         if (!isCloseable) return
 
         // Check if there's an onClose call after this definition
-        val parent = expression.parent as? KtDotQualifiedExpression
-        val hasOnClose = parent?.selectorExpression?.text?.contains("onClose") == true
+        // onClose is an infix function, so check parent for binary expression
+        val parent = expression.parent
+        val hasOnClose = parent?.text?.contains("onClose") == true
 
         if (!hasOnClose) {
             report(
