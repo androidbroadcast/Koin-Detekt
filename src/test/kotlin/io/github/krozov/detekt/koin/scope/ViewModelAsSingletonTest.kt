@@ -26,4 +26,23 @@ class ViewModelAsSingletonTest {
         assertThat(findings[0].message).contains("ViewModel")
         assertThat(findings[0].message).contains("viewModel")
     }
+
+    @Test
+    fun `reports ViewModel defined with singleOf`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.module.dsl.singleOf
+            import androidx.lifecycle.ViewModel
+
+            class MyViewModel : ViewModel()
+
+            val appModule = module {
+                singleOf(::MyViewModel)
+            }
+        """.trimIndent()
+
+        val findings = ViewModelAsSingleton(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+    }
 }
