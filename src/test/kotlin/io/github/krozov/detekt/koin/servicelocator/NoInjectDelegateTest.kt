@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.servicelocator
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.Test
 class NoInjectDelegateTest {
 
     @Test
-    fun `reports inject() delegate usage`() {
+    fun `reports inject() delegate usage in regular class`() {
         val code = """
             import org.koin.core.component.KoinComponent
             import org.koin.core.component.inject
@@ -121,5 +122,135 @@ class NoInjectDelegateTest {
 
         val findings = NoInjectDelegate(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
+    }
+
+    // Allowed super type tests
+    @Test
+    fun `allows inject in Activity`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyActivity : Activity() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows inject in Fragment`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyFragment : Fragment() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows inject in Application`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyApp : Application() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows inject in ViewModel`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyViewModel : ViewModel() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports inject in plain class even with KoinComponent`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.inject
+
+            class PlainService : KoinComponent {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows inject with custom allowed super type config`() {
+        val config = TestConfig("allowedSuperTypes" to listOf("Worker"))
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyWorker : Worker() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports inject in Activity when allowedSuperTypes is empty`() {
+        val config = TestConfig("allowedSuperTypes" to emptyList<String>())
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyActivity : Activity() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows inject in ComponentActivity`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyActivity : ComponentActivity() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows inject in class with generic super type`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyFragment : Fragment<MyBinding>() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
     }
 }

@@ -7,6 +7,14 @@ koin-rules:
 
   NoInjectDelegate:
     active: true
+    allowedSuperTypes:
+      - 'Application'
+      - 'Activity'
+      - 'ComponentActivity'
+      - 'Fragment'
+      - 'Service'
+      - 'BroadcastReceiver'
+      - 'ViewModel'
 
   NoKoinComponentInterface:
     active: true
