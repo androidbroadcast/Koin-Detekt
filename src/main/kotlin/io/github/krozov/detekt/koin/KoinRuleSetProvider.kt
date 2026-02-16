@@ -6,6 +6,7 @@ import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 import io.github.krozov.detekt.koin.moduledsl.DeprecatedKoinApi
 import io.github.krozov.detekt.koin.moduledsl.DuplicateBindingWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.EmptyModule
+import io.github.krozov.detekt.koin.moduledsl.EnumQualifierCollision
 import io.github.krozov.detekt.koin.moduledsl.GenericDefinitionWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
@@ -64,6 +65,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 UnassignedQualifierInWithOptions(config),
                 DuplicateBindingWithoutQualifier(config),
                 GenericDefinitionWithoutQualifier(config),
+                EnumQualifierCollision(config),
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),

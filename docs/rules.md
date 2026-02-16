@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 32 Detekt rules for Koin.
+Complete reference for all 33 Detekt rules for Koin.
 
 ---
 
@@ -380,6 +380,43 @@ module {
 - ✅ Does not report non-generic types
 
 **Related Issue:** [Koin#188](https://github.com/InsertKoinIO/koin/issues/188)
+
+---
+
+### EnumQualifierCollision
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects enum qualifiers with same value name from different enum types (collision risk with R8/ProGuard).
+
+❌ **Bad:**
+```kotlin
+enum class Type1 { VALUE }
+enum class Type2 { VALUE }
+
+module {
+    single(named(Type1.VALUE)) { ServiceA() }
+    single(named(Type2.VALUE)) { ServiceB() }  // Collision: both use "VALUE"
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single(named("type1_value")) { ServiceA() }
+    single(named("type2_value")) { ServiceB() }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects collisions across different enum types
+- ✅ Does not report same enum value used multiple times
+- ✅ Does not report enum values with different names
+- ✅ Does not report string qualifiers
+- ✅ Uses heuristic pattern matching (no semantic analysis required)
+
+**Related Issue:** [Koin#2364](https://github.com/InsertKoinIO/koin/issues/2364)
 
 ---
 
