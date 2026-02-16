@@ -7,11 +7,11 @@
 ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Detekt 1.x extension library with 31 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
+Detekt 1.x extension library with 32 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
 
 ## Features
 
-✅ **31 Rules** across 6 categories: Service Locator, Module DSL, Scope Management, Platform, Architecture, Koin Annotations
+✅ **32 Rules** across 6 categories: Service Locator, Module DSL, Scope Management, Platform, Architecture, Koin Annotations
 ✅ **Zero runtime overhead** — pure syntactic analysis via Kotlin PSI
 ✅ **No Koin dependency** in consumer projects
 ✅ **Configurable** — customize rules via detekt config
@@ -75,7 +75,7 @@ Run analysis:
 | `DeprecatedKoinApi` | Warning | Active |
 | `ModuleIncludesOrganization` | Style | Inactive |
 
-### Scope Management Rules (6)
+### Scope Management Rules (7)
 
 | Rule | Severity | Default |
 |------|----------|---------|
@@ -83,6 +83,7 @@ Run analysis:
 | `ScopedDependencyOutsideScopeBlock` | Warning | Active |
 | `ViewModelAsSingleton` | Warning | Active |
 | `CloseableWithoutOnClose` | Warning | Active |
+| `ScopeAccessInOnDestroy` | Warning | Active |
 | `FactoryInScopeBlock` | Style | Inactive |
 | `KtorRequestScopeMisuse` | Warning | Active |
 

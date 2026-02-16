@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 31 Detekt rules for Koin.
+Complete reference for all 32 Detekt rules for Koin.
 
 ---
 
@@ -406,6 +406,39 @@ val appModule = module {
 
 **Why this matters:**
 Resources implementing Closeable are not automatically cleaned up by Koin. Without `onClose`, connections remain open, causing resource leaks.
+
+---
+
+### ScopeAccessInOnDestroy
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects scope access (`get()`, `inject()`) in `onDestroy()` or `onDestroyView()` methods.
+
+❌ **Bad:**
+```kotlin
+class MyFragment : Fragment(), KoinComponent {
+    override fun onDestroy() {
+        val service = get<MyService>()
+        service.cleanup()
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyFragment : Fragment(), KoinComponent {
+    private val service: MyService by inject()
+
+    override fun onDestroy() {
+        service.cleanup()
+    }
+}
+```
+
+**Why this matters:**
+In nested fragments or ViewPager2, the scope may be closed before `onDestroy()` executes, causing `ClosedScopeException`. Access dependencies in `onCreate()` or as class properties instead.
 
 ---
 

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - **ViewModelAsSingleton** - Detects ViewModel defined with single {} instead of viewModel {} (#2310)
 - **CloseableWithoutOnClose** - Detects Closeable types without onClose callback (#1790, #2001)
+- **ScopeAccessInOnDestroy** - Detects scope access in onDestroy/onDestroyView (#1543, #1773)
 
 ### Breaking Changes
 
