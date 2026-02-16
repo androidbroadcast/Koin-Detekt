@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v0.4.1 - 2026-02-16
+
+## What's Changed
+
+* c0dffc5 fix: respect -Pversion flag in build.gradle.kts
+* d2325ca ci: generate release notes via Claude API
+* 6b34591 fix: address corner cases in 4 rules (#22, #23, #24, #25)
+* 2327c90 fix: add allowedSuperTypes config to NoInjectDelegate (#21)
+* 154c590 fix: allow one default binding alongside qualified ones (#20)
+* 3dc239d fix: skip viewModelOf() suggestion when lambda uses named dependencies (#19)
+
+**Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.4.0...v0.4.1
+
+
 ## v0.4.0 - 2026-02-14
 
 ### Added
