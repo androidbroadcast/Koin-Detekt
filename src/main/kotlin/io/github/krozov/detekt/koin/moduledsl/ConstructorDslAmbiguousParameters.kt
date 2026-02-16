@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.psi.*
 
 internal class ConstructorDslAmbiguousParameters(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "ConstructorDslAmbiguousParameters",
         severity = Severity.Warning,
         description = "Detects factoryOf/singleOf/viewModelOf with duplicate parameter types, " +
