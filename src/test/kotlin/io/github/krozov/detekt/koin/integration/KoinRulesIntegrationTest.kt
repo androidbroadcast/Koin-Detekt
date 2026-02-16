@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(35)
+        assertThat(ruleSet.rules).hasSize(38)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -54,6 +54,9 @@ class KoinRulesIntegrationTest {
             // Scope Management Rules
             "MissingScopeClose",
             "ScopedDependencyOutsideScopeBlock",
+            "ViewModelAsSingleton",
+            "CloseableWithoutOnClose",
+            "ScopeAccessInOnDestroy",
             "FactoryInScopeBlock",
             "KtorRequestScopeMisuse",
             // Platform Rules - Compose

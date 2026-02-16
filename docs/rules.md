@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 35 Detekt rules for Koin.
+Complete reference for all 38 Detekt rules for Koin.
 
 ---
 
@@ -552,6 +552,104 @@ module {
 - ✅ Recognizes `scope<T> {}`, `activityScope {}`, and `fragmentScope {}` blocks
 - ✅ Detects `scoped {}` at module level (outside any scope block)
 - ✅ Allows `scoped {}` inside any recognized scope block
+
+---
+
+### ViewModelAsSingleton
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects ViewModel classes defined with `single {}` instead of `viewModel {}`.
+
+❌ **Bad:**
+```kotlin
+class MyViewModel : ViewModel()
+
+val appModule = module {
+    single { MyViewModel() }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyViewModel : ViewModel()
+
+val appModule = module {
+    viewModel { MyViewModel() }
+}
+```
+
+**Why this matters:**
+When a ViewModel is defined as a singleton, its `viewModelScope` becomes invalid after `popBackStack()`, causing coroutine launches to fail silently. Use `viewModel {}` to ensure proper lifecycle management.
+
+**Edge Cases:**
+- ✅ Detects both `single { }` and `singleOf(::)` patterns
+- ✅ Works with custom ViewModel subclasses
+- ✅ Allows `viewModel { }` and `viewModelOf(::)` (correct usage)
+
+---
+
+### CloseableWithoutOnClose
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Closeable/AutoCloseable types in `single {}` or `scoped {}` blocks without `onClose` callback.
+
+❌ **Bad:**
+```kotlin
+class DatabaseConnection : Closeable {
+    override fun close() { /* cleanup */ }
+}
+
+val appModule = module {
+    single { DatabaseConnection() }
+}
+```
+
+✅ **Good:**
+```kotlin
+val appModule = module {
+    single { DatabaseConnection() } onClose { it?.close() }
+}
+```
+
+**Why this matters:**
+Resources implementing Closeable are not automatically cleaned up by Koin. Without `onClose`, connections remain open, causing resource leaks.
+
+---
+
+### ScopeAccessInOnDestroy
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects scope access (`get()`, `inject()`) in `onDestroy()` or `onDestroyView()` methods.
+
+❌ **Bad:**
+```kotlin
+class MyFragment : Fragment(), KoinComponent {
+    override fun onDestroy() {
+        val service = get<MyService>()
+        service.cleanup()
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyFragment : Fragment(), KoinComponent {
+    private val service: MyService by inject()
+
+    override fun onDestroy() {
+        service.cleanup()
+    }
+}
+```
+
+**Why this matters:**
+In nested fragments or ViewPager2, the scope may be closed before `onDestroy()` executes, causing `ClosedScopeException`. Access dependencies in `onCreate()` or as class properties instead.
 
 ---
 

@@ -14,10 +14,13 @@ import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
 import io.github.krozov.detekt.koin.moduledsl.ParameterTypeMatchesReturnType
 import io.github.krozov.detekt.koin.moduledsl.SingleForNonSharedDependency
 import io.github.krozov.detekt.koin.moduledsl.UnassignedQualifierInWithOptions
+import io.github.krozov.detekt.koin.scope.CloseableWithoutOnClose
 import io.github.krozov.detekt.koin.scope.FactoryInScopeBlock
 import io.github.krozov.detekt.koin.scope.KtorRequestScopeMisuse
 import io.github.krozov.detekt.koin.scope.MissingScopeClose
+import io.github.krozov.detekt.koin.scope.ScopeAccessInOnDestroy
 import io.github.krozov.detekt.koin.scope.ScopedDependencyOutsideScopeBlock
+import io.github.krozov.detekt.koin.scope.ViewModelAsSingleton
 import io.github.krozov.detekt.koin.servicelocator.NoGetOutsideModuleDefinition
 import io.github.krozov.detekt.koin.servicelocator.NoGlobalContextAccess
 import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
@@ -73,6 +76,9 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),
+                ViewModelAsSingleton(config),
+                CloseableWithoutOnClose(config),
+                ScopeAccessInOnDestroy(config),
                 FactoryInScopeBlock(config),
                 KtorRequestScopeMisuse(config),
                 // Platform Rules - Compose
