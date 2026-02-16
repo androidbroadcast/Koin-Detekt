@@ -8,10 +8,12 @@ import io.github.krozov.detekt.koin.moduledsl.DeprecatedKoinApi
 import io.github.krozov.detekt.koin.moduledsl.DuplicateBindingWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.EmptyModule
 import io.github.krozov.detekt.koin.moduledsl.EnumQualifierCollision
+import io.github.krozov.detekt.koin.moduledsl.ExcessiveCreatedAtStart
 import io.github.krozov.detekt.koin.moduledsl.GenericDefinitionWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleAsTopLevelVal
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
+import io.github.krozov.detekt.koin.moduledsl.OverrideInIncludedModule
 import io.github.krozov.detekt.koin.moduledsl.ParameterTypeMatchesReturnType
 import io.github.krozov.detekt.koin.moduledsl.SingleForNonSharedDependency
 import io.github.krozov.detekt.koin.moduledsl.UnassignedQualifierInWithOptions
@@ -20,6 +22,7 @@ import io.github.krozov.detekt.koin.scope.FactoryInScopeBlock
 import io.github.krozov.detekt.koin.scope.KtorRequestScopeMisuse
 import io.github.krozov.detekt.koin.scope.MissingScopeClose
 import io.github.krozov.detekt.koin.scope.ScopeAccessInOnDestroy
+import io.github.krozov.detekt.koin.scope.ScopeDeclareWithActivityOrFragment
 import io.github.krozov.detekt.koin.scope.ScopedDependencyOutsideScopeBlock
 import io.github.krozov.detekt.koin.scope.ViewModelAsSingleton
 import io.github.krozov.detekt.koin.servicelocator.NoGetOutsideModuleDefinition
@@ -77,6 +80,9 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 EnumQualifierCollision(config),
                 ConstructorDslAmbiguousParameters(config),
                 ParameterTypeMatchesReturnType(config),
+                ExcessiveCreatedAtStart(config),
+                OverrideInIncludedModule(config),
+                ModuleAsTopLevelVal(config),
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),

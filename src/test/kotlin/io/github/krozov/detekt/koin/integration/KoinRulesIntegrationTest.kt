@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(38)
+        assertThat(ruleSet.rules).hasSize(44)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -51,6 +51,9 @@ class KoinRulesIntegrationTest {
             "EnumQualifierCollision",
             "ConstructorDslAmbiguousParameters",
             "ParameterTypeMatchesReturnType",
+            "ExcessiveCreatedAtStart",
+            "OverrideInIncludedModule",
+            "ModuleAsTopLevelVal",
             // Scope Management Rules
             "MissingScopeClose",
             "ScopedDependencyOutsideScopeBlock",
