@@ -66,5 +66,35 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
                 )
             }
         }
+
+        if (hasModuleAnnotation) {
+            val hasComponentScan = classAnnotations.any { it == "ComponentScan" }
+            val hasIncludes = klass.annotationEntries.any { entry ->
+                entry.shortName?.asString() == "Module" &&
+                    entry.valueArgumentList?.arguments?.any { arg ->
+                        arg.getArgumentName()?.asName?.asString() == "includes"
+                    } == true
+            }
+            val hasKoinDefinitions = klass.declarations.any { declaration ->
+                val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
+                annotations.any { it in setOf("Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker") }
+            }
+
+            if (!hasComponentScan && !hasIncludes && !hasKoinDefinitions) {
+                report(
+                    CodeSmell(
+                        issue,
+                        Entity.from(klass),
+                        """
+                        @Module without @ComponentScan, includes, or definitions → Module will be empty
+                        → Add @ComponentScan or include other modules or add provider functions
+
+                        ✗ Bad:  @Module class ${klass.name ?: "EmptyModule"}
+                        ✓ Good: @Module @ComponentScan class ${klass.name ?: "EmptyModule"}
+                        """.trimIndent()
+                    )
+                )
+            }
+        }
     }
 }

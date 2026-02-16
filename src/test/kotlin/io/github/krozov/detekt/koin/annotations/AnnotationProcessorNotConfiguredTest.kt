@@ -53,4 +53,32 @@ class AnnotationProcessorNotConfiguredTest {
         val findings = AnnotationProcessorNotConfigured(config).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports KoinViewModel without processor`() {
+        val code = """
+            import org.koin.android.annotation.KoinViewModel
+
+            @KoinViewModel
+            class MyViewModel
+        """.trimIndent()
+
+        val findings = AnnotationProcessorNotConfigured(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports ComponentScan without processor`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.ComponentScan
+
+            @Module
+            @ComponentScan
+            class MyModule
+        """.trimIndent()
+
+        val findings = AnnotationProcessorNotConfigured(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

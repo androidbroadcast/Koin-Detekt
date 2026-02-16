@@ -63,4 +63,58 @@ class MixingDslAndAnnotationsTest {
         val findings = MixingDslAndAnnotations(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports mixing DSL with Configuration annotation`() {
+        val code = """
+            import org.koin.core.annotation.Configuration
+            import org.koin.dsl.module
+
+            @Configuration
+            class AppConfig
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent()
+
+        val findings = MixingDslAndAnnotations(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports mixing DSL with KoinApplication annotation`() {
+        val code = """
+            import org.koin.core.annotation.KoinApplication
+            import org.koin.dsl.module
+
+            @KoinApplication
+            class MyApp
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent()
+
+        val findings = MixingDslAndAnnotations(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports mixing DSL with KoinViewModel annotation`() {
+        val code = """
+            import org.koin.android.annotation.KoinViewModel
+            import org.koin.dsl.module
+
+            @KoinViewModel
+            class MyViewModel
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent()
+
+        val findings = MixingDslAndAnnotations(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

@@ -56,6 +56,37 @@ class ConflictingBindingsTest {
     }
 
     @Test
+    fun `reports duplicate definition annotations on same class`() {
+        val code = """
+            import org.koin.core.annotation.Single
+            import org.koin.core.annotation.Factory
+
+            @Single
+            @Factory
+            class MyService
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("@Single")
+        assertThat(findings[0].message).contains("@Factory")
+    }
+
+    @Test
+    fun `allows single definition annotation`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows same type with different qualifiers`() {
         val code = """
             import org.koin.core.annotation.Module

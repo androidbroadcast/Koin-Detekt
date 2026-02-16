@@ -10,17 +10,18 @@ import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
 /**
- * `@Scoped` without scope name/qualifier.
+ * `@Scoped` without `@Scope` annotation or scope archetype.
  *
- * Default scope may be unclear, better to be explicit.
+ * Without a scope annotation, the scope boundary is undefined at runtime.
  *
  * <noncompliant>
  * @Scoped
- * class MyService // Which scope?
+ * class MyService // No scope defined!
  * </noncompliant>
  *
  * <compliant>
- * @Scoped(name = "userScope")
+ * @Scope(name = "myScope")
+ * @Scoped
  * class MyService
  * </compliant>
  */
@@ -32,33 +33,36 @@ public class ScopedWithoutQualifier(config: Config = Config.empty) : Rule(config
         debt = Debt.FIVE_MINS
     )
 
+    private val scopeArchetypes = setOf(
+        "Scope", "ViewModelScope", "ActivityScope", "ActivityRetainedScope", "FragmentScope"
+    )
+
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val scopedAnnotation = klass.annotationEntries.find {
-            it.shortName?.asString() == "Scoped"
-        }
+        val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
+        val hasScopedAnnotation = "Scoped" in annotations
+        if (!hasScopedAnnotation) return
 
-        if (scopedAnnotation != null) {
-            // Check if annotation has parameters
-            val hasParameters = scopedAnnotation.valueArgumentList != null &&
-                    scopedAnnotation.valueArgumentList!!.arguments.isNotEmpty()
+        val hasScopeAnnotation = annotations.any { it in scopeArchetypes }
 
-            if (!hasParameters) {
-                report(
-                    CodeSmell(
-                        issue,
-                        Entity.from(scopedAnnotation),
-                        """
-                        @Scoped without qualifier → Default scope may be unclear
-                        → Specify scope name explicitly for clarity
+        if (!hasScopeAnnotation) {
+            val scopedAnnotation = klass.annotationEntries.find {
+                it.shortName?.asString() == "Scoped"
+            }!!
+            report(
+                CodeSmell(
+                    issue,
+                    Entity.from(scopedAnnotation),
+                    """
+                    @Scoped without @Scope annotation → Undefined scope boundary at runtime
+                    → Add @Scope, @ActivityScope, @FragmentScope, or similar to define scope
 
-                        ✗ Bad:  @Scoped class MyService
-                        ✓ Good: @Scoped(name = "userScope") class MyService
-                        """.trimIndent()
-                    )
+                    ✗ Bad:  @Scoped class ${klass.name}
+                    ✓ Good: @Scope(name = "myScope") @Scoped class ${klass.name}
+                    """.trimIndent()
                 )
-            }
+            )
         }
     }
 }

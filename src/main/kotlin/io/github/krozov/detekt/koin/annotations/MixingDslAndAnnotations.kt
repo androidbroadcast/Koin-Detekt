@@ -65,7 +65,12 @@ public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(confi
         // Check for Koin annotations
         file.declarations.forEach { declaration ->
             val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-            if ("Module" in annotations || "Single" in annotations || "Factory" in annotations) {
+            val koinAnnotations = setOf(
+                "Module", "Single", "Factory", "Scoped",
+                "Configuration", "KoinApplication", "ComponentScan",
+                "KoinViewModel", "KoinWorker"
+            )
+            if (annotations.any { it in koinAnnotations }) {
                 hasModuleAnnotation = true
             }
         }

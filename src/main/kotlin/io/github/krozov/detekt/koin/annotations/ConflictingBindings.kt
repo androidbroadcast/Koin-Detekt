@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -74,6 +75,30 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
                     )
                 )
             }
+        }
+    }
+
+    override fun visitClass(klass: KtClass) {
+        super.visitClass(klass)
+
+        val koinAnnotations = klass.annotationEntries
+            .mapNotNull { it.shortName?.asString() }
+            .filter { it in setOf("Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker") }
+
+        if (koinAnnotations.size > 1) {
+            report(
+                CodeSmell(
+                    issue,
+                    Entity.from(klass),
+                    """
+                    Multiple Koin definition annotations: ${koinAnnotations.joinToString(", ") { "@$it" }}
+                    → KSP picks first annotation; behavior is undefined. Choose one.
+
+                    ✗ Bad:  ${koinAnnotations.joinToString(" ") { "@$it" }} class ${klass.name}
+                    ✓ Good: @${koinAnnotations.first()} class ${klass.name}
+                    """.trimIndent()
+                )
+            )
         }
     }
 
