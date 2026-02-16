@@ -8,6 +8,7 @@ import io.github.krozov.detekt.koin.moduledsl.EmptyModule
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
 import io.github.krozov.detekt.koin.moduledsl.SingleForNonSharedDependency
+import io.github.krozov.detekt.koin.scope.CloseableWithoutOnClose
 import io.github.krozov.detekt.koin.scope.FactoryInScopeBlock
 import io.github.krozov.detekt.koin.scope.KtorRequestScopeMisuse
 import io.github.krozov.detekt.koin.scope.MissingScopeClose
@@ -63,6 +64,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),
                 ViewModelAsSingleton(config),
+                CloseableWithoutOnClose(config),
                 FactoryInScopeBlock(config),
                 KtorRequestScopeMisuse(config),
                 // Platform Rules - Compose

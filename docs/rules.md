@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 30 Detekt rules for Koin.
+Complete reference for all 31 Detekt rules for Koin.
 
 ---
 
@@ -376,6 +376,36 @@ When a ViewModel is defined as a singleton, its `viewModelScope` becomes invalid
 - ✅ Detects both `single { }` and `singleOf(::)` patterns
 - ✅ Works with custom ViewModel subclasses
 - ✅ Allows `viewModel { }` and `viewModelOf(::)` (correct usage)
+
+---
+
+### CloseableWithoutOnClose
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Closeable/AutoCloseable types in `single {}` or `scoped {}` blocks without `onClose` callback.
+
+❌ **Bad:**
+```kotlin
+class DatabaseConnection : Closeable {
+    override fun close() { /* cleanup */ }
+}
+
+val appModule = module {
+    single { DatabaseConnection() }
+}
+```
+
+✅ **Good:**
+```kotlin
+val appModule = module {
+    single { DatabaseConnection() } onClose { it?.close() }
+}
+```
+
+**Why this matters:**
+Resources implementing Closeable are not automatically cleaned up by Koin. Without `onClose`, connections remain open, causing resource leaks.
 
 ---
 

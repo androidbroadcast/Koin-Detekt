@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - **ViewModelAsSingleton** - Detects ViewModel defined with single {} instead of viewModel {} (#2310)
+- **CloseableWithoutOnClose** - Detects Closeable types without onClose callback (#1790, #2001)
 
 ### Breaking Changes
 
