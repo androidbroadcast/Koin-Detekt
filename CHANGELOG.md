@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Infrastructure
+
+- **Maven Central Publication**: Library is now published to Maven Central alongside GitHub Packages
+  - Automatic publication via GitHub Actions on release tags
+  - GPG-signed artifacts for security and authenticity
+  - Available at `dev.androidbroadcast.rules.koin:detekt-koin-rules` coordinates
+  - Synchronization to Maven Central within 15-30 minutes of release
+
 ## v0.4.1 - 2026-02-16
 
 ## What's Changed
@@ -16,7 +24,6 @@ All notable changes to this project will be documented in this file.
 * 3dc239d fix: skip viewModelOf() suggestion when lambda uses named dependencies (#19)
 
 **Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.4.0...v0.4.1
-
 
 ## v0.4.0 - 2026-02-14
 
