@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 38 Detekt rules for Koin.
+Complete reference for all 51 Detekt rules for Koin.
 
 ---
 
@@ -1281,10 +1281,222 @@ AnnotationProcessorNotConfigured:
 ```
 
 **Edge Cases:**
-- ✅ Detects `@Single`, `@Factory`, `@Scoped`, and `@Module` annotations
+- ✅ Detects `@Single`, `@Factory`, `@Scoped`, `@Module`, `@KoinViewModel`, `@KoinWorker`, `@ComponentScan`, `@Configuration`, `@KoinApplication` annotations
 - ✅ Reports on every class with Koin annotations (informational)
 - ✅ Can be disabled globally via `skipCheck: true` configuration
 - ✅ Useful for projects adopting Koin Annotations to ensure proper setup
 - ✅ Does not check actual build configuration (limitation of static analysis)
+
+---
+
+### SingleAnnotationOnObject
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Koin definition annotations (`@Single`, `@Factory`, etc.) on Kotlin `object` declarations. Objects are language-level singletons — annotating them generates invalid code like `single { MyObject() }` calling a non-existent constructor.
+
+❌ **Bad:**
+```kotlin
+@Single
+object MySingleton // Generates invalid: single { MySingleton() }
+```
+
+✅ **Good:**
+```kotlin
+@Single
+class MySingleton
+```
+
+**Edge Cases:**
+- ✅ Detects `@Single`, `@Factory`, `@Scoped`, `@KoinViewModel`, `@KoinWorker`
+- ✅ Skips companion objects
+- ✅ Allows `@Single` on regular classes
+
+---
+
+### TooManyInjectedParams
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Detects classes with more than 5 `@InjectedParam` parameters. `ParametersHolder` only supports destructuring up to `component5()`.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyService(
+    @InjectedParam val a: String,
+    @InjectedParam val b: Int,
+    @InjectedParam val c: Long,
+    @InjectedParam val d: Float,
+    @InjectedParam val e: Double,
+    @InjectedParam val f: Boolean // 6th — too many!
+)
+```
+
+✅ **Good:**
+```kotlin
+@Single
+class MyService(@InjectedParam val params: MyServiceParams)
+```
+
+**Configuration:**
+```yaml
+TooManyInjectedParams:
+  maxInjectedParams: 5
+```
+
+**Edge Cases:**
+- ✅ Only counts `@InjectedParam` annotated parameters
+- ✅ Regular constructor parameters are ignored
+- ✅ Default threshold is 5 (configurable)
+
+---
+
+### InvalidNamedQualifierCharacters
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Named` values containing characters invalid in generated Kotlin identifiers. Hyphens, spaces, and special characters cause KSP code generation failures.
+
+❌ **Bad:**
+```kotlin
+@Named("ricky-morty")
+@Single
+class MyService
+```
+
+✅ **Good:**
+```kotlin
+@Named("rickyMorty")
+@Single
+class MyService
+```
+
+**Edge Cases:**
+- ✅ Validates against pattern `[a-zA-Z][a-zA-Z0-9_.]*`
+- ✅ Allows underscores and dots
+- ✅ Detects on class-level and function parameter-level `@Named`
+
+---
+
+### KoinAnnotationOnExtensionFunction
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Koin definition annotations on extension functions. KSP code generator ignores the receiver parameter, producing invalid generated code.
+
+❌ **Bad:**
+```kotlin
+@Module
+class MyModule {
+    @Single
+    fun Scope.provideDatastore(): DataStore = DataStore()
+}
+```
+
+✅ **Good:**
+```kotlin
+@Module
+class MyModule {
+    @Single
+    fun provideDatastore(scope: Scope): DataStore = DataStore()
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `@Single`, `@Factory`, `@Scoped`, `@KoinViewModel`, `@KoinWorker`
+- ✅ Allows regular (non-extension) functions
+- ✅ Allows extension functions without Koin annotations
+
+---
+
+### ViewModelAnnotatedAsSingle
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects ViewModel classes annotated with `@Single` or `@Factory` instead of `@KoinViewModel`. ViewModels as singletons cause coroutine scope issues: `viewModelScope` is cancelled on navigation but the singleton persists.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyViewModel : ViewModel() // Coroutine failures after navigation!
+```
+
+✅ **Good:**
+```kotlin
+@KoinViewModel
+class MyViewModel : ViewModel()
+```
+
+**Edge Cases:**
+- ✅ Detects classes extending `ViewModel` and `AndroidViewModel`
+- ✅ Detects both `@Single` and `@Factory` as wrong annotations
+- ✅ Allows `@KoinViewModel` annotation
+- ✅ Only checks direct supertypes (PSI limitation)
+
+---
+
+### AnnotatedClassImplementsNestedInterface
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Koin-annotated classes that implement nested/inner interfaces. KSP code generator drops the parent qualifier in `bind()` call, generating `bind(ChildInterface::class)` instead of `bind(Parent.ChildInterface::class)`.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyImpl : Parent.ChildInterface // KSP generates bind(ChildInterface::class) — wrong!
+```
+
+✅ **Good:**
+```kotlin
+interface ChildInterface // Extract to top-level
+
+@Single
+class MyImpl : ChildInterface
+```
+
+**Edge Cases:**
+- ✅ Detects dot-qualified type references in supertypes
+- ✅ Works with sealed interface members
+- ✅ Allows top-level interface implementations
+- ✅ Only reports when Koin annotations are present
+
+---
+
+### InjectedParamWithNestedGenericType
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@InjectedParam` with nested generic types or star projections. KSP code generator has a known bug where nested type arguments are dropped.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyService(@InjectedParam val items: List<List<String>>) // KSP bug!
+```
+
+✅ **Good:**
+```kotlin
+typealias StringList = List<String>
+
+@Single
+class MyService(@InjectedParam val items: List<StringList>)
+```
+
+**Edge Cases:**
+- ✅ Detects nested generics: `List<List<String>>`, `Map<String, List<Int>>`
+- ✅ Detects star projections: `List<*>`
+- ✅ Allows simple generics: `List<String>`
+- ✅ Allows non-generic types
+- ✅ Only checks `@InjectedParam` annotated parameters
 
 ---

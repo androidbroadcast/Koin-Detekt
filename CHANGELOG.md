@@ -10,6 +10,22 @@ All notable changes to this project will be documented in this file.
 - **ConstructorDslAmbiguousParameters** - Detects constructor DSL with duplicate parameter types (#1372, #2347)
 - **ParameterTypeMatchesReturnType** - Detects factory with return type matching parameter type (#2328)
 
+#### New Koin Annotations Rules (7)
+* **`SingleAnnotationOnObject`**: Detects Koin definition annotations on `object` declarations — generates invalid constructor calls
+* **`TooManyInjectedParams`**: Detects classes with more than 5 `@InjectedParam` parameters — `ParametersHolder` supports max `component5()`
+* **`InvalidNamedQualifierCharacters`**: Detects `@Named` values with hyphens, spaces, or special characters that break KSP code generation
+* **`KoinAnnotationOnExtensionFunction`**: Detects Koin annotations on extension functions — KSP ignores receiver parameter
+* **`ViewModelAnnotatedAsSingle`**: Detects ViewModel classes using `@Single`/`@Factory` instead of `@KoinViewModel`
+* **`AnnotatedClassImplementsNestedInterface`**: Detects Koin-annotated classes implementing nested interfaces — KSP drops parent qualifier in `bind()`
+* **`InjectedParamWithNestedGenericType`**: Detects `@InjectedParam` with nested generics or star projections — KSP generates incorrect code
+
+#### Improved Existing Rules (5)
+* **`ScopedWithoutQualifier`**: Now checks for `@Scope` annotation (or archetypes like `@ActivityScope`, `@FragmentScope`) instead of just parameter presence
+* **`MissingModuleAnnotation`**: Now also detects empty `@Module` classes without `@ComponentScan`, `includes`, or definitions
+* **`ConflictingBindings`**: Now detects multiple Koin definition annotations on the same class (e.g., `@Single` + `@Factory`)
+* **`MixingDslAndAnnotations`**: Expanded annotation detection to include `@Configuration`, `@KoinApplication`, `@ComponentScan`, `@KoinViewModel`, `@KoinWorker`
+* **`AnnotationProcessorNotConfigured`**: Expanded annotation detection to include `@KoinViewModel`, `@KoinWorker`, `@ComponentScan`, `@Configuration`, `@KoinApplication`
+
 ### Breaking Changes
 
 **BREAKING**: Maven coordinates changed to follow AndroidX naming conventions:
