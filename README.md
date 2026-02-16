@@ -7,11 +7,11 @@
 ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Detekt 1.x extension library with 38 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
+Detekt 1.x extension library with 44 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
 
 ## Features
 
-✅ **35 Rules** across 6 categories: Service Locator, Module DSL, Scope Management, Platform, Architecture, Koin Annotations
+✅ **44 Rules** across 6 categories: Service Locator, Module DSL, Scope Management, Platform, Architecture, Koin Annotations
 ✅ **Zero runtime overhead** — pure syntactic analysis via Kotlin PSI
 ✅ **No Koin dependency** in consumer projects
 ✅ **Configurable** — customize rules via detekt config
@@ -212,7 +212,7 @@ This enforces minimum coverage thresholds:
 - Generated code and providers are excluded
 - All public APIs must have tests
 - All rule implementations must have tests
-- 220+ unit tests covering all 29 rules
+- 220+ unit tests covering all 44 rules
 - 3 integration tests validating end-to-end functionality
 
 ## Requirements
