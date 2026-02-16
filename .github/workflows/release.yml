@@ -136,10 +136,60 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+  publish-maven-central:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    needs: build
+    # Only publish on non-pre-release tags
+    if: needs.build.outputs.is_prerelease == 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+
+      - name: Publish to Maven Central
+        run: |
+          echo "Publishing version ${{ needs.build.outputs.version }} to Maven Central..."
+          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
+            --no-daemon \
+            -Pversion=${{ needs.build.outputs.version }}
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+
+      - name: Maven Central publication summary
+        run: |
+          echo "## Maven Central Publication" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Published version ${{ needs.build.outputs.version }} to Maven Central" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact coordinates:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "dev.androidbroadcast:detekt-rules-koin:${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Artifacts will be available on Maven Central within 15-30 minutes." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check availability: https://repo1.maven.org/maven2/dev/androidbroadcast/detekt-rules-koin/" >> $GITHUB_STEP_SUMMARY
+
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build, publish]
+    needs: [build, publish, publish-maven-central]
 
     steps:
       - name: Checkout code
@@ -382,6 +432,7 @@ jobs:
           echo "1. Review the draft release at the URL above" >> $GITHUB_STEP_SUMMARY
           echo "2. Verify all artifacts are attached" >> $GITHUB_STEP_SUMMARY
           echo "3. Click 'Publish release' to make it public" >> $GITHUB_STEP_SUMMARY
+          echo "4. Verify Maven Central publication (available in 15-30 minutes)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.changelog_commit.outputs.changelog_updated }}" == "true" ]; then
             echo "CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
