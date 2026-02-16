@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 31 Detekt rules for Koin.
+Complete reference for all 32 Detekt rules for Koin.
 
 ---
 
@@ -346,6 +346,40 @@ module {
 - ✅ Only reports within same module scope
 
 **Related Issue:** [Koin#2115](https://github.com/InsertKoinIO/koin/issues/2115)
+
+---
+
+### GenericDefinitionWithoutQualifier
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects generic types without qualifiers causing type erasure collisions.
+
+❌ **Bad:**
+```kotlin
+module {
+    single { listOf<String>() }  // Type erased to List
+    single { listOf<Int>() }     // Overwrites previous List
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single(named("strings")) { listOf<String>() }
+    single(named("ints")) { listOf<Int>() }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `List`, `Set`, `Map`, `Array` and their factory functions
+- ✅ Detects `listOf`, `setOf`, `mapOf`, `arrayOf` with type parameters
+- ✅ Works with `single`, `factory`, and `scoped`
+- ✅ Does not report when qualifier is present
+- ✅ Does not report non-generic types
+
+**Related Issue:** [Koin#188](https://github.com/InsertKoinIO/koin/issues/188)
 
 ---
 
