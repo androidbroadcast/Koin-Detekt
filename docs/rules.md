@@ -953,16 +953,20 @@ class MyService
 ### AnnotationProcessorNotConfigured
 
 **Severity:** Warning
-**Active by default:** Yes
+**Active by default:** No
 **Configurable:** Yes
 
-Warns when Koin annotations are used but the annotation processor (KSP/KAPT) may not be configured.
+Warns when Koin annotations are used but the annotation processor may not be configured.
 
-This rule provides informational warnings since Detekt cannot reliably detect if the annotation processor is configured in your build system. If you've already configured KSP/KAPT, you can disable this rule via configuration.
+This rule provides informational warnings since Detekt cannot reliably detect if the annotation processor is configured in your build system. **This rule is inactive by default** to avoid false positives — enable it explicitly if you want build-setup reminders.
+
+The Koin annotation processor can be configured via:
+1. **Koin Compiler Plugin** (recommended for Koin 4.x): `plugins { id("io.insert-koin.compiler.plugin") }`
+2. **Manual KSP setup**: `plugins { id("com.google.devtools.ksp") }` + `ksp("io.insert-koin:koin-ksp-compiler")`
 
 ❌ **Bad:**
 ```kotlin
-// build.gradle.kts missing KSP setup
+// build.gradle.kts missing both Koin Compiler Plugin and manual KSP setup
 
 import org.koin.core.annotation.Single
 
@@ -970,7 +974,22 @@ import org.koin.core.annotation.Single
 class MyService // Won't work without processor!
 ```
 
-✅ **Good:**
+✅ **Good (Option 1 — Koin Compiler Plugin):**
+```kotlin
+// build.gradle.kts:
+plugins {
+    id("io.insert-koin.compiler.plugin") version "0.3.0"
+    // or via version catalog: alias(libs.plugins.koin.compiler)
+}
+
+// MyService.kt:
+import org.koin.core.annotation.Single
+
+@Single
+class MyService
+```
+
+✅ **Good (Option 2 — Manual KSP):**
 ```kotlin
 // build.gradle.kts:
 plugins {
@@ -991,14 +1010,15 @@ class MyService
 **Configuration:**
 ```yaml
 AnnotationProcessorNotConfigured:
-  active: true
-  skipCheck: false  # Set to true to disable if processor is configured
+  active: false  # Enable explicitly if needed; inactive by default
+  skipCheck: false  # Set to true to suppress warnings while keeping rule active
 ```
 
 **Edge Cases:**
 - ✅ Detects `@Single`, `@Factory`, `@Scoped`, and `@Module` annotations
 - ✅ Reports on every class with Koin annotations (informational)
-- ✅ Can be disabled globally via `skipCheck: true` configuration
+- ✅ Can be disabled globally via `skipCheck: true` or `active: false` configuration
+- ✅ Recognizes both Koin Compiler Plugin and manual KSP setup in messages
 - ✅ Useful for projects adopting Koin Annotations to ensure proper setup
 - ✅ Does not check actual build configuration (limitation of static analysis)
 

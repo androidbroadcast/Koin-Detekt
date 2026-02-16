@@ -496,12 +496,15 @@ koin-rules:
 
 Detect missing Koin annotation processor configuration.
 
-**Default:** Active, no configuration options.
+**Default:** Inactive. Enable explicitly if you want build-setup reminders.
+
+This rule cannot detect build configuration (Gradle plugins/dependencies), so it warns on every Koin annotation usage. If you use the **Koin Compiler Plugin** (`io.insert-koin.compiler.plugin`) or have manually configured KSP with `koin-ksp-compiler`, you can safely leave this rule disabled or set `skipCheck: true`.
 
 ```yaml
 koin-rules:
   AnnotationProcessorNotConfigured:
-    active: true
+    active: false  # Enable if you want reminders about processor setup
+    skipCheck: false  # Set to true to suppress warnings while keeping rule active
 ```
 
 ---

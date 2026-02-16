@@ -57,3 +57,54 @@ koin-rules:
 
   KtorRequestScopeMisuse:
     active: true
+
+  # Platform Rules - Compose
+  KoinViewModelOutsideComposable:
+    active: true
+
+  KoinInjectInPreview:
+    active: true
+
+  RememberKoinModulesLeak:
+    active: true
+
+  # Platform Rules - Ktor
+  KtorApplicationKoinInit:
+    active: true
+
+  KtorRouteScopeMisuse:
+    active: true
+
+  # Platform Rules - Android
+  AndroidContextNotFromKoin:
+    active: true
+
+  ActivityFragmentKoinScope:
+    active: true
+
+  # Architecture Rules
+  LayerBoundaryViolation:
+    active: true
+
+  PlatformImportRestriction:
+    active: true
+
+  CircularModuleDependency:
+    active: true
+
+  # Annotation Rules
+  MixingDslAndAnnotations:
+    active: true
+
+  MissingModuleAnnotation:
+    active: true
+
+  ConflictingBindings:
+    active: true
+
+  ScopedWithoutQualifier:
+    active: true
+
+  AnnotationProcessorNotConfigured:
+    active: false
+    skipCheck: false

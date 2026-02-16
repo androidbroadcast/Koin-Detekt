@@ -22,9 +22,9 @@ class AnnotationProcessorNotConfiguredTest {
         // This rule provides info-level message since we can't reliably detect
         // if annotation processor is configured in Detekt context
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("→")
-        assertThat(findings[0].message).contains("✗ Bad")
-        assertThat(findings[0].message).contains("✓ Good")
+        assertThat(findings[0].message).contains("Koin annotations used")
+        assertThat(findings[0].message).contains("io.insert-koin.compiler.plugin")
+        assertThat(findings[0].message).contains("koin-ksp-compiler")
     }
 
     @Test

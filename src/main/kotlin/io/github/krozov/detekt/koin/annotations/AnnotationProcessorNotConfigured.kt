@@ -14,24 +14,42 @@ import org.jetbrains.kotlin.psi.KtClass
  *
  * Note: This rule provides informational warnings since Detekt cannot
  * reliably detect if annotation processor is configured in the build.
+ * **This rule is inactive by default.** Enable it only if you want a
+ * reminder to verify processor setup in new modules.
  *
- * <noncompliant>
- * // build.gradle.kts missing:
- * // plugins { id("com.google.devtools.ksp") }
- * // dependencies { ksp("io.insert-koin:koin-ksp-compiler") }
+ * The Koin annotation processor can be configured in two ways:
  *
- * @Single
- * class MyService // Won't work without processor!
- * </noncompliant>
+ * **Modern approach (Koin 4.x recommended):**
+ * ```
+ * plugins {
+ *     id("io.insert-koin.compiler.plugin") version "0.3.0"
+ * }
+ * ```
  *
- * <compliant>
- * // build.gradle.kts with:
+ * **Legacy approach (manual KSP):**
+ * ```
  * plugins {
  *     id("com.google.devtools.ksp") version "..."
  * }
  * dependencies {
  *     ksp("io.insert-koin:koin-ksp-compiler:...")
  * }
+ * ```
+ *
+ * <noncompliant>
+ * // build.gradle.kts missing both Koin Compiler Plugin and manual KSP setup
+ *
+ * @Single
+ * class MyService // Won't work without processor!
+ * </noncompliant>
+ *
+ * <compliant>
+ * // Option 1: Koin Compiler Plugin (recommended for Koin 4.x)
+ * // plugins { id("io.insert-koin.compiler.plugin") version "0.3.0" }
+ *
+ * // Option 2: Manual KSP setup
+ * // plugins { id("com.google.devtools.ksp") version "..." }
+ * // dependencies { ksp("io.insert-koin:koin-ksp-compiler:...") }
  *
  * @Single
  * class MyService
@@ -60,12 +78,11 @@ public class AnnotationProcessorNotConfigured(config: Config = Config.empty) : R
                     Entity.from(klass),
                     """
                     Koin annotations used → May not work without processor
-                    → Ensure KSP/KAPT configured with koin-ksp-compiler
+                    → Ensure annotation processor is configured via one of:
+                      1. Koin Compiler Plugin: plugins { id("io.insert-koin.compiler.plugin") }
+                      2. Manual KSP: plugins { id("com.google.devtools.ksp") }; ksp("io.insert-koin:koin-ksp-compiler")
 
-                    ✗ Bad:  @Single class MyService // No processor
-                    ✓ Good: plugins { id("com.google.devtools.ksp") }; ksp("io.insert-koin:koin-ksp-compiler")
-
-                    Set skipCheck=true in config if processor is already configured
+                    Set skipCheck=true or active=false in config if processor is already configured
                     """.trimIndent()
                 )
             )
