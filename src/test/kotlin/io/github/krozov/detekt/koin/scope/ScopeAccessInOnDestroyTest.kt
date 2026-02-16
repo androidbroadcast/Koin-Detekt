@@ -1,0 +1,29 @@
+package io.github.krozov.detekt.koin.scope
+
+import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.lint
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+
+class ScopeAccessInOnDestroyTest {
+
+    @Test
+    fun `reports get() call in onDestroy`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.get
+
+            class MyFragment : KoinComponent {
+                override fun onDestroy() {
+                    val service = get<MyService>()
+                    service.cleanup()
+                }
+            }
+        """.trimIndent()
+
+        val findings = ScopeAccessInOnDestroy(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("onDestroy")
+    }
+}
