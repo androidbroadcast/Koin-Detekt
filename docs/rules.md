@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 30 Detekt rules for Koin.
+Complete reference for all 31 Detekt rules for Koin.
 
 ---
 
@@ -312,6 +312,40 @@ module {
 - ✅ Does not report other `withOptions` properties like `createdAtStart`
 
 **Related Issue:** [Koin#2331](https://github.com/InsertKoinIO/koin/issues/2331)
+
+---
+
+### DuplicateBindingWithoutQualifier
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects multiple bindings to same type without qualifiers (silent override).
+
+❌ **Bad:**
+```kotlin
+module {
+    single { ServiceA() } bind Foo::class
+    single { ServiceB() } bind Foo::class  // Silently overrides ServiceA
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single { ServiceA() } bind Foo::class named("a")
+    single { ServiceB() } bind Foo::class named("b")
+}
+```
+
+**Edge Cases:**
+- ✅ Detects duplicates across different definition types (`single`, `factory`, `scoped`)
+- ✅ Does not report when bindings have qualifiers
+- ✅ Does not report single binding without qualifier
+- ✅ Does not report bindings to different types
+- ✅ Only reports within same module scope
+
+**Related Issue:** [Koin#2115](https://github.com/InsertKoinIO/koin/issues/2115)
 
 ---
 

@@ -4,6 +4,7 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 import io.github.krozov.detekt.koin.moduledsl.DeprecatedKoinApi
+import io.github.krozov.detekt.koin.moduledsl.DuplicateBindingWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.EmptyModule
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
@@ -60,6 +61,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 DeprecatedKoinApi(config),
                 ModuleIncludesOrganization(config),
                 UnassignedQualifierInWithOptions(config),
+                DuplicateBindingWithoutQualifier(config),
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),
