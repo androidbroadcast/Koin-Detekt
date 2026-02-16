@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 33 Detekt rules for Koin.
+Complete reference for all 35 Detekt rules for Koin.
 
 ---
 
@@ -417,6 +417,78 @@ module {
 - ✅ Uses heuristic pattern matching (no semantic analysis required)
 
 **Related Issue:** [Koin#2364](https://github.com/InsertKoinIO/koin/issues/2364)
+
+---
+
+### ConstructorDslAmbiguousParameters
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `factoryOf(::)` / `singleOf(::)` / `viewModelOf(::)` with duplicate parameter types.
+
+❌ **Bad:**
+```kotlin
+class MyService(val a: Int, val b: Int)
+
+val m = module {
+    factoryOf(::MyService)  // b gets value of a
+}
+```
+
+✅ **Good:**
+```kotlin
+val m = module {
+    factory { MyService(get(), get()) }
+}
+```
+
+**Why this matters:**
+Koin's constructor DSL incorrectly resolves parameters of the same type. Use lambda syntax for explicit parameter resolution.
+
+**Edge Cases:**
+- ✅ Detects factoryOf, singleOf, and viewModelOf
+- ✅ Detects duplicate types including nullable variants (Int and Int? are treated as duplicates)
+- ✅ Reports all duplicate types in the message
+- ✅ Does not report when all parameter types are different
+- ✅ Does not report lambda-based factories
+
+**Related Issues:** [Koin#1372](https://github.com/InsertKoinIO/koin/issues/1372), [Koin#2347](https://github.com/InsertKoinIO/koin/issues/2347)
+
+---
+
+### ParameterTypeMatchesReturnType
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects factory/single/scoped definitions where the return type matches a parameter type.
+
+❌ **Bad:**
+```kotlin
+factory<Int>(named("random")) { limit: Int ->
+    Random.nextInt(limit)  // Never executes - returns `limit`
+}
+```
+
+✅ **Good:**
+```kotlin
+factory(named("random")) { params ->
+    val limit = params.get<Int>()
+    Random.nextInt(limit)
+}
+```
+
+**Why this matters:**
+Koin has undocumented short-circuit behavior: when parametersOf() provides a value matching the definition's return type, Koin returns that value directly without executing the lambda.
+
+**Edge Cases:**
+- ✅ Detects factory, single, and scoped definitions
+- ✅ Normalizes nullable types (Int and Int? are treated as same type)
+- ✅ Does not report definitions without explicit type arguments
+- ✅ Does not report when parameter type differs from return type
+
+**Related Issue:** [Koin#2328](https://github.com/InsertKoinIO/koin/issues/2328)
 
 ---
 
