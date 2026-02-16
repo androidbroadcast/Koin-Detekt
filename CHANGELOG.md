@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **ViewModelAsSingleton** - Detects ViewModel defined with single {} instead of viewModel {} (#2310)
+
 ### Breaking Changes
 
 **BREAKING**: Maven coordinates changed to follow AndroidX naming conventions:

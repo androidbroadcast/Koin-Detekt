@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 29 Detekt rules for Koin.
+Complete reference for all 30 Detekt rules for Koin.
 
 ---
 
@@ -341,6 +341,41 @@ module {
 - ✅ Recognizes `scope<T> {}`, `activityScope {}`, and `fragmentScope {}` blocks
 - ✅ Detects `scoped {}` at module level (outside any scope block)
 - ✅ Allows `scoped {}` inside any recognized scope block
+
+---
+
+### ViewModelAsSingleton
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects ViewModel classes defined with `single {}` instead of `viewModel {}`.
+
+❌ **Bad:**
+```kotlin
+class MyViewModel : ViewModel()
+
+val appModule = module {
+    single { MyViewModel() }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyViewModel : ViewModel()
+
+val appModule = module {
+    viewModel { MyViewModel() }
+}
+```
+
+**Why this matters:**
+When a ViewModel is defined as a singleton, its `viewModelScope` becomes invalid after `popBackStack()`, causing coroutine launches to fail silently. Use `viewModel {}` to ensure proper lifecycle management.
+
+**Edge Cases:**
+- ✅ Detects both `single { }` and `singleOf(::)` patterns
+- ✅ Works with custom ViewModel subclasses
+- ✅ Allows `viewModel { }` and `viewModelOf(::)` (correct usage)
 
 ---
 
