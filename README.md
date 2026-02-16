@@ -7,7 +7,7 @@
 ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Detekt 1.x extension library with 35 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
+Detekt 1.x extension library with 38 rules for Koin 4.x to enforce best practices and catch common anti-patterns via static analysis.
 
 ## Features
 
@@ -65,7 +65,7 @@ Run analysis:
 | `NoGlobalContextAccess` | Warning | Active |
 | `NoKoinGetInApplication` | Warning | Active |
 
-### Module DSL Rules (5)
+### Module DSL Rules (9)
 
 | Rule | Severity | Default |
 |------|----------|---------|
@@ -74,13 +74,20 @@ Run analysis:
 | `MissingScopedDependencyQualifier` | Warning | Active |
 | `DeprecatedKoinApi` | Warning | Active |
 | `ModuleIncludesOrganization` | Style | Inactive |
+| `UnassignedQualifierInWithOptions` | Warning | Active |
+| `DuplicateBindingWithoutQualifier` | Warning | Active |
+| `GenericDefinitionWithoutQualifier` | Warning | Active |
+| `EnumQualifierCollision` | Warning | Active |
 
-### Scope Management Rules (4)
+### Scope Management Rules (7)
 
 | Rule | Severity | Default |
 |------|----------|---------|
 | `MissingScopeClose` | Warning | Active |
 | `ScopedDependencyOutsideScopeBlock` | Warning | Active |
+| `ViewModelAsSingleton` | Warning | Active |
+| `CloseableWithoutOnClose` | Warning | Active |
+| `ScopeAccessInOnDestroy` | Warning | Active |
 | `FactoryInScopeBlock` | Style | Inactive |
 | `KtorRequestScopeMisuse` | Warning | Active |
 
