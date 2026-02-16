@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
@@ -20,6 +21,8 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
                 "This leads to runtime DefinitionOverrideException.",
         debt = Debt.TEN_MINS
     )
+
+    private val allowOneDefault: Boolean by config(true)
 
     private val definitionsByModule = mutableMapOf<KtCallExpression, MutableList<TypeDefinition>>()
 
@@ -63,7 +66,9 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
 
         val grouped = definitions.groupBy { it.type }
         grouped.forEach { (type, defs) ->
-            if (defs.size > 1 && defs.any { !it.hasQualifier }) {
+            val unqualifiedCount = defs.count { !it.hasQualifier }
+            val hasUnqualifiedViolation = if (allowOneDefault) unqualifiedCount > 1 else unqualifiedCount > 0
+            if (defs.size > 1 && hasUnqualifiedViolation) {
                 defs.first { !it.hasQualifier }.expression.let { expr ->
                     report(
                         CodeSmell(

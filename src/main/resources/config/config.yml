@@ -37,6 +37,7 @@ koin-rules:
 
   MissingScopedDependencyQualifier:
     active: true
+    allowOneDefault: true
 
   DeprecatedKoinApi:
     active: true
