@@ -148,7 +148,7 @@ repositories {
 }
 
 dependencies {
-    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.1.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:0.1.0")
 }
 ```
 
@@ -187,7 +187,7 @@ Common pre-release identifiers:
 - Sources JAR: `detekt-rules-koin-X.Y.Z-sources.jar`
 - Javadoc JAR: `detekt-rules-koin-X.Y.Z-javadoc.jar`
 - POM file with metadata and dependencies
-- Maven coordinates: `dev.androidbroadcast:detekt-rules-koin:X.Y.Z`
+- Maven coordinates: `dev.androidbroadcast.rules.koin:detekt-koin-rules:X.Y.Z`
 
 ### GitHub Release
 - AI-generated release notes via Claude API (fallback: plain commit list)

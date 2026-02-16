@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.jmh)
 }
 
-group = "dev.androidbroadcast"
+group = "dev.androidbroadcast.rules.koin"
 version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: "0.4.1-SNAPSHOT"
 
 java {
@@ -31,7 +31,7 @@ publishing {
             version = project.version.toString()
 
             pom {
-                name.set("detekt-rules-koin")
+                name.set("detekt-koin-rules")
                 description.set(
                     "Detekt extension library with 29 rules for Koin 4.x to enforce " +
                     "best practices and catch common anti-patterns via static analysis"

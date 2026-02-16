@@ -310,7 +310,7 @@ git push origin v0.5.0
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.5.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:0.5.0")
 }
 ```
 
@@ -353,7 +353,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.5.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:0.5.0")
 }
 ```
 
@@ -361,7 +361,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    detektPlugins 'dev.androidbroadcast:detekt-rules-koin:0.5.0'
+    detektPlugins 'dev.androidbroadcast.rules.koin:detekt-koin-rules:0.5.0'
 }
 ```
 ```

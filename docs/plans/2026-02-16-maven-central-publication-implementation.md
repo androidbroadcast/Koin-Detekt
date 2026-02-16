@@ -261,7 +261,7 @@ unset SIGNING_PASSWORD
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Artifact coordinates:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "dev.androidbroadcast:detekt-rules-koin:${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "dev.androidbroadcast.rules.koin:detekt-koin-rules:${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note:** Artifacts will be available on Maven Central within 15-30 minutes." >> $GITHUB_STEP_SUMMARY
@@ -527,7 +527,7 @@ Expected: Файл существует или нужно создать
 - **Maven Central Publication**: Library is now published to Maven Central alongside GitHub Packages
   - Automatic publication via GitHub Actions on release tags
   - GPG-signed artifacts for security and authenticity
-  - Available at `dev.androidbroadcast:detekt-rules-koin` coordinates
+  - Available at `dev.androidbroadcast.rules.koin:detekt-koin-rules` coordinates
   - Synchronization to Maven Central within 15-30 minutes of release
 ```
 

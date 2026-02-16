@@ -23,7 +23,7 @@ Add the plugin to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.3.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:0.3.0")
 }
 ```
 
