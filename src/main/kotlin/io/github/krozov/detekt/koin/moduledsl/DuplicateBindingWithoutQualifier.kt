@@ -1,7 +1,9 @@
 package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.*
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
 
 internal class DuplicateBindingWithoutQualifier(config: Config) : Rule(config) {
 
@@ -13,6 +15,11 @@ internal class DuplicateBindingWithoutQualifier(config: Config) : Rule(config) {
     )
 
     private val bindingsInCurrentModule = mutableMapOf<String, MutableList<KtBinaryExpression>>()
+
+    override fun visitKtFile(file: KtFile) {
+        bindingsInCurrentModule.clear()
+        super.visitKtFile(file)
+    }
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)

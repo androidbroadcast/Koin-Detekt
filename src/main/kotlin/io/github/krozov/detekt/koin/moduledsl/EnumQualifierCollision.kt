@@ -1,7 +1,8 @@
 package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.*
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
 
 internal class EnumQualifierCollision(config: Config) : Rule(config) {
 
@@ -14,6 +15,11 @@ internal class EnumQualifierCollision(config: Config) : Rule(config) {
 
     // Track enum qualifiers: map of (enumValueName -> list of (enumTypeName, expression))
     private val enumQualifiersInModule = mutableMapOf<String, MutableList<Pair<String, KtCallExpression>>>()
+
+    override fun visitKtFile(file: KtFile) {
+        enumQualifiersInModule.clear()
+        super.visitKtFile(file)
+    }
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
