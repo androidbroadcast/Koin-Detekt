@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### New Rules
 - **ConstructorDslAmbiguousParameters** - Detects constructor DSL with duplicate parameter types (#1372, #2347)
+- **ParameterTypeMatchesReturnType** - Detects factory with return type matching parameter type (#2328)
 
 ### Breaking Changes
 

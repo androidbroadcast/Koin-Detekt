@@ -316,6 +316,39 @@ Koin's constructor DSL incorrectly resolves parameters of the same type. Use lam
 
 ---
 
+### ParameterTypeMatchesReturnType
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects factory definitions where the return type matches a parameter type.
+
+❌ **Bad:**
+```kotlin
+factory<Int>(named("random")) { limit: Int ->
+    Random.nextInt(limit)  // Never executes - returns `limit`
+}
+```
+
+✅ **Good:**
+```kotlin
+factory(named("random")) { params ->
+    val limit = params.get<Int>()
+    Random.nextInt(limit)
+}
+```
+
+**Why this matters:**
+Koin has undocumented short-circuit behavior: when parametersOf() provides a value matching the factory's return type, Koin returns that value directly without executing the factory lambda.
+
+**Edge Cases:**
+- ✅ Detects when factory type argument matches lambda parameter type
+- ✅ Normalizes nullable types (Int and Int? are treated as same type)
+- ✅ Does not report factories without explicit type arguments
+- ✅ Does not report when parameter type differs from return type
+
+---
+
 ## Scope Management Rules
 
 ### MissingScopeClose
