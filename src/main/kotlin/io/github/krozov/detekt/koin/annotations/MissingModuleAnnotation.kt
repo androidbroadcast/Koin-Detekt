@@ -47,7 +47,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
             // Check if class has methods with Koin annotations
             val hasKoinDefinitions = klass.declarations.any { declaration ->
                 val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in KoinAnnotationConstants.PROVIDER_ANNOTATIONS }
+                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
             }
 
             if (hasKoinDefinitions) {
@@ -56,7 +56,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
                         issue,
                         Entity.from(klass),
                         """
-                        @Single/@Factory/@Scoped without @Module → Definitions won't be discovered
+                        Koin definition annotations without @Module → Definitions won't be discovered
                         → Add @Module annotation to class for annotation processor
 
                         ✗ Bad:  class ${klass.name ?: "MyServices"} { @Single fun provideRepo() = ... }
