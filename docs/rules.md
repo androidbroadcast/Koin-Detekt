@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 29 Detekt rules for Koin.
+Complete reference for all 30 Detekt rules for Koin.
 
 ---
 
@@ -278,6 +278,40 @@ ModuleIncludesOrganization:
 - ✅ Handles value argument syntax: `module({ includes(a, b) })`
 - ✅ Ignores non-call statements like variable declarations
 - ✅ Default threshold is 3 includes with definitions
+
+---
+
+### UnassignedQualifierInWithOptions
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `named()` calls in `withOptions {}` without assignment to `qualifier` property.
+
+❌ **Bad:**
+```kotlin
+module {
+    factory { Service() } withOptions {
+        named("myService")  // Dead code - qualifier not applied
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    factory { Service() } withOptions {
+        qualifier = named("myService")
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects both `named()` and `qualifier()` calls
+- ✅ Does not report when assigned: `qualifier = named("x")`
+- ✅ Does not report other `withOptions` properties like `createdAtStart`
+
+**Related Issue:** [Koin#2331](https://github.com/InsertKoinIO/koin/issues/2331)
 
 ---
 

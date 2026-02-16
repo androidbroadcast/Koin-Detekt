@@ -8,6 +8,7 @@ import io.github.krozov.detekt.koin.moduledsl.EmptyModule
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
 import io.github.krozov.detekt.koin.moduledsl.SingleForNonSharedDependency
+import io.github.krozov.detekt.koin.moduledsl.UnassignedQualifierInWithOptions
 import io.github.krozov.detekt.koin.scope.FactoryInScopeBlock
 import io.github.krozov.detekt.koin.scope.KtorRequestScopeMisuse
 import io.github.krozov.detekt.koin.scope.MissingScopeClose
@@ -58,6 +59,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MissingScopedDependencyQualifier(config),
                 DeprecatedKoinApi(config),
                 ModuleIncludesOrganization(config),
+                UnassignedQualifierInWithOptions(config),
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),
