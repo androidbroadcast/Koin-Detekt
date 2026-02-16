@@ -1,11 +1,15 @@
+import java.time.Duration
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.kover)
+    alias(libs.plugins.nmcp)
+    id("signing")
     alias(libs.plugins.jmh)
 }
 
-group = "dev.androidbroadcast"
+group = "dev.androidbroadcast.rules.koin"
 version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: "0.4.1-SNAPSHOT"
 
 java {
@@ -27,7 +31,7 @@ publishing {
             version = project.version.toString()
 
             pom {
-                name.set("detekt-rules-koin")
+                name.set("detekt-koin-rules")
                 description.set(
                     "Detekt extension library with 29 rules for Koin 4.x to enforce " +
                     "best practices and catch common anti-patterns via static analysis"
@@ -73,6 +77,50 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Signing configuration for Maven Central
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+signing {
+    // Use in-memory PGP keys from environment variables (for CI/CD)
+    val signingKey = System.getenv("SIGNING_KEY")
+    val signingPassword = System.getenv("SIGNING_PASSWORD")
+
+    if (signingKey != null && signingPassword != null) {
+        logger.lifecycle("Using in-memory PGP keys for artifact signing")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["maven"])
+    } else {
+        // For local development: use GPG agent
+        // GPG key must be available in local keyring
+        val signingKeyId = System.getenv("SIGNING_KEY_ID")
+        if (signingKeyId != null) {
+            logger.lifecycle("Using GPG command for artifact signing (key: $signingKeyId)")
+            useGpgCmd()
+            sign(publishing.publications["maven"])
+        } else {
+            logger.warn("No signing configuration found - artifacts will not be signed")
+        }
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Maven Central Portal Publishing configuration
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        // Credentials from environment variables
+        // NOTE: Use existing OSSRH_* secrets - they work with Central Portal
+        username = System.getenv("OSSRH_USERNAME")
+        password = System.getenv("OSSRH_PASSWORD")
+
+        // Publication type: AUTOMATIC or USER_MANAGED
+        // AUTOMATIC = auto-release after validation
+        publishingType = "AUTOMATIC"
     }
 }
 

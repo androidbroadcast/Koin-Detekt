@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+**BREAKING**: Maven coordinates changed to follow AndroidX naming conventions:
+
+```kotlin
+// Old (0.4.x)
+detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.4.1")
+
+// New (1.0.0+)
+detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:1.0.0")
+```
+
+This change affects all users upgrading from test releases (0.1.0 - 0.4.1). Update your dependency declarations to use the new coordinates.
+
+### Infrastructure
+
+- **Maven Central Publication**: Library is now published to Maven Central alongside GitHub Packages
+  - Automatic publication via GitHub Actions on release tags
+  - GPG-signed artifacts for security and authenticity
+  - Available at `dev.androidbroadcast.rules.koin:detekt-koin-rules` coordinates
+  - Synchronization to Maven Central within 15-30 minutes of release
+
 ## v0.4.1 - 2026-02-16
 
 ## What's Changed
@@ -16,7 +38,6 @@ All notable changes to this project will be documented in this file.
 * 3dc239d fix: skip viewModelOf() suggestion when lambda uses named dependencies (#19)
 
 **Full Changelog**: https://github.com/androidbroadcast/Koin-Detekt/compare/v0.4.0...v0.4.1
-
 
 ## v0.4.0 - 2026-02-14
 
