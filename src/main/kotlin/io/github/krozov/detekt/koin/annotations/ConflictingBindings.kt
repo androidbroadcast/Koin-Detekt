@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -48,7 +49,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
 
     private val annotatedTypes = mutableSetOf<String>()
     private val dslTypes = mutableSetOf<String>()
-    private val typeToElement = mutableMapOf<String, Any>()
+    private val typeToElement = mutableMapOf<String, KtElement>()
 
     override fun visitKtFile(file: KtFile) {
         annotatedTypes.clear()
@@ -64,7 +65,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
                 report(
                     CodeSmell(
                         issue,
-                        Entity.from(element as org.jetbrains.kotlin.psi.KtElement),
+                        Entity.from(element),
                         """
                         Type '$type' defined in both DSL and Annotations → Runtime conflict: which wins?
                         → Use only one approach per type
@@ -83,7 +84,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
 
         val koinAnnotations = klass.annotationEntries
             .mapNotNull { it.shortName?.asString() }
-            .filter { it in setOf("Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker") }
+            .filter { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
 
         if (koinAnnotations.size > 1) {
             report(
@@ -106,7 +107,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
         super.visitNamedFunction(function)
 
         val annotations = function.annotationEntries.mapNotNull { it.shortName?.asString() }
-        if (annotations.any { it in setOf("Single", "Factory", "Scoped") }) {
+        if (annotations.any { it in KoinAnnotationConstants.PROVIDER_ANNOTATIONS }) {
             val returnType = function.typeReference?.text
             if (returnType != null) {
                 val typeName = returnType.substringBefore("<").substringAfterLast(".")

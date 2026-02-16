@@ -47,7 +47,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
             // Check if class has methods with Koin annotations
             val hasKoinDefinitions = klass.declarations.any { declaration ->
                 val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in setOf("Single", "Factory", "Scoped") }
+                annotations.any { it in KoinAnnotationConstants.PROVIDER_ANNOTATIONS }
             }
 
             if (hasKoinDefinitions) {
@@ -77,7 +77,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
             }
             val hasKoinDefinitions = klass.declarations.any { declaration ->
                 val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in setOf("Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker") }
+                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
             }
 
             if (!hasComponentScan && !hasIncludes && !hasKoinDefinitions) {

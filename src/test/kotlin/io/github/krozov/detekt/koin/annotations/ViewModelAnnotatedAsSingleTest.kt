@@ -67,6 +67,19 @@ class ViewModelAnnotatedAsSingleTest {
     }
 
     @Test
+    fun `reports class extending base ViewModel via heuristic`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyViewModel : BaseViewModel()
+        """.trimIndent()
+
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
     fun `allows regular class with Single annotation`() {
         val code = """
             import org.koin.core.annotation.Single

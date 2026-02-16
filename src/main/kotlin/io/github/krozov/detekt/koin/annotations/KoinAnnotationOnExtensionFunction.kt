@@ -39,9 +39,7 @@ public class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : 
         debt = Debt.FIVE_MINS
     )
 
-    private val koinDefinitionAnnotations = setOf(
-        "Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker"
-    )
+    private val koinDefinitionAnnotations = KoinAnnotationConstants.DEFINITION_ANNOTATIONS
 
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)

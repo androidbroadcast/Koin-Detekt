@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.annotations
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -68,6 +69,31 @@ class TooManyInjectedParamsTest {
 
         val findings = TooManyInjectedParams(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `respects custom maxInjectedParams config`() {
+        val code = """
+            import org.koin.core.annotation.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(
+                @InjectedParam val a: String,
+                @InjectedParam val b: Int,
+                @InjectedParam val c: Long
+            )
+        """.trimIndent()
+
+        // Default (5) should allow 3 params
+        val defaultFindings = TooManyInjectedParams(Config.empty).lint(code)
+        assertThat(defaultFindings).isEmpty()
+
+        // Custom limit of 2 should report 3 params
+        val customConfig = TestConfig("maxInjectedParams" to 2)
+        val customFindings = TooManyInjectedParams(customConfig).lint(code)
+        assertThat(customFindings).hasSize(1)
+        assertThat(customFindings[0].message).contains("3")
     }
 
     @Test

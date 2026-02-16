@@ -59,6 +59,19 @@ class AnnotatedClassImplementsNestedInterfaceTest {
     }
 
     @Test
+    fun `allows fully-qualified type reference`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyImpl : com.example.MyInterface
+        """.trimIndent()
+
+        val findings = AnnotatedClassImplementsNestedInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows class without Koin annotations implementing nested interface`() {
         val code = """
             class Parent {

@@ -15,6 +15,11 @@ import org.jetbrains.kotlin.psi.KtClass
  * ViewModels as singletons cause coroutine scope issues: `viewModelScope` is cancelled
  * on navigation but the singleton persists, leading to `CancellationException`.
  *
+ * **Limitation:** This rule uses PSI-based analysis and cannot detect transitive ViewModel
+ * inheritance (e.g., `BaseViewModel -> ViewModel`). It checks direct supertypes for
+ * `ViewModel`/`AndroidViewModel` names and also applies a heuristic for supertype names
+ * ending with "ViewModel".
+ *
  * <noncompliant>
  * @Single
  * class MyViewModel : ViewModel() // Coroutine failures after navigation!
@@ -47,7 +52,7 @@ public class ViewModelAnnotatedAsSingle(config: Config = Config.empty) : Rule(co
             entry.typeReference?.text?.substringBefore("(")?.substringAfterLast(".")?.trim()
         }
 
-        if (supertypes.any { it in viewModelTypes }) {
+        if (supertypes.any { it in viewModelTypes || it.endsWith("ViewModel") }) {
             report(
                 CodeSmell(
                     issue,

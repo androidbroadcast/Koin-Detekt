@@ -36,9 +36,7 @@ public class AnnotatedClassImplementsNestedInterface(config: Config = Config.emp
         debt = Debt.TEN_MINS
     )
 
-    private val koinDefinitionAnnotations = setOf(
-        "Single", "Factory", "Scoped", "KoinViewModel", "KoinWorker"
-    )
+    private val koinDefinitionAnnotations = KoinAnnotationConstants.DEFINITION_ANNOTATIONS
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
@@ -48,8 +46,11 @@ public class AnnotatedClassImplementsNestedInterface(config: Config = Config.emp
 
         klass.superTypeListEntries.forEach { entry ->
             val typeText = entry.typeReference?.text ?: return@forEach
+            val typeWithoutGenerics = typeText.substringBefore("<")
             // Nested interface reference contains a dot: Parent.ChildInterface
-            if ("." in typeText.substringBefore("<")) {
+            // Skip fully-qualified names (e.g., com.example.MyInterface) where
+            // the first segment starts with a lowercase letter (package convention).
+            if ("." in typeWithoutGenerics && typeWithoutGenerics[0].isUpperCase()) {
                 report(
                     CodeSmell(
                         issue,
