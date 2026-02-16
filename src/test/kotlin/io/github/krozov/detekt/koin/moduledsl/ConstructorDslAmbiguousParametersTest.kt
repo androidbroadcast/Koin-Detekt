@@ -75,4 +75,38 @@ class ConstructorDslAmbiguousParametersTest {
         val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports singleOf with String String parameters`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.module.dsl.singleOf
+
+            class Config(val host: String, val port: String)
+
+            val m = module {
+                singleOf(::Config)
+            }
+        """.trimIndent()
+
+        val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `does not report single parameter constructor`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.module.dsl.factoryOf
+
+            class MyService(val name: String)
+
+            val m = module {
+                factoryOf(::MyService)
+            }
+        """.trimIndent()
+
+        val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
