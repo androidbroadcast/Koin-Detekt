@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "schedule:weekends"
+  ],
+  "packageRules": [
+    {
+      "description": "Group Kotlin ecosystem updates",
+      "matchManagers": ["gradle", "gradle-wrapper"],
+      "groupName": "kotlin",
+      "matchPackagePatterns": [
+        "^org\\.jetbrains\\.kotlin",
+        "^org\\.jetbrains\\.kotlinx"
+      ]
+    },
+    {
+      "description": "Group Detekt updates",
+      "matchManagers": ["gradle"],
+      "groupName": "detekt",
+      "matchPackagePatterns": ["^io\\.gitlab\\.arturbosch\\.detekt"]
+    },
+    {
+      "description": "Group test dependencies",
+      "matchManagers": ["gradle"],
+      "groupName": "test-dependencies",
+      "matchPackagePatterns": [
+        "junit",
+        "assertj",
+        "mockk"
+      ]
+    },
+    {
+      "description": "Group Koin dependencies",
+      "matchManagers": ["gradle"],
+      "groupName": "koin",
+      "matchPackagePatterns": ["^io\\.insert-koin"]
+    },
+    {
+      "description": "Auto-merge Gradle wrapper patch updates",
+      "matchManagers": ["gradle-wrapper"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Auto-merge GitHub Actions minor and patch updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "labels": ["dependencies"],
+  "reviewers": ["kirich1409"],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "assignees": ["kirich1409"]
+  },
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🔄 Dependency Updates",
+  "rangeStrategy": "bump"
+}

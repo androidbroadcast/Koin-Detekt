@@ -1,0 +1,23 @@
+# This file defines code ownership for automatic reviewer assignment
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @kirich1409
+
+# Documentation
+/docs/ @kirich1409
+README.md @kirich1409
+CONTRIBUTING.md @kirich1409
+CHANGELOG.md @kirich1409
+
+# CI/CD and workflows
+/.github/ @kirich1409
+
+# Build configuration
+/gradle/ @kirich1409
+build.gradle.kts @kirich1409
+settings.gradle.kts @kirich1409
+gradle.properties @kirich1409
+
+# Dependency management
+renovate.json @kirich1409

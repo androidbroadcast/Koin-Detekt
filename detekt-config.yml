@@ -1,0 +1,73 @@
+build:
+  maxIssues: 0  # Fail build if any issues found
+
+config:
+  validation: true
+  warningsAsErrors: true
+
+formatting:
+  active: true
+  android: false
+  autoCorrect: false
+
+# Enable our own Koin rules for self-dogfooding
+KoinRuleSet:
+  active: true
+
+  # Service Locator Rules
+  NoKoinGetUsage:
+    active: true
+  NoInjectDelegate:
+    active: true
+  NoGetKoinUsage:
+    active: true
+  NoInjectUsage:
+    active: true
+  NoInjectOrGetUsage:
+    active: true
+
+  # Module DSL Rules
+  NoSingleWithoutReturn:
+    active: true
+  NoFactoryWithoutReturn:
+    active: true
+  NoBeanDefinitionInRootModule:
+    active: true
+  NoEmptyModules:
+    active: true
+  NoUnnamedQualifier:
+    active: true
+  SingleBindingMultipleTypes:
+    active: true
+  FactoryBindingMultipleTypes:
+    active: true
+
+  # Scope Management Rules
+  NoScopeUsage:
+    active: true
+  NoParameterizedScopeGet:
+    active: true
+  NoImplicitRootScope:
+    active: true
+  NoSharedViewModelInFragment:
+    active: true
+
+  # Platform Rules
+  ViewModelFactoryInsteadOf:
+    active: true
+  MissingKoinViewModelImport:
+    active: true
+  KtorSingleInsteadOfKoinApplication:
+    active: true
+
+  # Architecture Rules
+  LayerBoundaryViolation:
+    active: true
+  PlatformImportRestriction:
+    active: true
+
+  # Koin Annotations Rules
+  MissingScopeAnnotation:
+    active: true
+  MissingKoinComponentAnnotation:
+    active: true
