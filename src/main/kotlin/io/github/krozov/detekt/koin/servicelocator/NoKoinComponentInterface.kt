@@ -40,9 +40,7 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
 
     override fun visitObjectDeclaration(declaration: KtObjectDeclaration) {
         super.visitObjectDeclaration(declaration)
-        if (declaration.isCompanion()) {
-            checkKoinComponent(declaration.superTypeListEntries.mapNotNull { it.text }, declaration.name, declaration)
-        }
+        checkKoinComponent(declaration.superTypeListEntries.mapNotNull { it.text }, declaration.name, declaration)
     }
 
     private fun checkKoinComponent(superTypes: List<String>, name: String?, element: org.jetbrains.kotlin.psi.KtClassOrObject) {

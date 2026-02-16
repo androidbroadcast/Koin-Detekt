@@ -88,6 +88,9 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
     }
 
     private fun checkForCycles() {
+        val modulesByName = modules.associateBy { it.name }
+        val reported = mutableSetOf<String>()
+
         modules.forEach { module ->
             // Check for self-reference
             if (module.dependencies.contains(module.name)) {
@@ -104,22 +107,24 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
                         """.trimIndent()
                     )
                 )
-                return@forEach // Skip circular dependency check for self-reference
+                return@forEach
             }
 
-            // Check for direct circular dependency
-            module.dependencies.forEach { depName ->
-                val dependency = modules.find { it.name == depName }
-                if (dependency != null && dependency.dependencies.contains(module.name)) {
+            // Check for cycles using DFS
+            if (module.name !in reported) {
+                val cyclePath = findCycle(module.name, modulesByName)
+                if (cyclePath != null) {
+                    reported.addAll(cyclePath)
+                    val cycleDescription = cyclePath.joinToString(" → ") + " → ${cyclePath.first()}"
                     report(
                         CodeSmell(
                             issue,
                             Entity.from(module.property),
                             """
-                            Circular dependency: '${module.name}' ↔ '$depName' → Causes initialization errors
-                            → Refactor to hierarchical structure (A → B, not A ↔ B)
+                            Circular dependency: $cycleDescription → Causes initialization errors
+                            → Refactor to hierarchical structure
 
-                            ✗ Bad:  val ${module.name} = module { includes($depName) }; val $depName = module { includes(${module.name}) }
+                            ✗ Bad:  ${cyclePath.joinToString("; ") { "val $it = module { includes(${cyclePath[(cyclePath.indexOf(it) + 1) % cyclePath.size]}) }" }}
                             ✓ Good: val coreModule = module { }; val featureModule = module { includes(coreModule) }
                             """.trimIndent()
                         )
@@ -127,5 +132,33 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
                 }
             }
         }
+    }
+
+    private fun findCycle(
+        startName: String,
+        modulesByName: Map<String, ModuleInfo>
+    ): List<String>? {
+        val path = mutableListOf(startName)
+        val visited = mutableSetOf<String>()
+
+        fun dfs(current: String): List<String>? {
+            val module = modulesByName[current] ?: return null
+            for (dep in module.dependencies) {
+                if (dep == startName && path.size > 1) {
+                    return path.toList()
+                }
+                if (dep !in visited && dep in modulesByName) {
+                    visited.add(dep)
+                    path.add(dep)
+                    val result = dfs(dep)
+                    if (result != null) return result
+                    path.removeAt(path.lastIndex)
+                }
+            }
+            return null
+        }
+
+        visited.add(startName)
+        return dfs(startName)
     }
 }

@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
 /**
- * Detects `koinInject()` calls in `@Preview` functions.
+ * Detects `koinInject()` and `koinViewModel()` calls in `@Preview` functions.
  *
  * Compose Previews run without Koin context, causing crashes when trying to inject dependencies.
  * Use fake/mock implementations or preview parameters instead.
@@ -38,26 +38,28 @@ public class KoinInjectInPreview(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "KoinInjectInPreview",
         severity = Severity.Warning,
-        description = "koinInject() should not be used in @Preview functions",
+        description = "Koin injection should not be used in @Preview functions",
         debt = Debt.FIVE_MINS
     )
+
+    private val koinInjectionFunctions = setOf("koinInject", "koinViewModel")
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
-        if (callName != "koinInject") return
+        if (callName !in koinInjectionFunctions) return
 
         val containingFunction = expression.getStrictParentOfType<KtNamedFunction>() ?: return
         val annotations = containingFunction.annotationEntries.mapNotNull { it.shortName?.asString() }
 
-        if ("Preview" in annotations) {
+        if (annotations.any { it.contains("Preview") }) {
             report(
                 CodeSmell(
                     issue,
                     Entity.from(expression),
                     """
-                    koinInject() in @Preview function → Preview crash, no Koin context available
+                    $callName() in @Preview function → Preview crash, no Koin context available
                     → Use fake/mock implementations or @Preview parameters instead
 
                     ✗ Bad:  @Preview @Composable fun MyPreview() { val repo = koinInject<Repo>() }

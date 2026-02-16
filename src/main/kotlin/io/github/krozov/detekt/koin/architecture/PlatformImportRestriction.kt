@@ -97,7 +97,9 @@ public class PlatformImportRestriction(config: Config = Config.empty) : Rule(con
 
         restrictions.forEach { restriction ->
             if (matchesPattern(importPath, restriction.importPattern)) {
-                val isAllowed = restriction.allowedPackages.any { packageName.startsWith(it) }
+                val isAllowed = restriction.allowedPackages.any {
+                    packageName == it || packageName.startsWith("$it.")
+                }
                 if (!isAllowed) {
                     report(
                         CodeSmell(
@@ -120,7 +122,7 @@ public class PlatformImportRestriction(config: Config = Config.empty) : Rule(con
     private fun matchesPattern(importPath: String, pattern: String): Boolean {
         if (pattern.endsWith(".*")) {
             val prefix = pattern.dropLast(2)
-            return importPath.startsWith(prefix)
+            return importPath == prefix || importPath.startsWith("$prefix.")
         }
         return importPath == pattern
     }

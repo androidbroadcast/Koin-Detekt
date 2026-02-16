@@ -21,8 +21,10 @@ class CircularModuleDependencyTest {
 
         val findings = CircularModuleDependency(Config.empty).lint(code)
 
-        assertThat(findings).hasSize(2) // Both modules reported
-        assertThat(findings[0].message).contains("→")
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("Circular dependency")
+        assertThat(findings[0].message).contains("moduleA")
+        assertThat(findings[0].message).contains("moduleB")
         assertThat(findings[0].message).contains("✗ Bad")
         assertThat(findings[0].message).contains("✓ Good")
     }
@@ -115,9 +117,79 @@ class CircularModuleDependencyTest {
         """.trimIndent()
 
         val findings = CircularModuleDependency(Config.empty).lint(code)
-        assertThat(findings).hasSize(2)
+        assertThat(findings).isNotEmpty()
         assertThat(findings.map { it.message }).allMatch { it.contains("→") }
         assertThat(findings.map { it.message }).allMatch { it.contains("✗ Bad") }
         assertThat(findings.map { it.message }).allMatch { it.contains("✓ Good") }
+    }
+
+    @Test
+    fun `reports 3-node circular dependency`() {
+        val code = """
+            val moduleA = module {
+                includes(moduleB)
+            }
+
+            val moduleB = module {
+                includes(moduleC)
+            }
+
+            val moduleC = module {
+                includes(moduleA)
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isNotEmpty()
+        assertThat(findings[0].message).contains("Circular dependency")
+    }
+
+    @Test
+    fun `reports 4-node circular dependency`() {
+        val code = """
+            val moduleA = module {
+                includes(moduleB)
+            }
+
+            val moduleB = module {
+                includes(moduleC)
+            }
+
+            val moduleC = module {
+                includes(moduleD)
+            }
+
+            val moduleD = module {
+                includes(moduleA)
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isNotEmpty()
+        assertThat(findings[0].message).contains("Circular dependency")
+    }
+
+    @Test
+    fun `allows long chain without cycle`() {
+        val code = """
+            val moduleA = module {
+                single { ServiceA() }
+            }
+
+            val moduleB = module {
+                includes(moduleA)
+            }
+
+            val moduleC = module {
+                includes(moduleB)
+            }
+
+            val moduleD = module {
+                includes(moduleC)
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
     }
 }

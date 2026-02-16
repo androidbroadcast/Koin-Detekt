@@ -156,4 +156,89 @@ class KoinInjectInPreviewTest {
         val findings = KoinInjectInPreview(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports koinViewModel in Preview function`() {
+        val code = """
+            @Preview
+            @Composable
+            fun MyScreenPreview() {
+                val vm = koinViewModel<MyViewModel>()
+                MyScreen(vm)
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("koinViewModel()")
+    }
+
+    @Test
+    fun `reports koinInject in PreviewLightDark function`() {
+        val code = """
+            @PreviewLightDark
+            @Composable
+            fun MyScreenPreview() {
+                val repo = koinInject<Repository>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports koinInject in PreviewFontScale function`() {
+        val code = """
+            @PreviewFontScale
+            @Composable
+            fun MyScreenPreview() {
+                val repo = koinInject<Repository>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports koinInject in PreviewScreenSizes function`() {
+        val code = """
+            @PreviewScreenSizes
+            @Composable
+            fun MyScreenPreview() {
+                val repo = koinInject<Repository>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports koinViewModel in PreviewLightDark function`() {
+        val code = """
+            @PreviewLightDark
+            @Composable
+            fun MyScreenPreview() {
+                val vm = koinViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows koinViewModel in non-Preview Composable`() {
+        val code = """
+            @Composable
+            fun MyScreen() {
+                val vm = koinViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

@@ -151,4 +151,31 @@ class NoKoinComponentInterfaceTest {
         assertThat(findings[0].message).contains("✗ Bad")
         assertThat(findings[0].message).contains("✓ Good")
     }
+
+    @Test
+    fun `reports KoinComponent in regular object declaration`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            object MySingleton : KoinComponent {
+                fun getData() = get<Service>()
+            }
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("KoinComponent")
+    }
+
+    @Test
+    fun `does not report object with allowed super type`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            object MyApp : Application(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

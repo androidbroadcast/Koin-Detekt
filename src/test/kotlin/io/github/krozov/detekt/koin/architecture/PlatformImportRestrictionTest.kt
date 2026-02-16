@@ -224,4 +224,50 @@ class PlatformImportRestrictionTest {
         // This test documents expected behavior when config is wrong type
         // Detekt handles this at framework level, but we document it
     }
+
+    @Test
+    fun `wildcard pattern does not match packages sharing common prefix`() {
+        val config = TestConfig(
+            "restrictions" to listOf(
+                mapOf(
+                    "import" to "org.koin.android.*",
+                    "allowedPackages" to listOf("com.example.app")
+                )
+            )
+        )
+
+        val code = """
+            package com.example.shared
+
+            import org.koin.androidTest.KoinTestRule
+
+            fun setup() { }
+        """.trimIndent()
+
+        val findings = PlatformImportRestriction(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allowed package does not match packages sharing common prefix`() {
+        val config = TestConfig(
+            "restrictions" to listOf(
+                mapOf(
+                    "import" to "org.koin.android.*",
+                    "allowedPackages" to listOf("com.example.app")
+                )
+            )
+        )
+
+        val code = """
+            package com.example.application
+
+            import org.koin.android.ext.koin.androidContext
+
+            fun setup() { }
+        """.trimIndent()
+
+        val findings = PlatformImportRestriction(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
