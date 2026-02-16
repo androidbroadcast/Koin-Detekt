@@ -49,7 +49,7 @@ public class ScopedWithoutQualifier(config: Config = Config.empty) : Rule(config
         if (!hasScopeAnnotation) {
             val scopedAnnotation = klass.annotationEntries.find {
                 it.shortName?.asString() == "Scoped"
-            }!!
+            } ?: return
             report(
                 CodeSmell(
                     issue,

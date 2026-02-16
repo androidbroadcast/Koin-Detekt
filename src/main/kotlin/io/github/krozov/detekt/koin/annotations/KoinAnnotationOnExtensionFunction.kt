@@ -50,6 +50,10 @@ public class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : 
         val koinAnnotation = annotations.firstOrNull { it in koinDefinitionAnnotations } ?: return
 
         val receiverType = function.receiverTypeReference?.text ?: "Unknown"
+        val simpleReceiverName = receiverType
+            .substringBefore("<")
+            .substringAfterLast(".")
+        val paramName = simpleReceiverName.replaceFirstChar { it.lowercase() }
 
         report(
             CodeSmell(
@@ -60,7 +64,7 @@ public class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : 
                 → Convert to regular function with explicit parameter
 
                 ✗ Bad:  @$koinAnnotation fun $receiverType.${function.name}()
-                ✓ Good: @$koinAnnotation fun ${function.name}(${receiverType.lowercase()}: $receiverType)
+                ✓ Good: @$koinAnnotation fun ${function.name}($paramName: $receiverType)
                 """.trimIndent()
             )
         )

@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProjectionKind
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeReference
 
@@ -83,7 +84,7 @@ public class InjectedParamWithNestedGenericType(config: Config = Config.empty) :
             ?: return false
 
         return typeArgList.arguments.any { projection ->
-            projection.text.trim() == "*"
+            projection.projectionKind == KtProjectionKind.STAR
         }
     }
 }
