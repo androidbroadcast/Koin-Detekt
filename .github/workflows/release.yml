@@ -271,7 +271,7 @@ jobs:
           COMMITS=$(cat /tmp/commits.txt)
           DIFFSTAT=$(cat /tmp/diffstat.txt)
 
-          SYSTEM_PROMPT='You generate concise, well-structured release notes for a Kotlin detekt plugin library (detekt-rules-koin). Output Markdown only, no wrapping code fences.
+          SYSTEM_PROMPT='You generate concise, well-structured release notes for a Kotlin detekt plugin library (detekt-koin-rules). Output Markdown only, no wrapping code fences.
 
           Structure:
           1. One-sentence summary of the release
@@ -284,7 +284,7 @@ jobs:
           3. Installation snippet:
              ```kotlin
              dependencies {
-                 detektPlugins("dev.androidbroadcast:detekt-rules-koin:VERSION")
+                 detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:VERSION")
              }
              ```
           4. **Full Changelog**: link to GitHub compare URL
