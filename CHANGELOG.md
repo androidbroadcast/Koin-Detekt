@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+**BREAKING**: Maven coordinates changed to follow AndroidX naming conventions:
+
+```kotlin
+// Old (0.4.x)
+detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.4.1")
+
+// New (1.0.0+)
+detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:1.0.0")
+```
+
+This change affects all users upgrading from test releases (0.1.0 - 0.4.1). Update your dependency declarations to use the new coordinates.
+
 ### Infrastructure
 
 - **Maven Central Publication**: Library is now published to Maven Central alongside GitHub Packages

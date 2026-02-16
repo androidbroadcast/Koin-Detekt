@@ -179,12 +179,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Artifact coordinates:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "dev.androidbroadcast:detekt-rules-koin:${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "dev.androidbroadcast.rules.koin:detekt-koin-rules:${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note:** Artifacts will be available on Maven Central within 15-30 minutes." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check availability: https://repo1.maven.org/maven2/dev/androidbroadcast/detekt-rules-koin/" >> $GITHUB_STEP_SUMMARY
+          echo "Check availability: https://repo1.maven.org/maven2/dev/androidbroadcast/rules/koin/detekt-koin-rules/" >> $GITHUB_STEP_SUMMARY
 
   release:
     name: Create GitHub Release

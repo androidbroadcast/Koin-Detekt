@@ -90,6 +90,7 @@ signing {
     val signingPassword = System.getenv("SIGNING_PASSWORD")
 
     if (signingKey != null && signingPassword != null) {
+        logger.lifecycle("Using in-memory PGP keys for artifact signing")
         useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications["maven"])
     } else {
@@ -97,8 +98,11 @@ signing {
         // GPG key must be available in local keyring
         val signingKeyId = System.getenv("SIGNING_KEY_ID")
         if (signingKeyId != null) {
+            logger.lifecycle("Using GPG command for artifact signing (key: $signingKeyId)")
             useGpgCmd()
             sign(publishing.publications["maven"])
+        } else {
+            logger.warn("No signing configuration found - artifacts will not be signed")
         }
     }
 }
