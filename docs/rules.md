@@ -281,6 +281,41 @@ ModuleIncludesOrganization:
 
 ---
 
+### ConstructorDslAmbiguousParameters
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `factoryOf(::)` / `singleOf(::)` / `viewModelOf(::)` with duplicate parameter types.
+
+❌ **Bad:**
+```kotlin
+class MyService(val a: Int, val b: Int)
+
+val m = module {
+    factoryOf(::MyService)  // b gets value of a
+}
+```
+
+✅ **Good:**
+```kotlin
+val m = module {
+    factory { MyService(get(), get()) }
+}
+```
+
+**Why this matters:**
+Koin's constructor DSL incorrectly resolves parameters of the same type. Use lambda syntax for explicit parameter resolution.
+
+**Edge Cases:**
+- ✅ Detects factoryOf, singleOf, and viewModelOf
+- ✅ Detects duplicate types including nullable variants (Int and Int? are treated as duplicates)
+- ✅ Reports all duplicate types in the message
+- ✅ Does not report when all parameter types are different
+- ✅ Does not report lambda-based factories
+
+---
+
 ## Scope Management Rules
 
 ### MissingScopeClose

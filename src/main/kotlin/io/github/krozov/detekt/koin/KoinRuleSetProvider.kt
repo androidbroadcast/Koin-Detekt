@@ -3,6 +3,7 @@ package io.github.krozov.detekt.koin
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
+import io.github.krozov.detekt.koin.moduledsl.ConstructorDslAmbiguousParameters
 import io.github.krozov.detekt.koin.moduledsl.DeprecatedKoinApi
 import io.github.krozov.detekt.koin.moduledsl.EmptyModule
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
@@ -58,6 +59,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MissingScopedDependencyQualifier(config),
                 DeprecatedKoinApi(config),
                 ModuleIncludesOrganization(config),
+                ConstructorDslAmbiguousParameters(config),
                 // Scope Management Rules
                 MissingScopeClose(config),
                 ScopedDependencyOutsideScopeBlock(config),

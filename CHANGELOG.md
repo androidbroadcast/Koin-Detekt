@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+#### New Rules
+- **ConstructorDslAmbiguousParameters** - Detects constructor DSL with duplicate parameter types (#1372, #2347)
+
 ### Breaking Changes
 
 **BREAKING**: Maven coordinates changed to follow AndroidX naming conventions:
