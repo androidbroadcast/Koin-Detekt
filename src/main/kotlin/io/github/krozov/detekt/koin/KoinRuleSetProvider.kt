@@ -5,11 +5,15 @@ import io.gitlab.arturbosch.detekt.api.RuleSet
 import io.gitlab.arturbosch.detekt.api.RuleSetProvider
 import io.github.krozov.detekt.koin.moduledsl.ConstructorDslAmbiguousParameters
 import io.github.krozov.detekt.koin.moduledsl.DeprecatedKoinApi
+import io.github.krozov.detekt.koin.moduledsl.DuplicateBindingWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.EmptyModule
+import io.github.krozov.detekt.koin.moduledsl.EnumQualifierCollision
+import io.github.krozov.detekt.koin.moduledsl.GenericDefinitionWithoutQualifier
 import io.github.krozov.detekt.koin.moduledsl.MissingScopedDependencyQualifier
 import io.github.krozov.detekt.koin.moduledsl.ModuleIncludesOrganization
 import io.github.krozov.detekt.koin.moduledsl.ParameterTypeMatchesReturnType
 import io.github.krozov.detekt.koin.moduledsl.SingleForNonSharedDependency
+import io.github.krozov.detekt.koin.moduledsl.UnassignedQualifierInWithOptions
 import io.github.krozov.detekt.koin.scope.FactoryInScopeBlock
 import io.github.krozov.detekt.koin.scope.KtorRequestScopeMisuse
 import io.github.krozov.detekt.koin.scope.MissingScopeClose
@@ -60,6 +64,10 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MissingScopedDependencyQualifier(config),
                 DeprecatedKoinApi(config),
                 ModuleIncludesOrganization(config),
+                UnassignedQualifierInWithOptions(config),
+                DuplicateBindingWithoutQualifier(config),
+                GenericDefinitionWithoutQualifier(config),
+                EnumQualifierCollision(config),
                 ConstructorDslAmbiguousParameters(config),
                 ParameterTypeMatchesReturnType(config),
                 // Scope Management Rules
