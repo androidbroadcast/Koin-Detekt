@@ -7,10 +7,13 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
+import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
 internal class NoInjectDelegate(config: Config) : Rule(config) {
 
@@ -20,6 +23,18 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
         description = "Detects inject() property delegate usage (service locator pattern). " +
                 "Use constructor injection instead of property delegation with inject().",
         debt = Debt.TWENTY_MINS
+    )
+
+    private val allowedSuperTypes: List<String> by config(
+        listOf(
+            "Application",
+            "Activity",
+            "ComponentActivity",
+            "Fragment",
+            "Service",
+            "BroadcastReceiver",
+            "ViewModel"
+        )
     )
 
     override fun visitProperty(property: KtProperty) {
@@ -41,6 +56,12 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
         }
 
         if (callName in setOf("inject", "injectOrNull")) {
+            // Check if the containing class extends an allowed super type
+            val containingClass = property.getStrictParentOfType<KtClassOrObject>()
+            if (containingClass != null && hasAllowedSuperType(containingClass)) {
+                return
+            }
+
             report(
                 CodeSmell(
                     issue,
@@ -54,6 +75,18 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
                     """.trimIndent()
                 )
             )
+        }
+    }
+
+    private fun hasAllowedSuperType(classOrObject: KtClassOrObject): Boolean {
+        val superTypes = classOrObject.superTypeListEntries.mapNotNull { it.text }
+        return superTypes.any { superType ->
+            val shortTypeName = superType
+                .substringBefore("<")
+                .substringBefore("(")
+                .substringAfterLast(".")
+                .trim()
+            allowedSuperTypes.any { allowed -> shortTypeName == allowed }
         }
     }
 }
