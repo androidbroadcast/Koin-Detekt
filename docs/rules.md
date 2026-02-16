@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 32 Detekt rules for Koin.
+Complete reference for all 38 Detekt rules for Koin.
 
 ---
 
@@ -278,6 +278,217 @@ ModuleIncludesOrganization:
 - ✅ Handles value argument syntax: `module({ includes(a, b) })`
 - ✅ Ignores non-call statements like variable declarations
 - ✅ Default threshold is 3 includes with definitions
+
+---
+
+### UnassignedQualifierInWithOptions
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `named()` calls in `withOptions {}` without assignment to `qualifier` property.
+
+❌ **Bad:**
+```kotlin
+module {
+    factory { Service() } withOptions {
+        named("myService")  // Dead code - qualifier not applied
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    factory { Service() } withOptions {
+        qualifier = named("myService")
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects both `named()` and `qualifier()` calls
+- ✅ Does not report when assigned: `qualifier = named("x")`
+- ✅ Does not report other `withOptions` properties like `createdAtStart`
+
+**Related Issue:** [Koin#2331](https://github.com/InsertKoinIO/koin/issues/2331)
+
+---
+
+### DuplicateBindingWithoutQualifier
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects multiple bindings to same type without qualifiers (silent override).
+
+❌ **Bad:**
+```kotlin
+module {
+    single { ServiceA() } bind Foo::class
+    single { ServiceB() } bind Foo::class  // Silently overrides ServiceA
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single { ServiceA() } bind Foo::class named("a")
+    single { ServiceB() } bind Foo::class named("b")
+}
+```
+
+**Edge Cases:**
+- ✅ Detects duplicates across different definition types (`single`, `factory`, `scoped`)
+- ✅ Does not report when bindings have qualifiers
+- ✅ Does not report single binding without qualifier
+- ✅ Does not report bindings to different types
+- ✅ Only reports within same module scope
+
+**Related Issue:** [Koin#2115](https://github.com/InsertKoinIO/koin/issues/2115)
+
+---
+
+### GenericDefinitionWithoutQualifier
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects generic types without qualifiers causing type erasure collisions.
+
+❌ **Bad:**
+```kotlin
+module {
+    single { listOf<String>() }  // Type erased to List
+    single { listOf<Int>() }     // Overwrites previous List
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single(named("strings")) { listOf<String>() }
+    single(named("ints")) { listOf<Int>() }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `List`, `Set`, `Map`, `Array` and their factory functions
+- ✅ Detects `listOf`, `setOf`, `mapOf`, `arrayOf` with type parameters
+- ✅ Works with `single`, `factory`, and `scoped`
+- ✅ Does not report when qualifier is present
+- ✅ Does not report non-generic types
+
+**Related Issue:** [Koin#188](https://github.com/InsertKoinIO/koin/issues/188)
+
+---
+
+### EnumQualifierCollision
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects enum qualifiers with same value name from different enum types (collision risk with R8/ProGuard).
+
+❌ **Bad:**
+```kotlin
+enum class Type1 { VALUE }
+enum class Type2 { VALUE }
+
+module {
+    single(named(Type1.VALUE)) { ServiceA() }
+    single(named(Type2.VALUE)) { ServiceB() }  // Collision: both use "VALUE"
+}
+```
+
+✅ **Good:**
+```kotlin
+module {
+    single(named("type1_value")) { ServiceA() }
+    single(named("type2_value")) { ServiceB() }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects collisions across different enum types
+- ✅ Does not report same enum value used multiple times
+- ✅ Does not report enum values with different names
+- ✅ Does not report string qualifiers
+- ✅ Uses heuristic pattern matching (no semantic analysis required)
+
+**Related Issue:** [Koin#2364](https://github.com/InsertKoinIO/koin/issues/2364)
+
+---
+
+### ConstructorDslAmbiguousParameters
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `factoryOf(::)` / `singleOf(::)` / `viewModelOf(::)` with duplicate parameter types.
+
+❌ **Bad:**
+```kotlin
+class MyService(val a: Int, val b: Int)
+
+val m = module {
+    factoryOf(::MyService)  // b gets value of a
+}
+```
+
+✅ **Good:**
+```kotlin
+val m = module {
+    factory { MyService(get(), get()) }
+}
+```
+
+**Why this matters:**
+Koin's constructor DSL incorrectly resolves parameters of the same type. Use lambda syntax for explicit parameter resolution.
+
+**Edge Cases:**
+- ✅ Detects factoryOf, singleOf, and viewModelOf
+- ✅ Detects duplicate types including nullable variants (Int and Int? are treated as duplicates)
+- ✅ Reports all duplicate types in the message
+- ✅ Does not report when all parameter types are different
+- ✅ Does not report lambda-based factories
+
+**Related Issues:** [Koin#1372](https://github.com/InsertKoinIO/koin/issues/1372), [Koin#2347](https://github.com/InsertKoinIO/koin/issues/2347)
+
+---
+
+### ParameterTypeMatchesReturnType
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects factory/single/scoped definitions where the return type matches a parameter type.
+
+❌ **Bad:**
+```kotlin
+factory<Int>(named("random")) { limit: Int ->
+    Random.nextInt(limit)  // Never executes - returns `limit`
+}
+```
+
+✅ **Good:**
+```kotlin
+factory(named("random")) { params ->
+    val limit = params.get<Int>()
+    Random.nextInt(limit)
+}
+```
+
+**Why this matters:**
+Koin has undocumented short-circuit behavior: when parametersOf() provides a value matching the definition's return type, Koin returns that value directly without executing the lambda.
+
+**Edge Cases:**
+- ✅ Detects factory, single, and scoped definitions
+- ✅ Normalizes nullable types (Int and Int? are treated as same type)
+- ✅ Does not report definitions without explicit type arguments
+- ✅ Does not report when parameter type differs from return type
+
+**Related Issue:** [Koin#2328](https://github.com/InsertKoinIO/koin/issues/2328)
 
 ---
 

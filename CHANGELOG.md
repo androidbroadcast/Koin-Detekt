@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **ViewModelAsSingleton** - Detects ViewModel defined with single {} instead of viewModel {} (#2310)
-- **CloseableWithoutOnClose** - Detects Closeable types without onClose callback (#1790, #2001)
-- **ScopeAccessInOnDestroy** - Detects scope access in onDestroy/onDestroyView (#1543, #1773)
+#### New Rules
+- **ConstructorDslAmbiguousParameters** - Detects constructor DSL with duplicate parameter types (#1372, #2347)
+- **ParameterTypeMatchesReturnType** - Detects factory with return type matching parameter type (#2328)
 
 ### Breaking Changes
 
