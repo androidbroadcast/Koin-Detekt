@@ -26,7 +26,7 @@ class ConstructorDslAmbiguousParametersTest {
     }
 
     @Test
-    fun `reports viewModelOf with Int and Int? parameters`() {
+    fun `reports viewModelOf with Int and nullable Int parameters`() {
         val code = """
             import org.koin.dsl.module
             import org.koin.androidx.viewmodel.dsl.viewModelOf
