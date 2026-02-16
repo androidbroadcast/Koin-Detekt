@@ -8,8 +8,9 @@ Releases are automated through GitHub Actions. When a version tag is pushed, the
 1. Builds the library (main JAR, sources JAR, javadoc JAR)
 2. Generates SHA-256 and SHA-512 checksums for all JARs
 3. Publishes artifacts to GitHub Packages (Maven repository)
-4. Creates a draft GitHub Release with artifacts and auto-generated release notes
-5. Updates CHANGELOG.md in the main branch
+4. Generates structured release notes via Claude API (with commit-list fallback)
+5. Creates a draft GitHub Release with artifacts and AI-generated release notes
+6. Updates CHANGELOG.md in the main branch (idempotent — skips if version already present)
 
 ## Prerequisites
 
@@ -21,6 +22,7 @@ Before creating a release, ensure:
 - [ ] Code quality checks pass (explicit API mode enforced)
 - [ ] Version number follows semantic versioning
 - [ ] CHANGELOG.md is up to date with unreleased changes
+- [ ] `ANTHROPIC_API_KEY` secret is configured in Repository Settings > Secrets > Actions
 
 ## Release Process
 
@@ -96,7 +98,7 @@ After the workflow completes:
 
 1. Navigate to [Releases](../../releases)
 2. Find the new **draft** release
-3. Review the auto-generated release notes
+3. Review the AI-generated release notes (edit if needed)
 4. Verify all artifacts are attached:
    - `detekt-rules-koin-X.Y.Z.jar` (main library)
    - `detekt-rules-koin-X.Y.Z-sources.jar` (sources)
@@ -128,7 +130,7 @@ head -30 CHANGELOG.md
 Verify:
 - New version section appears after `## [Unreleased]`
 - Release date is correct
-- Auto-generated release notes are included
+- AI-generated release notes are included
 
 #### Test Package Installation
 
@@ -188,7 +190,7 @@ Common pre-release identifiers:
 - Maven coordinates: `dev.androidbroadcast:detekt-rules-koin:X.Y.Z`
 
 ### GitHub Release
-- Auto-generated release notes from commits
+- AI-generated release notes via Claude API (fallback: plain commit list)
 - All 3 JARs as downloadable artifacts
 - 6 checksum files (SHA-256 and SHA-512 for each JAR)
 - Source code archives (automatic)
@@ -197,8 +199,9 @@ Common pre-release identifiers:
 ### CHANGELOG.md
 - New version section inserted after `## [Unreleased]`
 - Release date in `YYYY-MM-DD` format
-- Auto-generated release notes from GitHub
+- AI-generated release notes (same as GitHub Release body)
 - Committed back to main branch
+- Idempotent: skips update if version already present
 
 ## Troubleshooting
 
@@ -230,6 +233,15 @@ Common pre-release identifiers:
 - Verify tag format: must be `vX.Y.Z` or `vX.Y.Z-suffix`
 - Check workflow passes `-Pversion=X.Y.Z` to Gradle commands
 - Confirm `build.gradle.kts` accepts version override
+
+### Release Notes Fallback to Commit List
+
+**Symptoms**: Release notes are a plain bullet list instead of categorized notes
+
+**Solutions**:
+- Verify `ANTHROPIC_API_KEY` secret is set in Repository Settings > Secrets > Actions
+- Check workflow logs for Claude API HTTP status code
+- The fallback is intentional — releases still work without the API key
 
 ### CHANGELOG Commit Fails
 

@@ -182,13 +182,131 @@ jobs:
 
           echo "✅ All artifacts present"
 
+      - name: Gather release context
+        id: context
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          # Find the previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
+          echo "Current tag: $TAG"
+          echo "Previous tag: $PREV_TAG"
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+          if [ -n "$PREV_TAG" ]; then
+            git log "${PREV_TAG}..${TAG}" --pretty=format:"%h %s" --no-merges > /tmp/commits.txt
+            git diff "${PREV_TAG}..${TAG}" --stat > /tmp/diffstat.txt
+          else
+            git log --pretty=format:"%h %s" --no-merges > /tmp/commits.txt
+            git diff --stat > /tmp/diffstat.txt || true
+          fi
+
+          echo "Commits since $PREV_TAG:"
+          cat /tmp/commits.txt
+          echo ""
+          echo "Diff stat:"
+          cat /tmp/diffstat.txt
+
+      - name: Generate release notes via Claude
+        id: release_notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          PREV_TAG="${{ steps.context.outputs.prev_tag }}"
+          REPO="${{ github.repository }}"
+
+          COMMITS=$(cat /tmp/commits.txt)
+          DIFFSTAT=$(cat /tmp/diffstat.txt)
+
+          SYSTEM_PROMPT='You generate concise, well-structured release notes for a Kotlin detekt plugin library (detekt-rules-koin). Output Markdown only, no wrapping code fences.
+
+          Structure:
+          1. One-sentence summary of the release
+          2. Categorized changes using these headings (skip empty categories):
+             ### New Rules
+             ### Bug Fixes
+             ### Improvements
+             ### Documentation
+             ### Infrastructure
+          3. Installation snippet:
+             ```kotlin
+             dependencies {
+                 detektPlugins("dev.androidbroadcast:detekt-rules-koin:VERSION")
+             }
+             ```
+          4. **Full Changelog**: link to GitHub compare URL
+
+          Rules:
+          - Derive categories from conventional commit prefixes (feat:, fix:, docs:, ci:, refactor:, perf:, test:)
+          - Use bullet points with brief descriptions
+          - Do NOT invent changes not present in the commit list
+          - Keep it concise: prefer one line per change'
+
+          USER_MSG="Generate release notes for v${VERSION}.
+
+          Commits since ${PREV_TAG}:
+          ${COMMITS}
+
+          Diff stats:
+          ${DIFFSTAT}
+
+          Repository: ${REPO}
+          Previous tag: ${PREV_TAG}
+          Current tag: ${TAG}"
+
+          # Build JSON payload using jq for proper escaping
+          PAYLOAD=$(jq -n \
+            --arg model "claude-sonnet-4-20250514" \
+            --arg system "$SYSTEM_PROMPT" \
+            --arg user "$USER_MSG" \
+            '{
+              model: $model,
+              max_tokens: 2048,
+              system: $system,
+              messages: [{role: "user", content: $user}]
+            }')
+
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/claude_response.json \
+            https://api.anthropic.com/v1/messages \
+            -H "content-type: application/json" \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -d "$PAYLOAD")
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            jq -r '.content[0].text' /tmp/claude_response.json > /tmp/release_notes.md
+            echo "✅ Release notes generated via Claude API"
+          else
+            echo "::warning::Claude API returned HTTP $HTTP_CODE, using fallback release notes"
+            cat /tmp/claude_response.json || true
+            {
+              echo "## What's Changed"
+              echo ""
+              while IFS= read -r line; do
+                echo "* ${line}"
+              done < /tmp/commits.txt
+              echo ""
+              if [ -n "$PREV_TAG" ]; then
+                echo "**Full Changelog**: https://github.com/${REPO}/compare/${PREV_TAG}...${TAG}"
+              fi
+            } > /tmp/release_notes.md
+            echo "⚠️ Fallback release notes generated from commit list"
+          fi
+
+          echo "--- Generated release notes ---"
+          cat /tmp/release_notes.md
+
       - name: Create Draft Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           prerelease: ${{ needs.build.outputs.is_prerelease }}
-          generate_release_notes: true
+          generate_release_notes: false
+          body_path: /tmp/release_notes.md
           files: |
             artifacts/*.jar
             artifacts/*.sha256
@@ -198,43 +316,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get release notes
-        id: release_notes
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const release = await github.rest.repos.getRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: '${{ steps.create_release.outputs.id }}'
-            });
-            return release.data.body;
-          result-encoding: string
-
       - name: Update and commit CHANGELOG to main
         id: changelog_commit
         continue-on-error: true
         run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Checkout main branch first (before making any changes)
           git fetch origin main
           git checkout main
 
-          # Build the new release section in a temporary file
+          # Idempotency: skip if this version is already in CHANGELOG
+          if grep -q "^## v${VERSION} " CHANGELOG.md; then
+            echo "Version v${VERSION} already in CHANGELOG.md, skipping"
+            echo "changelog_updated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Build the new release section
           SECTION_FILE="$(mktemp)"
           {
             echo ""
-            echo "## ${{ github.ref_name }} - $(date +%Y-%m-%d)"
+            echo "## v${VERSION} - $(date +%Y-%m-%d)"
             echo ""
-            echo "${{ steps.release_notes.outputs.result }}"
+            cat /tmp/release_notes.md
             echo ""
           } > "$SECTION_FILE"
 
-          # Insert the new section after the Unreleased heading if present,
-          # otherwise insert it after the main Changelog title.
-          if grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+          # Insert after ## [Unreleased], or after # Changelog if no Unreleased section
+          if grep -q '^\## \[Unreleased\]' CHANGELOG.md; then
             sed '/^## \[Unreleased\]/r '"$SECTION_FILE"'' CHANGELOG.md > new_changelog.md
           else
             sed '/^# Changelog/r '"$SECTION_FILE"'' CHANGELOG.md > new_changelog.md
@@ -244,18 +356,15 @@ jobs:
           rm "$SECTION_FILE"
 
           echo "CHANGELOG.md updated:"
-          head -20 CHANGELOG.md
+          head -30 CHANGELOG.md
 
-          # Commit and push changes
           git add CHANGELOG.md
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             echo "changelog_updated=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "docs: update CHANGELOG for ${{ github.ref_name }}
-
-          Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+            git commit -m "docs: update CHANGELOG for v${VERSION}"
             git push origin main
             echo "✅ CHANGELOG committed to main"
             echo "changelog_updated=true" >> $GITHUB_OUTPUT
@@ -263,7 +372,7 @@ jobs:
 
       - name: Release summary
         run: |
-          echo "## Release Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Pre-release**: ${{ needs.build.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
@@ -275,15 +384,15 @@ jobs:
           echo "3. Click 'Publish release' to make it public" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.changelog_commit.outputs.changelog_updated }}" == "true" ]; then
-            echo "✅ CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
+            echo "CHANGELOG.md has been updated in the main branch" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ CHANGELOG.md update failed or was skipped (check logs above)" >> $GITHUB_STEP_SUMMARY
+            echo "CHANGELOG.md update was skipped or failed (check logs above)" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Notify on failure
         if: failure()
         run: |
           echo "::error::Release workflow failed for ${{ github.ref_name }}"
-          echo "## Release Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Failed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY

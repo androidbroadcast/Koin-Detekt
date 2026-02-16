@@ -1,0 +1,22 @@
+changelog:
+  exclude:
+    authors:
+      - dependabot
+      - github-actions[bot]
+  categories:
+    - title: New Features
+      labels:
+        - enhancement
+        - feature
+    - title: Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: Documentation
+      labels:
+        - documentation
+    - title: Infrastructure
+      labels:
+        - ci
+        - infrastructure
+        - dependencies
