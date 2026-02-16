@@ -1,7 +1,11 @@
+import java.time.Duration
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.kover)
+    alias(libs.plugins.nexus.publish)
+    id("signing")
     alias(libs.plugins.jmh)
 }
 
@@ -73,6 +77,56 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Signing configuration for Maven Central
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+signing {
+    // Use in-memory PGP keys from environment variables (for CI/CD)
+    val signingKey = System.getenv("SIGNING_KEY")
+    val signingPassword = System.getenv("SIGNING_PASSWORD")
+
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["maven"])
+    } else {
+        // For local development: use GPG agent
+        // GPG key must be available in local keyring
+        val signingKeyId = System.getenv("SIGNING_KEY_ID")
+        if (signingKeyId != null) {
+            useGpgCmd()
+            sign(publishing.publications["maven"])
+        }
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Nexus Publishing configuration for Maven Central
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            // Use s01.oss.sonatype.org for newer projects
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+
+            // Credentials from environment variables
+            username.set(System.getenv("OSSRH_USERNAME"))
+            password.set(System.getenv("OSSRH_PASSWORD"))
+        }
+    }
+
+    // Configuration for staging repositories
+    this.packageGroup.set(project.group.toString())
+
+    // Timeout for operations (staging close can take time)
+    transitionCheckOptions {
+        maxRetries.set(100)
+        delayBetween.set(Duration.ofSeconds(5))
     }
 }
 
