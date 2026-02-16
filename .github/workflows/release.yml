@@ -161,7 +161,7 @@ jobs:
       - name: Publish to Maven Central
         run: |
           echo "Publishing version ${{ needs.build.outputs.version }} to Maven Central..."
-          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
+          ./gradlew publishAllPublicationsToCentralPortal \
             --no-daemon \
             -Pversion=${{ needs.build.outputs.version }}
         env:

@@ -4,7 +4,7 @@ kotlin = "2.0.21"
 detekt = "1.23.8"
 kover = "0.9.7"
 jmh = "0.7.2"
-nexus-publish = "2.0.0"
+nmcp = "1.3.0"
 
 # Test dependencies
 assertj = "3.27.7"
@@ -24,4 +24,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 maven-publish = { id = "maven-publish" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmh" }
-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
+nmcp = { id = "com.gradleup.nmcp", version.ref = "nmcp" }

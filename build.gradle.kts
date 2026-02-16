@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.kover)
-    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.nmcp)
     id("signing")
     alias(libs.plugins.jmh)
 }
@@ -104,29 +104,19 @@ signing {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Nexus Publishing configuration for Maven Central
+// Maven Central Portal Publishing configuration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            // Use s01.oss.sonatype.org for newer projects
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        // Credentials from environment variables
+        // NOTE: Use existing OSSRH_* secrets - they work with Central Portal
+        username = System.getenv("OSSRH_USERNAME")
+        password = System.getenv("OSSRH_PASSWORD")
 
-            // Credentials from environment variables
-            username.set(System.getenv("OSSRH_USERNAME"))
-            password.set(System.getenv("OSSRH_PASSWORD"))
-        }
-    }
-
-    // Configuration for staging repositories
-    this.packageGroup.set(project.group.toString())
-
-    // Timeout for operations (staging close can take time)
-    transitionCheckOptions {
-        maxRetries.set(100)
-        delayBetween.set(Duration.ofSeconds(5))
+        // Publication type: AUTOMATIC or USER_MANAGED
+        // AUTOMATIC = auto-release after validation
+        publishingType = "AUTOMATIC"
     }
 }
 
