@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -133,7 +134,7 @@ class MissingScopedDependencyQualifierTest {
     }
 
     @Test
-    fun `reports when one has qualifier but another doesn't for same type`() {
+    fun `allows one default with qualified definitions by default`() {
         val code = """
             import org.koin.dsl.module
             import org.koin.core.qualifier.named
@@ -147,8 +148,7 @@ class MissingScopedDependencyQualifierTest {
         val findings = MissingScopedDependencyQualifier(Config.empty)
             .lint(code)
 
-        assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("HttpClient")
+        assertThat(findings).isEmpty()
     }
 
     @Test
@@ -501,7 +501,7 @@ class MissingScopedDependencyQualifierTest {
     }
 
     @Test
-    fun `handles mixed qualifier styles`() {
+    fun `allows one default with mixed qualifier styles`() {
         val code = """
             import org.koin.dsl.module
             import org.koin.core.qualifier.named
@@ -517,7 +517,7 @@ class MissingScopedDependencyQualifierTest {
         val findings = MissingScopedDependencyQualifier(Config.empty)
             .lint(code)
 
-        assertThat(findings).hasSize(1)
+        assertThat(findings).isEmpty()
     }
 
     @Test
@@ -766,5 +766,57 @@ class MissingScopedDependencyQualifierTest {
 
         val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    // allowOneDefault config tests
+    @Test
+    fun `reports one unqualified when allowOneDefault is false`() {
+        val config = TestConfig("allowOneDefault" to "false")
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.named
+
+            val myModule = module {
+                single(named("first")) { HttpClient() }
+                single { HttpClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows one default with qualified definitions when allowOneDefault is true`() {
+        val config = TestConfig("allowOneDefault" to "true")
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.named
+
+            val myModule = module {
+                single(named("first")) { HttpClient() }
+                single { HttpClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `still reports two unqualified even with allowOneDefault true`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.named
+
+            val myModule = module {
+                single(named("first")) { HttpClient() }
+                single { HttpClient() }
+                single { HttpClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 }
