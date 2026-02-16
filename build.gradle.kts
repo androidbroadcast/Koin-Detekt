@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.androidbroadcast"
-version = "0.4.0"
+version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: "0.4.1-SNAPSHOT"
 
 java {
     toolchain {
