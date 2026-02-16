@@ -282,4 +282,88 @@ class DeprecatedKoinApiTest {
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    // Named dependency tests for viewModel -> viewModelOf() suggestion
+    @Test
+    fun `does not report viewModel with named dependency in lambda`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.core.qualifier.named
+            import org.koin.dsl.module
+
+            val m = module {
+                viewModel { MyViewModel(get(named("special"))) }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports viewModel without named dependency`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.dsl.module
+
+            val m = module {
+                viewModel { MyViewModel(get()) }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("viewModelOf()")
+    }
+
+    @Test
+    fun `does not report viewModel with qualifier dependency in lambda`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.core.qualifier.qualifier
+            import org.koin.dsl.module
+
+            val m = module {
+                viewModel { MyViewModel(get(qualifier("api"))) }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report viewModel with StringQualifier dependency`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.core.qualifier.StringQualifier
+            import org.koin.dsl.module
+
+            val m = module {
+                viewModel { MyViewModel(get(StringQualifier("key"))) }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report viewModel with nested named dependency`() {
+        val code = """
+            import org.koin.androidx.viewmodel.dsl.viewModel
+            import org.koin.core.qualifier.named
+            import org.koin.dsl.module
+
+            val m = module {
+                viewModel {
+                    val repo = get<Repository>(named("remote"))
+                    MyViewModel(repo)
+                }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
