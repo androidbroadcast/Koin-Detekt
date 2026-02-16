@@ -1,6 +1,7 @@
 # detekt-rules-koin
 
 [![Latest Release](https://img.shields.io/github/v/release/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases/latest)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.androidbroadcast/detekt-rules-koin)](https://central.sonatype.com/artifact/dev.androidbroadcast/detekt-rules-koin)
 [![Release Date](https://img.shields.io/github/release-date/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
 ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen.svg)
@@ -33,6 +34,14 @@ dependencies {
     detektPlugins 'dev.androidbroadcast:detekt-rules-koin:0.4.0'
 }
 ```
+
+### Availability
+
+This library is published to:
+- **Maven Central** - primary distribution (recommended)
+- **GitHub Packages** - alternative source
+
+For Maven Central, no additional repository configuration is needed - it's available by default in all Gradle projects.
 
 ## Usage
 
