@@ -188,4 +188,65 @@ class ConflictingBindingsTest {
         val findings = ConflictingBindings(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `allows annotated function with inferred return type`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Single
+
+            @Module
+            class AnnotatedModule {
+                @Single
+                fun provideRepo() = RepositoryImpl()
+            }
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows class with helper function without Koin annotation`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Single
+
+            @Module
+            class AnnotatedModule {
+                @Single
+                fun provideRepo(): Repository = createRepo()
+
+                private fun createRepo() = RepositoryImpl()
+            }
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports conflict when DSL has duplicate type entries`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Single
+            import org.koin.dsl.module
+
+            @Module
+            class AnnotatedModule {
+                @Single
+                fun provideRepo(): Repository = RepositoryImpl()
+            }
+
+            val m1 = module {
+                single<Repository> { RepositoryImpl1() }
+            }
+            val m2 = module {
+                single<Repository> { RepositoryImpl2() }
+            }
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

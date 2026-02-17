@@ -118,4 +118,17 @@ class ViewModelAnnotatedAsSingleTest {
         val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `allows class with Single implementing non-ViewModel interface`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService : SomeRepository
+        """.trimIndent()
+
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

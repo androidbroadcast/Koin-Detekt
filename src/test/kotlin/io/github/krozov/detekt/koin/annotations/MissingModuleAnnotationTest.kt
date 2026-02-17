@@ -144,4 +144,39 @@ class MissingModuleAnnotationTest {
         val findings = MissingModuleAnnotation(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports class with mixed annotations where only some are Koin`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            class MyServices {
+                @Deprecated("use new API")
+                fun legacyMethod(): Unit = Unit
+
+                @Single
+                fun provideRepo(): Repository = RepositoryImpl()
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports Module with only non-Koin annotated methods as empty`() {
+        val code = """
+            import org.koin.core.annotation.Module
+
+            @Module
+            class MyModule {
+                @Deprecated("old")
+                fun legacyHelper(): Unit = Unit
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("empty")
+    }
 }

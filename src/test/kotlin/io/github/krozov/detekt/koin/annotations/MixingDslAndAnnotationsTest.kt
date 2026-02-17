@@ -117,4 +117,25 @@ class MixingDslAndAnnotationsTest {
         val findings = MixingDslAndAnnotations(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `reports mixing with multiple DSL module calls`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.dsl.module
+
+            @Module
+            class AnnotatedModule
+
+            val m1 = module {
+                single { Repository() }
+            }
+            val m2 = module {
+                single { ApiService() }
+            }
+        """.trimIndent()
+
+        val findings = MixingDslAndAnnotations(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
