@@ -53,6 +53,13 @@ import io.github.krozov.detekt.koin.annotations.MissingModuleAnnotation
 import io.github.krozov.detekt.koin.annotations.ConflictingBindings
 import io.github.krozov.detekt.koin.annotations.ScopedWithoutQualifier
 import io.github.krozov.detekt.koin.annotations.AnnotationProcessorNotConfigured
+import io.github.krozov.detekt.koin.annotations.SingleAnnotationOnObject
+import io.github.krozov.detekt.koin.annotations.TooManyInjectedParams
+import io.github.krozov.detekt.koin.annotations.InvalidNamedQualifierCharacters
+import io.github.krozov.detekt.koin.annotations.KoinAnnotationOnExtensionFunction
+import io.github.krozov.detekt.koin.annotations.ViewModelAnnotatedAsSingle
+import io.github.krozov.detekt.koin.annotations.AnnotatedClassImplementsNestedInterface
+import io.github.krozov.detekt.koin.annotations.InjectedParamWithNestedGenericType
 
 public class KoinRuleSetProvider : RuleSetProvider {
 
@@ -114,7 +121,15 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MissingModuleAnnotation(config),
                 ConflictingBindings(config),
                 ScopedWithoutQualifier(config),
-                AnnotationProcessorNotConfigured(config)
+                AnnotationProcessorNotConfigured(config),
+                // New annotation rules
+                SingleAnnotationOnObject(config),
+                TooManyInjectedParams(config),
+                InvalidNamedQualifierCharacters(config),
+                KoinAnnotationOnExtensionFunction(config),
+                ViewModelAnnotatedAsSingle(config),
+                AnnotatedClassImplementsNestedInterface(config),
+                InjectedParamWithNestedGenericType(config)
             )
         )
     }

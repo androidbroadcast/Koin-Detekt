@@ -53,7 +53,7 @@ public class AnnotationProcessorNotConfigured(config: Config = Config.empty) : R
         if (skipCheck) return
 
         val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        if (annotations.any { it in setOf("Single", "Factory", "Scoped", "Module") }) {
+        if (annotations.any { it in KoinAnnotationConstants.ALL_ANNOTATIONS }) {
             report(
                 CodeSmell(
                     issue,

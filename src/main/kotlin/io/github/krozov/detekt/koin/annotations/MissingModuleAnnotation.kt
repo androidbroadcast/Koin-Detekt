@@ -47,7 +47,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
             // Check if class has methods with Koin annotations
             val hasKoinDefinitions = klass.declarations.any { declaration ->
                 val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in setOf("Single", "Factory", "Scoped") }
+                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
             }
 
             if (hasKoinDefinitions) {
@@ -56,11 +56,41 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
                         issue,
                         Entity.from(klass),
                         """
-                        @Single/@Factory/@Scoped without @Module → Definitions won't be discovered
+                        Koin definition annotations without @Module → Definitions won't be discovered
                         → Add @Module annotation to class for annotation processor
 
                         ✗ Bad:  class ${klass.name ?: "MyServices"} { @Single fun provideRepo() = ... }
                         ✓ Good: @Module class ${klass.name ?: "MyServices"} { @Single fun provideRepo() = ... }
+                        """.trimIndent()
+                    )
+                )
+            }
+        }
+
+        if (hasModuleAnnotation) {
+            val hasComponentScan = classAnnotations.any { it == "ComponentScan" }
+            val hasIncludes = klass.annotationEntries.any { entry ->
+                entry.shortName?.asString() == "Module" &&
+                    entry.valueArgumentList?.arguments?.any { arg ->
+                        arg.getArgumentName()?.asName?.asString() == "includes"
+                    } == true
+            }
+            val hasKoinDefinitions = klass.declarations.any { declaration ->
+                val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
+                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
+            }
+
+            if (!hasComponentScan && !hasIncludes && !hasKoinDefinitions) {
+                report(
+                    CodeSmell(
+                        issue,
+                        Entity.from(klass),
+                        """
+                        @Module without @ComponentScan, includes, or definitions → Module will be empty
+                        → Add @ComponentScan or include other modules or add provider functions
+
+                        ✗ Bad:  @Module class ${klass.name ?: "EmptyModule"}
+                        ✓ Good: @Module @ComponentScan class ${klass.name ?: "EmptyModule"}
                         """.trimIndent()
                     )
                 )
