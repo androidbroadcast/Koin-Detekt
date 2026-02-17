@@ -72,6 +72,43 @@ class AnnotatedClassImplementsNestedInterfaceTest {
     }
 
     @Test
+    fun `reports class implementing multiple nested interfaces`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyImpl : ParentA.ChildA, ParentB.ChildB
+        """.trimIndent()
+
+        val findings = AnnotatedClassImplementsNestedInterface(Config.empty).lint(code)
+        assertThat(findings).hasSize(2)
+    }
+
+    @Test
+    fun `reports nested interface with generic type`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyImpl : Parent.ChildInterface<String>
+        """.trimIndent()
+
+        val findings = AnnotatedClassImplementsNestedInterface(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows class with non-Koin annotations implementing nested interface`() {
+        val code = """
+            @Deprecated("old")
+            class MyImpl : Parent.ChildInterface
+        """.trimIndent()
+
+        val findings = AnnotatedClassImplementsNestedInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows class without Koin annotations implementing nested interface`() {
         val code = """
             class Parent {

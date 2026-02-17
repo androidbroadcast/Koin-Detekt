@@ -80,6 +80,33 @@ class ViewModelAnnotatedAsSingleTest {
     }
 
     @Test
+    fun `reports ViewModel with multiple supertypes`() {
+        val code = """
+            import org.koin.core.annotation.Single
+            import androidx.lifecycle.ViewModel
+
+            @Single
+            class MyViewModel : SomeInterface, ViewModel()
+        """.trimIndent()
+
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows class with Single but no supertypes`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService
+        """.trimIndent()
+
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows regular class with Single annotation`() {
         val code = """
             import org.koin.core.annotation.Single

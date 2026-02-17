@@ -97,6 +97,19 @@ class TooManyInjectedParamsTest {
     }
 
     @Test
+    fun `allows class without primary constructor`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService
+        """.trimIndent()
+
+        val findings = TooManyInjectedParams(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows class without InjectedParam`() {
         val code = """
             import org.koin.core.annotation.Single

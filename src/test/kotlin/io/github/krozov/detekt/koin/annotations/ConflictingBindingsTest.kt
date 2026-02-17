@@ -87,6 +87,84 @@ class ConflictingBindingsTest {
     }
 
     @Test
+    fun `reports three definition annotations on same class`() {
+        val code = """
+            import org.koin.core.annotation.Single
+            import org.koin.core.annotation.Factory
+            import org.koin.core.annotation.Scoped
+
+            @Single
+            @Factory
+            @Scoped
+            class MyService
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("@Single")
+        assertThat(findings[0].message).contains("@Factory")
+        assertThat(findings[0].message).contains("@Scoped")
+    }
+
+    @Test
+    fun `reports conflict using scoped DSL`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Scoped
+            import org.koin.dsl.module
+
+            @Module
+            class AnnotatedModule {
+                @Scoped
+                fun provideService(): MyService = MyService()
+            }
+
+            val dslModule = module {
+                scoped<MyService> { MyService() }
+            }
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows DSL without type argument`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Single
+            import org.koin.dsl.module
+
+            @Module
+            class AnnotatedModule {
+                @Single
+                fun provideRepo(): Repository = RepositoryImpl()
+            }
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `ignores KoinViewModel in annotation conflict check`() {
+        val code = """
+            import org.koin.core.annotation.KoinViewModel
+
+            @KoinViewModel
+            class MyViewModel
+        """.trimIndent()
+
+        val findings = ConflictingBindings(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows same type with different qualifiers`() {
         val code = """
             import org.koin.core.annotation.Module

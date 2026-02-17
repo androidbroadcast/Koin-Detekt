@@ -114,6 +114,21 @@ class MissingModuleAnnotationTest {
     }
 
     @Test
+    fun `reports Scoped without Module annotation`() {
+        val code = """
+            import org.koin.core.annotation.Scoped
+
+            class MyServices {
+                @Scoped
+                fun provideService(): Service = ServiceImpl()
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
     fun `allows Module with internal definitions`() {
         val code = """
             import org.koin.core.annotation.Module

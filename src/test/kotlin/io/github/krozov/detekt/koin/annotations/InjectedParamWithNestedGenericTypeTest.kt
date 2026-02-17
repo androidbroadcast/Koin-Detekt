@@ -80,6 +80,48 @@ class InjectedParamWithNestedGenericTypeTest {
     }
 
     @Test
+    fun `reports InjectedParam with multiple star projections`() {
+        val code = """
+            import org.koin.core.annotation.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(@InjectedParam val map: Map<*, *>)
+        """.trimIndent()
+
+        val findings = InjectedParamWithNestedGenericType(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports InjectedParam with triple nested generics`() {
+        val code = """
+            import org.koin.core.annotation.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(@InjectedParam val items: List<List<List<String>>>)
+        """.trimIndent()
+
+        val findings = InjectedParamWithNestedGenericType(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `allows InjectedParam with simple Map type`() {
+        val code = """
+            import org.koin.core.annotation.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(@InjectedParam val map: Map<String, Int>)
+        """.trimIndent()
+
+        val findings = InjectedParamWithNestedGenericType(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `allows regular param with nested generic type`() {
         val code = """
             import org.koin.core.annotation.Single

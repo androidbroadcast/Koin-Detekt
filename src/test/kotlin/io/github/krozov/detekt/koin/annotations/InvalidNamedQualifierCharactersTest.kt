@@ -85,6 +85,65 @@ class InvalidNamedQualifierCharactersTest {
     }
 
     @Test
+    fun `reports Named starting with digit`() {
+        val code = """
+            import org.koin.core.annotation.Named
+            import org.koin.core.annotation.Single
+
+            @Single
+            @Named("123abc")
+            class MyService
+        """.trimIndent()
+
+        val findings = InvalidNamedQualifierCharacters(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `ignores non-Named annotations`() {
+        val code = """
+            import org.koin.core.annotation.Single
+
+            @Single
+            @Deprecated("use other")
+            class MyService
+        """.trimIndent()
+
+        val findings = InvalidNamedQualifierCharacters(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `ignores Named without arguments`() {
+        val code = """
+            import org.koin.core.annotation.Named
+            import org.koin.core.annotation.Single
+
+            @Single
+            @Named
+            class MyService
+        """.trimIndent()
+
+        val findings = InvalidNamedQualifierCharacters(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `ignores Named with constant reference`() {
+        val code = """
+            import org.koin.core.annotation.Named
+            import org.koin.core.annotation.Single
+
+            @Single
+            @Named(QUALIFIER_NAME)
+            class MyService
+        """.trimIndent()
+
+        val findings = InvalidNamedQualifierCharacters(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `reports Named on function parameter`() {
         val code = """
             import org.koin.core.annotation.Named
