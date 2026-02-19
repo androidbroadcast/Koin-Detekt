@@ -456,7 +456,8 @@ ExcessiveCreatedAtStart:
 ```
 
 **Edge Cases:**
-- ✅ Counts `createdAtStart = true` across `single`, `factory`, `scoped`
+- ✅ Counts `createdAtStart = true` on `single` definitions (the only type where it has meaningful effect)
+- ✅ Also detects misuse on `factory`/`scoped` where `createdAtStart` has no effect
 - ✅ Threshold is per-module (not per-file)
 - ✅ Default threshold is 10 (configurable)
 
@@ -527,7 +528,8 @@ val overrideModule = module {
 
 **Edge Cases:**
 - ✅ Only reports when `includes()` is present in the module
-- ✅ Detects both type-parameter registrations and `bind` syntax
+- ✅ Detects type-parameter registrations (`single<Interface> {}`) and `bind` syntax
+- ℹ️ Chained `bind` expressions (e.g., `single {} bind A::class bind B::class`) only detect the first bound type
 - ✅ Only flags definitions without `override = true`
 - ✅ Heuristic-based: analyzes within a single file
 
@@ -846,8 +848,13 @@ class MainActivity : AppCompatActivity() {
 ✅ **Good:**
 ```kotlin
 class MainActivity : AppCompatActivity() {
-    fun setupScope() {
-        val scope = androidScope()  // Handles lifecycle automatically
+    private val scope by lazy {
+        getKoin().getOrCreateScope<MainActivity>(getScopeId())
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.close()  // Explicit lifecycle management
     }
 }
 ```
@@ -1270,8 +1277,8 @@ val module = module {
 ```
 
 **Edge Cases:**
-- ✅ Uses heuristic detection: tracks `single<Interface> { ConcreteImpl() }` bindings
-- ✅ Detects `*Impl` / `*Implementation` naming patterns
+- ✅ Heuristic detection: only fires when the concrete class name ends in `Impl` or `Implementation`
+- ✅ Does not detect interface bindings for concretely-named types (e.g., `ConcreteService`)
 - ✅ Works within a single file (cross-module dependencies require semantic analysis)
 - ✅ Does not report when the concrete type is explicitly registered
 
