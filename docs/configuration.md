@@ -23,7 +23,7 @@ Add the plugin to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:0.3.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:1.0.0")
 }
 ```
 
@@ -186,6 +186,28 @@ koin-rules:
       - '.*Interactor'
       - '.*Worker'
       - '.*Job'
+```
+
+#### ExcessiveCreatedAtStart
+
+Warn when too many eager singletons risk ANR on startup.
+
+**Default:** Active
+
+```yaml
+koin-rules:
+  ExcessiveCreatedAtStart:
+    active: true
+    maxCreatedAtStart: 10
+```
+
+**Custom Example - Stricter threshold:**
+
+```yaml
+koin-rules:
+  ExcessiveCreatedAtStart:
+    active: true
+    maxCreatedAtStart: 5  # Only 5 eager inits per module allowed
 ```
 
 #### MissingScopedDependencyQualifier
