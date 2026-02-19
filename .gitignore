@@ -35,3 +35,7 @@ kover/
 
 # Git worktrees
 .worktrees/
+
+# Detekt source files accidentally dumped to project root
+META-INF/
+io/

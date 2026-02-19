@@ -1,7 +1,7 @@
 # detekt-rules-koin
 
 [![Latest Release](https://img.shields.io/github/v/release/androidbroadcast/Koin-Detekt)](https://github.com/androidbroadcast/Koin-Detekt/releases/latest)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.androidbroadcast.rules.koin/detekt-koin-rules)](https://central.sonatype.com/artifact/dev.androidbroadcast.rules.koin/detekt-koin-rules)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.androidbroadcast.rules.koin/detekt-koin4-rules)](https://central.sonatype.com/artifact/dev.androidbroadcast.rules.koin/detekt-koin4-rules)
 [![PR Validation](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/androidbroadcast/Koin-Detekt/actions/workflows/pr-validation.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -11,7 +11,7 @@ Detekt extension with 51 rules for Koin 4.x — enforces best practices and catc
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:0.4.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:0.4.0")
 }
 ```
 

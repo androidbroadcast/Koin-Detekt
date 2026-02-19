@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 detektPlugins("dev.androidbroadcast:detekt-rules-koin:0.4.1")
 
 // New (1.0.0+)
-detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin-rules:1.0.0")
+detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:1.0.0")
 ```
 
 This change affects all users upgrading from test releases (0.1.0 - 0.4.1). Update your dependency declarations to use the new coordinates.
@@ -45,7 +45,7 @@ This change affects all users upgrading from test releases (0.1.0 - 0.4.1). Upda
 - **Maven Central Publication**: Library is now published to Maven Central alongside GitHub Packages
   - Automatic publication via GitHub Actions on release tags
   - GPG-signed artifacts for security and authenticity
-  - Available at `dev.androidbroadcast.rules.koin:detekt-koin-rules` coordinates
+  - Available at `dev.androidbroadcast.rules.koin:detekt-koin4-rules` coordinates
   - Synchronization to Maven Central within 15-30 minutes of release
 
 ## v0.4.1 - 2026-02-16

@@ -1,4 +1,4 @@
-rootProject.name = "detekt-koin-rules"
+rootProject.name = "detekt-koin4-rules"
 
 pluginManagement {
     repositories {

@@ -31,7 +31,7 @@ publishing {
             version = project.version.toString()
 
             pom {
-                name.set("detekt-koin-rules")
+                name.set("detekt-koin4-rules")
                 description.set(
                     "Detekt extension library with 31 rules for Koin 4.x to enforce " +
                     "best practices and catch common anti-patterns via static analysis"

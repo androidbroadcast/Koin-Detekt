@@ -1,6 +1,6 @@
 # Integration Tests
 
-This directory contains comprehensive integration tests for detekt-koin-rules.
+This directory contains comprehensive integration tests for detekt-koin4-rules.
 
 ## Test Organization
 
