@@ -49,7 +49,7 @@ public class PlatformImportRestriction(config: Config = Config.empty) : Rule(con
     )
 
     private val restrictions: List<ImportRestriction> by lazy {
-        val rawValue = config.valueOrNull<Any>("restrictions")
+        val rawValue = valueOrNull<Any>("restrictions")
         val validation = ConfigValidator.validateList(
             configKey = "restrictions",
             value = rawValue,
