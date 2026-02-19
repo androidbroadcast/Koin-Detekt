@@ -51,7 +51,7 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
     )
 
     private val restrictedLayers: List<String> by lazy {
-        val rawValue = config.valueOrNull<Any>("restrictedLayers")
+        val rawValue = valueOrNull<Any>("restrictedLayers")
         val validation = ConfigValidator.validateList(
             configKey = "restrictedLayers",
             value = rawValue,
@@ -71,7 +71,7 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
     }
 
     private val allowedImports: List<String> by lazy {
-        val rawValue = config.valueOrNull<Any>("allowedImports")
+        val rawValue = valueOrNull<Any>("allowedImports")
         val validation = ConfigValidator.validateList(
             configKey = "allowedImports",
             value = rawValue,
