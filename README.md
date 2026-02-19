@@ -11,84 +11,22 @@ Detekt extension with 51 rules for Koin 4.x — enforces best practices and catc
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:0.4.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:1.0.0")
 }
 ```
 
 ## Rules
 
-### Service Locator (5)
+51 rules across 6 categories:
 
-| Rule | Default |
-|------|---------|
-| `NoGetOutsideModuleDefinition` | Active |
-| `NoInjectDelegate` | Active |
-| `NoKoinComponentInterface` | Active |
-| `NoGlobalContextAccess` | Active |
-| `NoKoinGetInApplication` | Active |
-
-### Module DSL (9)
-
-| Rule | Default |
-|------|---------|
-| `EmptyModule` | Active |
-| `SingleForNonSharedDependency` | Active |
-| `MissingScopedDependencyQualifier` | Active |
-| `DeprecatedKoinApi` | Active |
-| `ModuleIncludesOrganization` | Inactive |
-| `UnassignedQualifierInWithOptions` | Active |
-| `DuplicateBindingWithoutQualifier` | Active |
-| `GenericDefinitionWithoutQualifier` | Active |
-| `EnumQualifierCollision` | Active |
-
-### Scope Management (7)
-
-| Rule | Default |
-|------|---------|
-| `MissingScopeClose` | Active |
-| `ScopedDependencyOutsideScopeBlock` | Active |
-| `ViewModelAsSingleton` | Active |
-| `CloseableWithoutOnClose` | Active |
-| `ScopeAccessInOnDestroy` | Active |
-| `FactoryInScopeBlock` | Inactive |
-| `KtorRequestScopeMisuse` | Active |
-
-### Platform (7)
-
-| Rule | Default |
-|------|---------|
-| `KoinViewModelOutsideComposable` | Active |
-| `KoinInjectInPreview` | Active |
-| `RememberKoinModulesLeak` | Active |
-| `KtorApplicationKoinInit` | Active |
-| `KtorRouteScopeMisuse` | Active |
-| `AndroidContextNotFromKoin` | Active |
-| `ActivityFragmentKoinScope` | Active |
-
-### Architecture (3)
-
-| Rule | Default |
-|------|---------|
-| `LayerBoundaryViolation` | Inactive |
-| `PlatformImportRestriction` | Inactive |
-| `CircularModuleDependency` | Active |
-
-### Koin Annotations (12)
-
-| Rule | Default |
-|------|---------|
-| `MixingDslAndAnnotations` | Active |
-| `MissingModuleAnnotation` | Active |
-| `ConflictingBindings` | Active |
-| `ScopedWithoutQualifier` | Active |
-| `AnnotationProcessorNotConfigured` | Active |
-| `SingleAnnotationOnObject` | Active |
-| `TooManyInjectedParams` | Active |
-| `InvalidNamedQualifierCharacters` | Active |
-| `KoinAnnotationOnExtensionFunction` | Active |
-| `ViewModelAnnotatedAsSingle` | Active |
-| `AnnotatedClassImplementsNestedInterface` | Active |
-| `InjectedParamWithNestedGenericType` | Active |
+| Category | Rules |
+|----------|-------|
+| Service Locator | 5 |
+| Module DSL | 13 |
+| Scope Management | 8 |
+| Platform | 8 |
+| Architecture | 4 |
+| Koin Annotations | 12 |
 
 📖 [Complete Rule Documentation](docs/rules.md)
 
