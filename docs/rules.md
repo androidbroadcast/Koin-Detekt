@@ -420,6 +420,121 @@ module {
 
 ---
 
+### ExcessiveCreatedAtStart
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Detects modules with too many `createdAtStart = true` definitions. Eager initialization of many singletons at startup causes ANR (Application Not Responding) on Android, especially on lower-end devices.
+
+❌ **Bad:**
+```kotlin
+val appModule = module {
+    single(createdAtStart = true) { Service1() }
+    single(createdAtStart = true) { Service2() }
+    // ... 11+ eager definitions
+    single(createdAtStart = true) { Service11() }
+}
+```
+
+✅ **Good:**
+```kotlin
+val appModule = module {
+    single(createdAtStart = true) { LoggingService() }  // Critical
+    single(createdAtStart = true) { CrashReporter() }   // Critical
+    single { DatabaseService() }   // Lazy — OK
+    single { NetworkService() }    // Lazy — OK
+}
+```
+
+**Configuration:**
+```yaml
+ExcessiveCreatedAtStart:
+  active: true
+  maxCreatedAtStart: 10
+```
+
+**Edge Cases:**
+- ✅ Counts `createdAtStart = true` across `single`, `factory`, `scoped`
+- ✅ Threshold is per-module (not per-file)
+- ✅ Default threshold is 10 (configurable)
+
+**Related Issue:** [Koin#2266](https://github.com/InsertKoinIO/koin/issues/2266)
+
+---
+
+### ModuleAsTopLevelVal
+
+**Severity:** Code Smell
+**Active by default:** Yes
+
+Detects Koin modules defined as top-level `val` instead of functions. Val declarations preallocate all factory lambdas at initialization time, even if they're never used. Functions defer creation until needed.
+
+❌ **Bad:**
+```kotlin
+val appModule = module {
+    single { Service() }
+    factory { Repository() }
+}
+```
+
+✅ **Good:**
+```kotlin
+fun appModule() = module {
+    single { Service() }
+    factory { Repository() }
+}
+```
+
+**Edge Cases:**
+- ✅ Only detects top-level `val` (not inside class/object)
+- ✅ Only flags `val`, not `var`
+- ✅ Only triggers when the initializer is a `module {}` call
+
+---
+
+### OverrideInIncludedModule
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects duplicate type registrations in modules that use `includes()` without `override = true`. When a module includes another and redefines the same type, Koin raises `DefinitionOverrideException` at runtime unless the override is explicit.
+
+❌ **Bad:**
+```kotlin
+val baseModule = module {
+    single<Service> { ServiceA() }
+}
+
+val overrideModule = module {
+    includes(baseModule)
+    single<Service> { ServiceB() }  // DefinitionOverrideException at runtime!
+}
+```
+
+✅ **Good:**
+```kotlin
+val baseModule = module {
+    single<Service> { ServiceA() }
+}
+
+val overrideModule = module {
+    includes(baseModule)
+    single<Service>(override = true) { ServiceB() }  // Explicit override
+}
+```
+
+**Edge Cases:**
+- ✅ Only reports when `includes()` is present in the module
+- ✅ Detects both type-parameter registrations and `bind` syntax
+- ✅ Only flags definitions without `override = true`
+- ✅ Heuristic-based: analyzes within a single file
+
+**Related Issue:** [Koin#1919](https://github.com/InsertKoinIO/koin/issues/1919)
+
+---
+
 ### ConstructorDslAmbiguousParameters
 
 **Severity:** Warning
@@ -711,6 +826,41 @@ module {
 
 ---
 
+### ScopeDeclareWithActivityOrFragment
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `scope.declare()` called with Activity or Fragment instances. The declared instance is never automatically cleared when the scope closes, causing the Activity/Fragment to remain referenced in memory even after it should be garbage collected.
+
+❌ **Bad:**
+```kotlin
+class MainActivity : AppCompatActivity() {
+    fun setupScope() {
+        val scope = getKoin().createScope("my_scope", named("activity"))
+        scope.declare(this)  // Memory leak: Activity never released
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MainActivity : AppCompatActivity() {
+    fun setupScope() {
+        val scope = androidScope()  // Handles lifecycle automatically
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `scope.declare(activity)` and `scope.declare(fragment)` by argument name
+- ✅ Detects `scope.declare(this)` when called inside an Activity or Fragment class
+- ✅ Uses heuristic name matching ("activity", "fragment") and supertype checks
+
+**Related Issue:** [Koin#1122](https://github.com/InsertKoinIO/koin/issues/1122)
+
+---
+
 ## Platform Rules
 
 ### Compose Rules
@@ -905,6 +1055,41 @@ class MyApp : Application() {
 
 ---
 
+#### StartKoinInActivity
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `startKoin {}` called inside an Activity, Fragment, or `@Composable` function. Calling `startKoin` in these places causes `KoinAppAlreadyStartedException` on configuration changes (screen rotation, theme switch) because Koin cannot be started twice while already running.
+
+❌ **Bad:**
+```kotlin
+class MainActivity : Activity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        startKoin { modules(appModule) }  // Crashes on rotation!
+    }
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        startKoin { modules(appModule) }  // Survives config changes
+    }
+}
+```
+
+**Edge Cases:**
+- ✅ Detects `startKoin` in Activity and Fragment subclasses
+- ✅ Detects `startKoin` inside `@Composable` functions
+- ✅ Does not flag `startKoin` in Application subclasses
+
+**Related Issue:** [Koin#1840](https://github.com/InsertKoinIO/koin/issues/1840)
+
+---
+
 #### ActivityFragmentKoinScope
 
 **Severity:** Warning
@@ -1052,6 +1237,45 @@ val featureModule = module {
 - ✅ Detects direct circular dependencies (A -> B -> A)
 - ✅ Analyzes module dependencies within a single file
 - ✅ Ensures clean module hierarchy
+
+---
+
+### GetConcreteTypeInsteadOfInterface
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `get<ConcreteImpl>()` when only an interface is registered in the module. Koin's `verify()` passes because it considers secondary bound types, but runtime resolution fails with `NoBeanDefFoundException`. Always request the registered type (interface), not the concrete implementation.
+
+❌ **Bad:**
+```kotlin
+interface Service
+class ServiceImpl : Service
+
+val module = module {
+    single<Service> { ServiceImpl() }         // Only Service is registered
+    factory { Consumer(get<ServiceImpl>()) }  // Runtime: NoBeanDefFoundException!
+}
+```
+
+✅ **Good:**
+```kotlin
+interface Service
+class ServiceImpl : Service
+
+val module = module {
+    single<Service> { ServiceImpl() }
+    factory { Consumer(get<Service>()) }  // Request the registered type
+}
+```
+
+**Edge Cases:**
+- ✅ Uses heuristic detection: tracks `single<Interface> { ConcreteImpl() }` bindings
+- ✅ Detects `*Impl` / `*Implementation` naming patterns
+- ✅ Works within a single file (cross-module dependencies require semantic analysis)
+- ✅ Does not report when the concrete type is explicitly registered
+
+**Related Issue:** [Koin#2222](https://github.com/InsertKoinIO/koin/issues/2222)
 
 ---
 
