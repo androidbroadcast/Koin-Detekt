@@ -22,7 +22,7 @@ dependencies {
 | Category | Rules |
 |----------|-------|
 | Service Locator | 5 |
-| Module DSL | 13 |
+| Module DSL | 14 |
 | Scope Management | 8 |
 | Platform | 8 |
 | Architecture | 4 |
