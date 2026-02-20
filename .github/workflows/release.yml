@@ -161,11 +161,11 @@ jobs:
       - name: Publish to Maven Central
         run: |
           echo "Publishing version ${{ needs.build.outputs.version }} to Maven Central..."
+          export SIGNING_KEY=$(echo "${{ secrets.SIGNING_KEY }}" | base64 -d)
           ./gradlew publishAllPublicationsToCentralPortal \
             --no-daemon \
             -Pversion=${{ needs.build.outputs.version }}
         env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
