@@ -42,3 +42,8 @@ docs/plans/
 # Detekt source files accidentally dumped to project root
 META-INF/
 io/
+
+# Article drafts and cloned repos for PR work
+docs/article-draft.md
+docs/article-final.md
+detekt/
