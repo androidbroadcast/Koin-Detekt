@@ -1,0 +1,286 @@
+# detekt-rules-koin — Complete Configuration
+#
+# Copy this file into your project and adjust as needed.
+# All rules are listed with their default values.
+#
+# Usage: merge into your existing .detekt.yml under the koin-rules: key,
+# or use this file directly with --config detekt-koin-all-rules.yml
+#
+# Docs: https://github.com/androidbroadcast/Koin-Detekt/blob/main/docs/rules.md
+
+koin-rules:
+
+  # ---------------------------------------------------------------------------
+  # Service Locator Anti-patterns
+  # ---------------------------------------------------------------------------
+
+  # Detects get() / getOrNull() / getAll() calls outside module definition blocks.
+  NoGetOutsideModuleDefinition:
+    active: true
+
+  # Detects by inject() / by injectOrNull() property delegates outside framework classes.
+  NoInjectDelegate:
+    active: true
+    allowedSuperTypes:
+      - 'Application'
+      - 'Activity'
+      - 'ComponentActivity'
+      - 'Fragment'
+      - 'Service'
+      - 'BroadcastReceiver'
+
+  # Detects KoinComponent / KoinScopeComponent in non-framework classes.
+  NoKoinComponentInterface:
+    active: true
+    allowedSuperTypes:
+      - 'Application'
+      - 'Activity'
+      - 'ComponentActivity'
+      - 'Fragment'
+      - 'Service'
+      - 'BroadcastReceiver'
+
+  # Detects GlobalContext.get() / KoinPlatformTools direct access.
+  NoGlobalContextAccess:
+    active: true
+
+  # Detects get() / inject() calls inside startKoin {} blocks.
+  NoKoinGetInApplication:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Module DSL
+  # ---------------------------------------------------------------------------
+
+  # Detects modules with no definitions and no includes.
+  EmptyModule:
+    active: true
+
+  # Detects single {} / singleOf() for types that should not be singletons.
+  # Configure namePatterns to match your naming conventions.
+  SingleForNonSharedDependency:
+    active: true
+    namePatterns:
+      - '.*UseCase'
+      - '.*Interactor'
+      - '.*Mapper'
+
+  # Detects scoped definitions without a qualifier when multiple exist.
+  MissingScopedDependencyQualifier:
+    active: true
+    allowOneDefault: true  # Allow one unqualified definition per scope
+
+  # Detects deprecated Koin API usage.
+  DeprecatedKoinApi:
+    active: true
+
+  # Detects modules that mix includes() with definitions — prefer separation.
+  # Inactive by default (style rule).
+  ModuleIncludesOrganization:
+    active: false
+    maxIncludesWithDefinitions: 3
+
+  # Detects top-level val module declarations — prefer object or function.
+  ModuleAsTopLevelVal:
+    active: true
+
+  # Detects too many createdAtStart() calls per module (risk of startup ANR).
+  ExcessiveCreatedAtStart:
+    active: true
+    maxCreatedAtStart: 10
+
+  # Detects overrideDefinition() in included modules.
+  OverrideInIncludedModule:
+    active: true
+
+  # Detects constructor DSL calls with ambiguous parameter types.
+  ConstructorDslAmbiguousParameters:
+    active: true
+
+  # Detects get<T>() where the return type doesn't match the parameter type.
+  ParameterTypeMatchesReturnType:
+    active: true
+
+  # Detects generic type definitions without a qualifier.
+  GenericDefinitionWithoutQualifier:
+    active: true
+
+  # Detects duplicate bindings for the same type without a qualifier.
+  DuplicateBindingWithoutQualifier:
+    active: true
+
+  # Detects enum values used as qualifiers that may collide.
+  EnumQualifierCollision:
+    active: true
+
+  # Detects unassigned qualifier in withOptions {} blocks.
+  UnassignedQualifierInWithOptions:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Scope Management
+  # ---------------------------------------------------------------------------
+
+  # Detects Koin scopes that are opened but never closed.
+  MissingScopeClose:
+    active: true
+
+  # Detects scoped definitions declared outside scope {} blocks.
+  ScopedDependencyOutsideScopeBlock:
+    active: true
+
+  # Detects ViewModel registered with single {} — causes memory leak.
+  ViewModelAsSingleton:
+    active: true
+
+  # Detects Closeable beans without onClose {} cleanup.
+  CloseableWithoutOnClose:
+    active: true
+
+  # Detects scope access inside onDestroy() — scope may already be closed.
+  ScopeAccessInOnDestroy:
+    active: true
+
+  # Detects factory {} inside scope {} blocks (incorrect — use scoped {}).
+  # Inactive by default (style rule).
+  FactoryInScopeBlock:
+    active: false
+
+  # Detects incorrect Koin request scope usage in Ktor.
+  KtorRequestScopeMisuse:
+    active: true
+
+  # Detects scope {} declared with Activity or Fragment as scope qualifier.
+  ScopeDeclareWithActivityOrFragment:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Platform — Android
+  # ---------------------------------------------------------------------------
+
+  # Detects Android Context obtained outside of androidContext() / androidApplication().
+  AndroidContextNotFromKoin:
+    active: true
+
+  # Detects startKoin {} calls inside Activity / Fragment (should be in Application).
+  StartKoinInActivity:
+    active: true
+
+  # Detects incorrect Activity/Fragment Koin scope usage.
+  ActivityFragmentKoinScope:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Platform — Compose
+  # ---------------------------------------------------------------------------
+
+  # Detects koinViewModel() / koinInject() outside @Composable functions.
+  KoinViewModelOutsideComposable:
+    active: true
+
+  # Detects koinInject() / koinViewModel() inside @Preview composables.
+  KoinInjectInPreview:
+    active: true
+
+  # Detects rememberKoinModules() usage that may cause module leaks.
+  RememberKoinModulesLeak:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Platform — Ktor
+  # ---------------------------------------------------------------------------
+
+  # Detects missing Koin initialization in Ktor Application modules.
+  KtorApplicationKoinInit:
+    active: true
+
+  # Detects incorrect scope usage in Ktor route handlers.
+  KtorRouteScopeMisuse:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Architecture
+  # ---------------------------------------------------------------------------
+
+  # Detects Koin module definitions that cross architectural layer boundaries.
+  # Inactive by default — requires configuration.
+  LayerBoundaryViolation:
+    active: false
+    restrictedLayers: []
+    # Example:
+    # restrictedLayers:
+    #   - 'domain'
+    #   - 'core'
+
+  # Restricts platform-specific Koin imports to allowed packages.
+  # Inactive by default — requires configuration.
+  PlatformImportRestriction:
+    active: false
+    restrictions: []
+    # Example:
+    # restrictions:
+    #   - import: 'org.koin.android.*'
+    #     allowedPackages: ['com.example.app']
+    #   - import: 'org.koin.compose.*'
+    #     allowedPackages: ['com.example.ui']
+
+  # Detects circular dependencies between Koin modules.
+  CircularModuleDependency:
+    active: true
+
+  # Detects get<ConcreteType>() where an interface should be used instead.
+  GetConcreteTypeInsteadOfInterface:
+    active: true
+
+  # ---------------------------------------------------------------------------
+  # Koin Annotations
+  # ---------------------------------------------------------------------------
+
+  # Detects mixing of DSL module() {} and @Module annotation in the same project.
+  MixingDslAndAnnotations:
+    active: true
+
+  # Detects @Single/@Factory/@Scoped classes not included in any @Module.
+  MissingModuleAnnotation:
+    active: true
+
+  # Detects two or more bindings for the same type without a qualifier.
+  ConflictingBindings:
+    active: true
+
+  # Detects @Scoped definitions without a qualifier when multiple exist.
+  ScopedWithoutQualifier:
+    active: true
+
+  # Detects missing KSP / annotation processor configuration.
+  AnnotationProcessorNotConfigured:
+    active: true
+
+  # Detects @Single on a Kotlin object (objects are already singletons).
+  SingleAnnotationOnObject:
+    active: true
+
+  # Detects @ViewModel annotation used where @Single should not be applied.
+  ViewModelAnnotatedAsSingle:
+    active: true
+
+  # Detects too many @Inject parameters in a single constructor.
+  TooManyInjectedParams:
+    active: true
+    maxInjectedParams: 5
+
+  # Detects invalid characters in @Named qualifier strings.
+  InvalidNamedQualifierCharacters:
+    active: true
+
+  # Detects @KoinAnnotation on extension functions (not supported).
+  KoinAnnotationOnExtensionFunction:
+    active: true
+
+  # Detects @Single/@Factory on a class that implements a nested interface.
+  AnnotatedClassImplementsNestedInterface:
+    active: true
+
+  # Detects injected parameters with nested generic types (e.g. List<List<T>>).
+  InjectedParamWithNestedGenericType:
+    active: true
