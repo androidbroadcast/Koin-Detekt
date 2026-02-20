@@ -36,6 +36,9 @@ kover/
 # Git worktrees
 .worktrees/
 
+# AI agent development plans
+docs/plans/
+
 # Detekt source files accidentally dumped to project root
 META-INF/
 io/
