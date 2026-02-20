@@ -121,6 +121,7 @@ jobs:
           head -1 *.sha256
 
       - name: Publish to GitHub Packages
+        continue-on-error: true
         run: ./gradlew publish --no-daemon -Pversion=${{ needs.build.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
