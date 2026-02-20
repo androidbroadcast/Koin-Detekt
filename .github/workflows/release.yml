@@ -420,6 +420,35 @@ jobs:
             echo "changelog_updated=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Update README version on main
+        continue-on-error: true
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git checkout main
+
+          # Idempotency: skip if README already shows this version
+          if grep -q "detekt-koin4-rules:${VERSION}" README.md; then
+            echo "README already shows version ${VERSION}, skipping"
+            exit 0
+          fi
+
+          sed -i "s/detekt-koin4-rules:[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/detekt-koin4-rules:${VERSION}/g" README.md
+
+          git add README.md
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update README installation version to ${VERSION}"
+            git push origin main
+            echo "README updated to version ${VERSION}"
+          fi
+
       - name: Release summary
         run: |
           echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
