@@ -257,8 +257,10 @@ jobs:
 
           # Run detekt (exit code 2 = findings detected, not an error)
           set +e
+          set -o pipefail
           $DETEKT_CMD 2>&1 | tee reports/detekt-output.log
-          DETEKT_EXIT=$?
+          DETEKT_EXIT=${PIPESTATUS[0]}
+          set +o pipefail
           set -e
 
           if [ $DETEKT_EXIT -eq 0 ]; then
