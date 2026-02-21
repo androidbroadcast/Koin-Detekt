@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
@@ -37,6 +38,14 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
         // Check for get() calls
         if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock) {
+            // Skip qualified calls like alarmDao.getAll() -- those are method calls on arbitrary
+            // objects, not Koin service locator usage. Koin's get() is always unqualified.
+            if (expression.parent is KtDotQualifiedExpression &&
+                (expression.parent as KtDotQualifiedExpression).selectorExpression == expression) {
+                super.visitCallExpression(expression)
+                return
+            }
+
             report(
                 CodeSmell(
                     issue,

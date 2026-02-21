@@ -138,4 +138,28 @@ class NoGetOutsideModuleDefinitionTest {
         val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report qualified getAll call on non-Koin receiver`() {
+        val code = """
+            class AlarmRepositoryImpl(private val alarmDao: AlarmDao) {
+                suspend fun getAlarms() = alarmDao.getAll().map { it.toAlarm() }
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report qualified get call on non-Koin receiver`() {
+        val code = """
+            class MyRepository(private val cache: Cache) {
+                fun getUser(id: String) = cache.get(id)
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
