@@ -69,6 +69,8 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
 
         if (hasModuleAnnotation) {
             val hasComponentScan = classAnnotations.any { it == "ComponentScan" }
+            // @Configuration signals Koin Compiler Plugin auto-discovery; module is valid as-is
+            val hasConfiguration = classAnnotations.any { it == "Configuration" }
             val hasIncludes = klass.annotationEntries.any { entry ->
                 entry.shortName?.asString() == "Module" &&
                     entry.valueArgumentList?.arguments?.any { arg ->
@@ -80,7 +82,7 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
                 annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
             }
 
-            if (!hasComponentScan && !hasIncludes && !hasKoinDefinitions) {
+            if (!hasComponentScan && !hasConfiguration && !hasIncludes && !hasKoinDefinitions) {
                 report(
                     CodeSmell(
                         issue,
