@@ -40,7 +40,7 @@ bootstrap() {
   mkdir -p "$REPOS_DIR" "$REPORTS_DIR"
 
   # detekt CLI
-  if [[ ! -f "$DETEKT_JAR" ]]; then
+  if [[ \! -f "$DETEKT_JAR" ]]; then
     echo "→ Downloading detekt-cli ${DETEKT_VERSION}..."
     curl -sSL \
       "https://github.com/detekt/detekt/releases/download/v${DETEKT_VERSION}/detekt-cli-${DETEKT_VERSION}-all.jar" \
@@ -50,7 +50,7 @@ bootstrap() {
   fi
 
   # Plugin JAR — prefer local build, fall back to Maven Central
-  if [[ ! -f "$PLUGIN_JAR" ]]; then
+  if [[ \! -f "$PLUGIN_JAR" ]]; then
     LOCAL_JAR="$(find "$SCRIPT_DIR/../../build/libs" -name "detekt-koin4-rules-${PLUGIN_VERSION}.jar" 2>/dev/null | head -1)"
     if [[ -n "$LOCAL_JAR" ]]; then
       echo "→ Using local build: $LOCAL_JAR"
@@ -66,7 +66,7 @@ bootstrap() {
   fi
 
   # Config
-  if [[ ! -f "$CONFIG" ]]; then
+  if [[ \! -f "$CONFIG" ]]; then
     cp "$SCRIPT_DIR/../../config/detekt-koin-all-rules.yml" "$CONFIG"
     echo "✓ config copied"
   fi
@@ -141,9 +141,9 @@ analyze_projects() {
 
   while IFS=$'\t' read -r name _repo _branch src_dirs; do
     [[ "$name" =~ ^#.*$ || -z "$name" ]] && continue
-    [[ -n "$ONLY_PROJECT" && "$name" != "$ONLY_PROJECT" ]] && continue
+    [[ -n "$ONLY_PROJECT" && "$name" \!= "$ONLY_PROJECT" ]] && continue
     run_detekt "$name" "$src_dirs" &
-    pids+=($!)
+    pids+=($\!)
   done < <(grep -v '^#' "$CONF" | grep -v '^[[:space:]]*$')
 
   # Wait for all and collect exit codes
