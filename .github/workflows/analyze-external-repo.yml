@@ -1,0 +1,334 @@
+name: Analyze External Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository_url:
+        description: 'GitHub repository URL (e.g. https://github.com/user/repo)'
+        required: true
+        type: string
+      ref:
+        description: 'Branch, tag, or commit SHA (empty = default branch)'
+        required: false
+        default: ''
+        type: string
+      plugin_version:
+        description: 'Plugin version: "latest", specific (e.g. "1.0.0"), or "snapshot" (build from current branch)'
+        required: false
+        default: 'latest'
+        type: string
+      source_dirs:
+        description: 'Source directories (comma-separated, relative to repo root; empty = auto-detect)'
+        required: false
+        default: ''
+        type: string
+      exclude_patterns:
+        description: 'Glob patterns to exclude (comma-separated)'
+        required: false
+        default: '**/test/**,**/androidTest/**,**/testFixtures/**,**/build/**,**/generated/**'
+        type: string
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze with detekt-koin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate inputs
+        run: |
+          URL="${{ inputs.repository_url }}"
+          if [[ ! "$URL" =~ ^https://github\.com/[^/]+/[^/]+ ]]; then
+            echo "::error::Invalid repository URL: $URL"
+            echo "Expected format: https://github.com/owner/repo"
+            exit 1
+          fi
+
+      - name: Checkout detekt-koin
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            config
+          sparse-checkout-cone-mode: true
+        if: inputs.plugin_version != 'snapshot'
+
+      - name: Checkout detekt-koin (full, for snapshot build)
+        uses: actions/checkout@v4
+        if: inputs.plugin_version == 'snapshot'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Parse inputs
+        id: parse
+        env:
+          REPO_URL: ${{ inputs.repository_url }}
+          INPUT_REF: ${{ inputs.ref }}
+          PLUGIN_VERSION: ${{ inputs.plugin_version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Extract owner/repo from URL
+          OWNER_REPO=$(echo "$REPO_URL" | sed -E 's|https://github\.com/([^/]+/[^/]+).*|\1|' | sed 's/\.git$//')
+          echo "owner_repo=$OWNER_REPO" >> $GITHUB_OUTPUT
+          echo "Parsed owner/repo: $OWNER_REPO"
+
+          # Resolve plugin version
+          DETEKT_VERSION="1.23.8"
+          echo "detekt_version=$DETEKT_VERSION" >> $GITHUB_OUTPUT
+
+          if [ "$PLUGIN_VERSION" = "latest" ]; then
+            echo "Resolving latest release version..."
+            LATEST=$(gh release view --repo androidbroadcast/Koin-Detekt --json tagName -q '.tagName' | sed 's/^v//')
+            if [ -z "$LATEST" ]; then
+              echo "::error::Failed to resolve latest release version"
+              exit 1
+            fi
+            echo "resolved_version=$LATEST" >> $GITHUB_OUTPUT
+            echo "version_mode=release" >> $GITHUB_OUTPUT
+            echo "Resolved latest version: $LATEST"
+          elif [ "$PLUGIN_VERSION" = "snapshot" ]; then
+            echo "resolved_version=snapshot" >> $GITHUB_OUTPUT
+            echo "version_mode=snapshot" >> $GITHUB_OUTPUT
+            echo "Will build plugin from current branch"
+          else
+            echo "resolved_version=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
+            echo "version_mode=release" >> $GITHUB_OUTPUT
+            echo "Using specified version: $PLUGIN_VERSION"
+          fi
+
+      - name: Setup Gradle
+        if: steps.parse.outputs.version_mode == 'snapshot'
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+
+      - name: Build plugin (snapshot)
+        if: steps.parse.outputs.version_mode == 'snapshot'
+        run: |
+          echo "Building plugin from current branch..."
+          ./gradlew jar --no-daemon
+          JAR_PATH=$(find build/libs -name "detekt-koin4-rules-*.jar" ! -name "*-sources*" ! -name "*-javadoc*" | head -1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "::error::Plugin JAR not found after build"
+            exit 1
+          fi
+          echo "Built plugin JAR: $JAR_PATH"
+          mkdir -p /tmp/detekt-jars
+          cp "$JAR_PATH" /tmp/detekt-jars/detekt-koin-plugin.jar
+          echo "plugin_jar=/tmp/detekt-jars/detekt-koin-plugin.jar" >> $GITHUB_ENV
+
+      - name: Cache JARs
+        if: steps.parse.outputs.version_mode == 'release'
+        id: cache-jars
+        uses: actions/cache@v4
+        with:
+          path: /tmp/detekt-jars
+          key: detekt-${{ steps.parse.outputs.detekt_version }}-plugin-${{ steps.parse.outputs.resolved_version }}
+
+      - name: Download JARs
+        if: steps.parse.outputs.version_mode == 'release' && steps.cache-jars.outputs.cache-hit != 'true'
+        env:
+          DETEKT_VERSION: ${{ steps.parse.outputs.detekt_version }}
+          PLUGIN_VERSION: ${{ steps.parse.outputs.resolved_version }}
+        run: |
+          mkdir -p /tmp/detekt-jars
+
+          echo "Downloading detekt-cli $DETEKT_VERSION..."
+          curl -sL -f -o /tmp/detekt-jars/detekt-cli.jar \
+            "https://repo1.maven.org/maven2/io/gitlab/arturbosch/detekt/detekt-cli/$DETEKT_VERSION/detekt-cli-$DETEKT_VERSION-all.jar"
+
+          echo "Downloading detekt-koin4-rules $PLUGIN_VERSION..."
+          curl -sL -f -o /tmp/detekt-jars/detekt-koin-plugin.jar \
+            "https://repo1.maven.org/maven2/dev/androidbroadcast/rules/koin/detekt-koin4-rules/$PLUGIN_VERSION/detekt-koin4-rules-$PLUGIN_VERSION.jar"
+
+          echo "Downloaded JARs:"
+          ls -lh /tmp/detekt-jars/
+
+      - name: Set JAR paths (release)
+        if: steps.parse.outputs.version_mode == 'release'
+        run: |
+          echo "plugin_jar=/tmp/detekt-jars/detekt-koin-plugin.jar" >> $GITHUB_ENV
+
+      - name: Download detekt-cli (snapshot)
+        if: steps.parse.outputs.version_mode == 'snapshot'
+        env:
+          DETEKT_VERSION: ${{ steps.parse.outputs.detekt_version }}
+        run: |
+          if [ ! -f /tmp/detekt-jars/detekt-cli.jar ]; then
+            curl -sL -f -o /tmp/detekt-jars/detekt-cli.jar \
+              "https://repo1.maven.org/maven2/io/gitlab/arturbosch/detekt/detekt-cli/$DETEKT_VERSION/detekt-cli-$DETEKT_VERSION-all.jar"
+          fi
+
+      - name: Clone target repository
+        env:
+          TARGET_REF: ${{ inputs.ref }}
+          OWNER_REPO: ${{ steps.parse.outputs.owner_repo }}
+        run: |
+          echo "Cloning $OWNER_REPO..."
+          CLONE_ARGS="--depth 1"
+          if [ -n "$TARGET_REF" ]; then
+            CLONE_ARGS="$CLONE_ARGS --branch $TARGET_REF"
+          fi
+          git clone $CLONE_ARGS "https://github.com/$OWNER_REPO.git" target-repo
+          echo "Cloned successfully"
+          echo "target_dir=$PWD/target-repo" >> $GITHUB_ENV
+
+      - name: Auto-detect source directories
+        id: sources
+        env:
+          SOURCE_DIRS: ${{ inputs.source_dirs }}
+        run: |
+          if [ -n "$SOURCE_DIRS" ]; then
+            # Convert comma-separated to comma-separated absolute paths
+            INPUT_DIRS=""
+            IFS=',' read -ra DIRS <<< "$SOURCE_DIRS"
+            for dir in "${DIRS[@]}"; do
+              dir=$(echo "$dir" | xargs)  # trim whitespace
+              if [ -d "$target_dir/$dir" ]; then
+                if [ -n "$INPUT_DIRS" ]; then
+                  INPUT_DIRS="$INPUT_DIRS,$target_dir/$dir"
+                else
+                  INPUT_DIRS="$target_dir/$dir"
+                fi
+              else
+                echo "::warning::Source directory not found: $dir"
+              fi
+            done
+            echo "source_paths=$INPUT_DIRS" >> $GITHUB_OUTPUT
+            echo "Using specified source dirs: $INPUT_DIRS"
+          else
+            echo "Auto-detecting Kotlin source directories..."
+            DETECTED=$(find "$target_dir" -type f -name "*.kt" -not -path "*/build/*" -not -path "*/generated/*" \
+              | sed 's|/[^/]*\.kt$||' | sort -u \
+              | while read -r dir; do
+                  # Walk up to find the conventional source root
+                  current="$dir"
+                  while [ "$current" != "$target_dir" ] && [ "$current" != "/" ]; do
+                    basename=$(basename "$current")
+                    if [[ "$basename" == "kotlin" || "$basename" == "java" ]]; then
+                      echo "$current"
+                      break
+                    fi
+                    current=$(dirname "$current")
+                  done
+                done | sort -u | tr '\n' ',' | sed 's/,$//')
+
+            if [ -z "$DETECTED" ]; then
+              # Fallback: just use the repo root
+              DETECTED="$target_dir"
+              echo "::warning::No conventional source directories found, using repo root"
+            fi
+            echo "source_paths=$DETECTED" >> $GITHUB_OUTPUT
+            echo "Auto-detected source dirs: $DETECTED"
+          fi
+
+      - name: Run detekt analysis
+        id: detekt
+        env:
+          EXCLUDE_PATTERNS: ${{ inputs.exclude_patterns }}
+        run: |
+          mkdir -p reports
+
+          echo "Running detekt with koin rules..."
+          echo "Plugin JAR: $plugin_jar"
+          echo "Source paths: ${{ steps.sources.outputs.source_paths }}"
+          echo "Exclude patterns: $EXCLUDE_PATTERNS"
+
+          # Build detekt command
+          DETEKT_CMD="java -jar /tmp/detekt-jars/detekt-cli.jar"
+          DETEKT_CMD="$DETEKT_CMD --plugins $plugin_jar"
+          DETEKT_CMD="$DETEKT_CMD --config config/detekt-koin-all-rules.yml"
+          DETEKT_CMD="$DETEKT_CMD --input ${{ steps.sources.outputs.source_paths }}"
+          DETEKT_CMD="$DETEKT_CMD --excludes $EXCLUDE_PATTERNS"
+          DETEKT_CMD="$DETEKT_CMD --report xml:reports/detekt.xml"
+          DETEKT_CMD="$DETEKT_CMD --report sarif:reports/detekt.sarif"
+          DETEKT_CMD="$DETEKT_CMD --report txt:reports/detekt.txt"
+          DETEKT_CMD="$DETEKT_CMD --disable-default-rulesets"
+
+          echo "Command: $DETEKT_CMD"
+          echo ""
+
+          # Run detekt (exit code 2 = findings detected, not an error)
+          set +e
+          $DETEKT_CMD 2>&1 | tee reports/detekt-output.log
+          DETEKT_EXIT=$?
+          set -e
+
+          if [ $DETEKT_EXIT -eq 0 ]; then
+            echo "detekt_status=clean" >> $GITHUB_OUTPUT
+            echo "No findings detected"
+          elif [ $DETEKT_EXIT -eq 2 ]; then
+            echo "detekt_status=findings" >> $GITHUB_OUTPUT
+            echo "Findings detected (this is expected)"
+          else
+            echo "detekt_status=error" >> $GITHUB_OUTPUT
+            echo "::error::detekt exited with unexpected code: $DETEKT_EXIT"
+            exit $DETEKT_EXIT
+          fi
+
+      - name: Generate Job Summary
+        if: always() && steps.detekt.outcome != 'skipped'
+        env:
+          OWNER_REPO: ${{ steps.parse.outputs.owner_repo }}
+          REPO_URL: ${{ inputs.repository_url }}
+          TARGET_REF: ${{ inputs.ref }}
+          RESOLVED_VERSION: ${{ steps.parse.outputs.resolved_version }}
+          DETEKT_VERSION: ${{ steps.parse.outputs.detekt_version }}
+          DETEKT_STATUS: ${{ steps.detekt.outputs.detekt_status }}
+        run: |
+          {
+            echo "## 🔍 Koin Analysis: $OWNER_REPO"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| Repository | [$OWNER_REPO]($REPO_URL) |"
+            if [ -n "$TARGET_REF" ]; then
+              echo "| Ref | \`$TARGET_REF\` |"
+            else
+              echo "| Ref | _(default branch)_ |"
+            fi
+            echo "| Plugin | detekt-koin4-rules:$RESOLVED_VERSION |"
+            echo "| Detekt | $DETEKT_VERSION |"
+            echo "| Status | $DETEKT_STATUS |"
+            echo ""
+
+            if [ -f reports/detekt.txt ]; then
+              echo "### Findings"
+              echo ""
+              echo '```'
+              cat reports/detekt.txt
+              echo '```'
+            elif [ "$DETEKT_STATUS" = "clean" ]; then
+              echo "### ✅ No findings"
+              echo ""
+              echo "No Koin issues detected in the analyzed code."
+            fi
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload SARIF
+        if: always() && (steps.detekt.outcome == 'success' || steps.detekt.outputs.detekt_status == 'findings')
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/detekt.sarif
+          category: detekt-koin
+        continue-on-error: true
+
+      - name: Upload analysis reports
+        if: always() && steps.detekt.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-koin-analysis
+          path: |
+            reports/detekt.xml
+            reports/detekt.sarif
+            reports/detekt.txt
+            reports/detekt-output.log
+          retention-days: 30
+          if-no-files-found: warn
