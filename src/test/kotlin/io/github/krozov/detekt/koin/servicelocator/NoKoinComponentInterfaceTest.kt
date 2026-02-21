@@ -178,4 +178,30 @@ class NoKoinComponentInterfaceTest {
         val findings = NoKoinComponentInterface(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report KoinComponent in GlanceAppWidget subclass`() {
+        val code = """
+            import androidx.glance.appwidget.GlanceAppWidget
+            import org.koin.core.component.KoinComponent
+
+            class MyWidget : GlanceAppWidget(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report KoinComponent in GlanceAppWidgetReceiver subclass`() {
+        val code = """
+            import androidx.glance.appwidget.GlanceAppWidgetReceiver
+            import org.koin.core.component.KoinComponent
+
+            class MyWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent
+        """.trimIndent()
+
+        val findings = NoKoinComponentInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
