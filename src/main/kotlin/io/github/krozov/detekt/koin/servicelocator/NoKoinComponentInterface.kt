@@ -29,7 +29,9 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
             "Fragment",
             "Service",
             "BroadcastReceiver",
-            "ViewModel"
+            "ViewModel",
+            "GlanceAppWidget",
+            "GlanceAppWidgetReceiver"
         )
     )
 

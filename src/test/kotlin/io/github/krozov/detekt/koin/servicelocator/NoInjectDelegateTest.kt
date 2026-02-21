@@ -253,4 +253,36 @@ class NoInjectDelegateTest {
         val findings = NoInjectDelegate(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report inject delegate in GlanceAppWidget`() {
+        val code = """
+            import androidx.glance.appwidget.GlanceAppWidget
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.inject
+
+            class MyWidget : GlanceAppWidget(), KoinComponent {
+                private val repo: MyRepo by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report inject delegate in GlanceAppWidgetReceiver`() {
+        val code = """
+            import androidx.glance.appwidget.GlanceAppWidgetReceiver
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.inject
+
+            class MyWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
+                private val repo: MyRepo by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
