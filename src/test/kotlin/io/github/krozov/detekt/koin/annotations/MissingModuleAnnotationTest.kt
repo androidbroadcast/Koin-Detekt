@@ -179,4 +179,78 @@ class MissingModuleAnnotationTest {
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("empty")
     }
+
+    @Test
+    fun `allows Module with ActivityScope provider function`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.android.annotation.ActivityScope
+            import androidx.activity.ComponentActivity
+            import androidx.metrics.performance.JankStats
+
+            @Module
+            class JankStatsKoinModule {
+                @ActivityScope
+                fun jankStats(activity: ComponentActivity): JankStats =
+                    JankStats.createAndTrack(activity.window) {}
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows Module with FragmentScope provider function`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.android.annotation.FragmentScope
+
+            @Module
+            class FragmentModule {
+                @FragmentScope
+                fun provideFragmentHelper(): Helper = HelperImpl()
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows Module with Configuration annotation`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Configuration
+
+            @Module
+            @Configuration
+            class JankStatsKoinModule
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows Module with Configuration and ActivityScope provider function`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.Configuration
+            import org.koin.android.annotation.ActivityScope
+            import androidx.activity.ComponentActivity
+            import androidx.metrics.performance.JankStats
+
+            @Module
+            @Configuration
+            class JankStatsKoinModule {
+                @ActivityScope
+                fun jankStats(activity: ComponentActivity): JankStats =
+                    JankStats.createAndTrack(activity.window) {}
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
