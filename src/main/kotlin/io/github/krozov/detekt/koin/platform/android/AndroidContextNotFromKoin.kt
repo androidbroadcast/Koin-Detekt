@@ -47,7 +47,7 @@ public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(con
     )
 
     private val validParentCalls: Set<String> = setOf(
-        "startKoin", "module", "single", "factory", "scoped", "viewModel", "worker"
+        "startKoin", "initKoin", "module", "single", "factory", "scoped", "viewModel", "worker"
     )
 
     override fun visitCallExpression(expression: KtCallExpression) {
