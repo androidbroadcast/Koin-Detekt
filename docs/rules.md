@@ -1468,36 +1468,49 @@ class MyService
 
 ### AnnotationProcessorNotConfigured
 
-**Severity:** Warning
+**Severity:** Minor
 **Active by default:** Yes
 **Configurable:** Yes
 
-Warns when Koin annotations are used but the annotation processor (KSP/KAPT) may not be configured.
+Informational rule that flags Koin annotation usage as a reminder to verify annotation processor configuration in your build.
 
-This rule provides informational warnings since Detekt cannot reliably detect if the annotation processor is configured in your build system. If you've already configured KSP/KAPT, you can disable this rule via configuration.
+**Important:** This rule is informational only. Detekt operates on Kotlin source code and cannot read Gradle build files, so it **cannot verify** whether an annotation processor is actually configured. Findings from this rule do not necessarily indicate a real problem.
 
-❌ **Bad:**
+Two valid setup methods exist:
+
+❌ **Noncompliant (no processor configured at all):**
 ```kotlin
-// build.gradle.kts missing KSP setup
+// build.gradle.kts has no KSP plugin and no Koin Compiler Plugin
 
 import org.koin.core.annotation.Single
 
 @Single
-class MyService // Won't work without processor!
+class MyService // annotations will be ignored at runtime\!
 ```
 
-✅ **Good:**
+✅ **Compliant — option A (KSP):**
 ```kotlin
 // build.gradle.kts:
 plugins {
-    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+    id("com.google.devtools.ksp") version "..."
 }
-
 dependencies {
-    ksp("io.insert-koin:koin-ksp-compiler:2.0.0")
+    ksp("io.insert-koin:koin-ksp-compiler:...")
 }
 
-// MyService.kt:
+import org.koin.core.annotation.Single
+
+@Single
+class MyService
+```
+
+✅ **Compliant — option B (Koin Compiler Plugin, modern/recommended):**
+```kotlin
+// build.gradle.kts:
+plugins {
+    id("io.insert-koin.compiler.plugin") version "..."
+}
+
 import org.koin.core.annotation.Single
 
 @Single
@@ -1508,15 +1521,15 @@ class MyService
 ```yaml
 AnnotationProcessorNotConfigured:
   active: true
-  skipCheck: false  # Set to true to disable if processor is configured
+  skipCheck: false  # Set to true to suppress if processor is already configured
 ```
 
 **Edge Cases:**
 - ✅ Detects `@Single`, `@Factory`, `@Scoped`, `@Module`, `@KoinViewModel`, `@KoinWorker`, `@ComponentScan`, `@Configuration`, `@KoinApplication` annotations
-- ✅ Reports on every class with Koin annotations (informational)
-- ✅ Can be disabled globally via `skipCheck: true` configuration
-- ✅ Useful for projects adopting Koin Annotations to ensure proper setup
-- ✅ Does not check actual build configuration (limitation of static analysis)
+- ✅ Reports on every class with Koin annotations (informational only)
+- ✅ Can be suppressed globally via `skipCheck: true` configuration
+- ✅ Recognises both KSP and Koin Compiler Plugin as valid setups
+- ⚠️ Cannot actually verify build configuration — all findings may be false positives if processor is set up
 
 ---
 

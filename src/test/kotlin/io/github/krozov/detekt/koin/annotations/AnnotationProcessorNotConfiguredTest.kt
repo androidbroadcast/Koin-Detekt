@@ -19,12 +19,13 @@ class AnnotationProcessorNotConfiguredTest {
 
         val findings = AnnotationProcessorNotConfigured(Config.empty).lint(code)
 
-        // This rule provides info-level message since we can't reliably detect
-        // if annotation processor is configured in Detekt context
+        // This rule is informational only — it cannot verify build configuration.
+        // Message should mention both KSP and Koin Compiler Plugin setup methods.
         assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("→")
-        assertThat(findings[0].message).contains("✗ Bad")
-        assertThat(findings[0].message).contains("✓ Good")
+        assertThat(findings[0].message).contains("annotation processor configuration cannot be verified")
+        assertThat(findings[0].message).contains("com.google.devtools.ksp")
+        assertThat(findings[0].message).contains("io.insert-koin.compiler.plugin")
+        assertThat(findings[0].message).contains("skipCheck=true")
     }
 
     @Test
