@@ -17,6 +17,7 @@ local.properties
 # These are one-time task artifacts that shouldn't be committed
 .temp_tests/
 .temp_test/
+.tmp_tests/
 .claude/
 .claude.json
 .claude.json.backup.*
