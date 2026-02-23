@@ -144,4 +144,19 @@ class AndroidContextNotFromKoinTest {
         val findings = AndroidContextNotFromKoin(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+    @Test
+    fun `does not report androidContext inside initKoin`() {
+        val code = """
+            import org.koin.android.ext.koin.androidContext
+            fun setup(app: Application) {
+                initKoin {
+                    androidContext(app)
+                }
+            }
+        """.trimIndent()
+
+        val findings = AndroidContextNotFromKoin(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
 }
