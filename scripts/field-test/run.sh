@@ -1,4 +1,4 @@
-#\!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 usage() {
@@ -29,7 +29,7 @@ REPORTS_DIR="$SCRIPT_DIR/reports"
 CONF="$SCRIPT_DIR/projects.conf"
 
 DETEKT_VERSION="1.23.8"
-PLUGIN_VERSION="1.0.0"
+: "${PLUGIN_VERSION:=1.0.0}"
 DETEKT_JAR="$SCRIPT_DIR/detekt-cli-${DETEKT_VERSION}.jar"
 PLUGIN_JAR="$SCRIPT_DIR/detekt-koin4-rules-${PLUGIN_VERSION}.jar"
 CONFIG="$SCRIPT_DIR/detekt-koin-all-rules.yml"

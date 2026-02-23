@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 /**
  * Detects `androidContext()` / `androidApplication()` called outside Koin context.
  *
- * These functions should only be called inside `startKoin {}` or Koin module definition blocks
+ * These functions should only be called inside `startKoin {}`, `initKoin {}` or Koin module definition blocks
  * (`module {}`, `single {}`, `factory {}`, `scoped {}`, `viewModel {}`, `worker {}`).
  *
  * <noncompliant>
@@ -42,7 +42,7 @@ public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(con
     override val issue: Issue = Issue(
         id = "AndroidContextNotFromKoin",
         severity = Severity.Warning,
-        description = "androidContext/androidApplication should only be called in startKoin or module definitions",
+        description = "androidContext/androidApplication should only be called in startKoin, initKoin or module definitions",
         debt = Debt.FIVE_MINS
     )
 
