@@ -516,14 +516,15 @@ koin-rules:
 
 #### AnnotationProcessorNotConfigured
 
-Detect missing Koin annotation processor configuration.
+Informational rule that flags Koin annotation usage as a reminder to verify annotation processor configuration in your build. This rule cannot read Gradle build files, so it reports every Koin-annotated class regardless of actual processor setup.
 
-**Default:** Active, no configuration options.
+**Default:** Active. Use `skipCheck: true` to suppress once your processor is confirmed configured.
 
 ```yaml
 koin-rules:
   AnnotationProcessorNotConfigured:
     active: true
+    skipCheck: false  # Set to true if using KSP or Koin Compiler Plugin
 ```
 
 ---
