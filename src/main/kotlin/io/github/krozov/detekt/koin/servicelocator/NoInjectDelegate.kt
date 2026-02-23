@@ -33,7 +33,9 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
             "Fragment",
             "Service",
             "BroadcastReceiver",
-            "ViewModel"
+            "ViewModel",
+            "GlanceAppWidget",
+            "GlanceAppWidgetReceiver"
         )
     )
 
