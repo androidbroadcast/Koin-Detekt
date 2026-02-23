@@ -1,4 +1,4 @@
-#\!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Parse detekt XML reports and produce a Markdown field-test summary.
 
