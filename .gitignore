@@ -15,6 +15,8 @@ local.properties
 # Claude Code / Agent artifacts
 # Plans, research, tasks, and temporary files created by AI agents
 # These are one-time task artifacts that shouldn't be committed
+.temp_tests/
+.temp_test/
 .claude/
 .claude.json
 .claude.json.backup.*
