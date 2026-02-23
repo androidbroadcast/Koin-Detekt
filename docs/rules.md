@@ -1485,7 +1485,7 @@ Two valid setup methods exist:
 import org.koin.core.annotation.Single
 
 @Single
-class MyService // annotations will be ignored at runtime\!
+class MyService // annotations will be ignored at runtime!
 ```
 
 ✅ **Compliant — option A (KSP):**
