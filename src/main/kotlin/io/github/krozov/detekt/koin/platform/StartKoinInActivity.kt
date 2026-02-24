@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
  * <noncompliant>
  * class MainActivity : Activity() {
  *     override fun onCreate() {
- *         startKoin { modules(appModule) } // ❌ Will crash on rotation
+ *         startKoin { modules(appModule) } // Will crash on rotation
  *     }
  * }
  * </noncompliant>
@@ -31,12 +31,22 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
  * class MyApp : Application() {
  *     override fun onCreate() {
  *         super.onCreate()
- *         startKoin { modules(appModule) } // ✓ Survives config changes
+ *         startKoin { modules(appModule) } // Survives config changes
  *     }
  * }
  * </compliant>
  */
 public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
+    private val activityTypes = setOf(
+        "Activity", "AppCompatActivity", "FragmentActivity", "ComponentActivity"
+    )
+    private val fragmentTypes = setOf(
+        "Fragment", "DialogFragment", "BottomSheetDialogFragment"
+    )
+    private val applicationTypes = setOf(
+        "Application", "MultiDexApplication"
+    )
+
     override val issue: Issue = Issue(
         id = "StartKoinInActivity",
         severity = Severity.Warning,
@@ -48,37 +58,39 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
-        if (callName != "startKoin") return
+        if (callName \!= "startKoin") return
 
-        // Find containing class or function
         val containingClass = expression.parents.filterIsInstance<KtClass>().firstOrNull()
 
         var isFrameworkEntry = false
         var isApplication = false
 
-        if (containingClass != null) {
-            val superTypes = containingClass.superTypeListEntries.map { it.text }
+        if (containingClass \!= null) {
+            // Extract simple supertype names: strip package prefix and generic args
+            val superTypeNames = containingClass.superTypeListEntries
+                .mapNotNull { it.typeReference?.text }
+                .map { it.substringBefore('<').substringAfterLast('.') }
 
-            // Check if it's an Activity, Fragment
-            val isActivity = superTypes.any { it.contains("Activity") }
-            val isFragment = superTypes.any { it.contains("Fragment") }
-
-            // Check if it's an Application
-            isApplication = superTypes.any { it.contains("Application") }
+            val isActivity = superTypeNames.any { it in activityTypes }
+            val isFragment = superTypeNames.any { it in fragmentTypes }
+            isApplication = superTypeNames.any { it in applicationTypes }
 
             isFrameworkEntry = isActivity || isFragment
         }
 
         // Also check if inside a @Composable function
-        val containingFunction = expression.parents.filterIsInstance<org.jetbrains.kotlin.psi.KtNamedFunction>().firstOrNull()
-        if (containingFunction != null) {
-            val isComposable = containingFunction.annotationEntries.any { it.shortName?.asString() == "Composable" }
+        val containingFunction = expression.parents
+            .filterIsInstance<org.jetbrains.kotlin.psi.KtNamedFunction>()
+            .firstOrNull()
+        if (containingFunction \!= null) {
+            val isComposable = containingFunction.annotationEntries
+                .any { it.shortName?.asString() == "Composable" }
             if (isComposable) {
                 isFrameworkEntry = true
             }
         }
 
-        if (isFrameworkEntry && !isApplication) {
+        if (isFrameworkEntry && \!isApplication) {
             report(
                 CodeSmell(
                     issue,
