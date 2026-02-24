@@ -102,7 +102,11 @@ public class OverrideInIncludedModule(config: Config = Config.empty) : Rule(conf
                 val typeArgs = call.typeArgumentList?.arguments
                 val registeredType = typeArgs?.firstOrNull()?.text
 
-                if (registeredType != null && !hasOverride) {
+                val hasQualifier = call.valueArguments.any { arg ->
+                    val argText = arg.getArgumentExpression()?.text ?: ""
+                    argText.contains("named(") || argText.contains("qualifier(")
+                }
+                if (registeredType != null && !hasOverride && !hasQualifier) {
                     typesInThisModule.add(TypeRegistration(registeredType, call, hasOverride))
                 }
 
@@ -110,7 +114,11 @@ public class OverrideInIncludedModule(config: Config = Config.empty) : Rule(conf
                 val parent = call.parent
                 if (parent is KtBinaryExpression && parent.operationReference.text == "bind") {
                     val boundType = parent.right?.text?.replace("::class", "")?.trim()
-                    if (boundType != null && !hasOverride) {
+                    val bindHasQualifier = call.valueArguments.any { arg ->
+                        val argText = arg.getArgumentExpression()?.text ?: ""
+                        argText.contains("named(") || argText.contains("qualifier(")
+                    }
+                    if (boundType != null && !hasOverride && !bindHasQualifier) {
                         typesInThisModule.add(TypeRegistration(boundType, call, hasOverride))
                     }
                 }
