@@ -284,3 +284,7 @@ koin-rules:
   # Detects injected parameters with nested generic types (e.g. List<List<T>>).
   InjectedParamWithNestedGenericType:
     active: true
+
+  # Detects @KoinViewModel on a class not extending ViewModel or AndroidViewModel.
+  KoinViewModelOnNonViewModel:
+    active: true
