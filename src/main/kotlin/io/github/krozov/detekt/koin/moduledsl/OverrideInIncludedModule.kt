@@ -114,11 +114,7 @@ public class OverrideInIncludedModule(config: Config = Config.empty) : Rule(conf
                 val parent = call.parent
                 if (parent is KtBinaryExpression && parent.operationReference.text == "bind") {
                     val boundType = parent.right?.text?.replace("::class", "")?.trim()
-                    val bindHasQualifier = call.valueArguments.any { arg ->
-                        val argText = arg.getArgumentExpression()?.text ?: ""
-                        argText.contains("named(") || argText.contains("qualifier(")
-                    }
-                    if (boundType != null && !hasOverride && !bindHasQualifier) {
+                    if (boundType != null && !hasOverride && !hasQualifier) {
                         typesInThisModule.add(TypeRegistration(boundType, call, hasOverride))
                     }
                 }
