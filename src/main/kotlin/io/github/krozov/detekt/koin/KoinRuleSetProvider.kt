@@ -54,6 +54,7 @@ import io.github.krozov.detekt.koin.annotations.ConflictingBindings
 import io.github.krozov.detekt.koin.annotations.ScopedWithoutQualifier
 import io.github.krozov.detekt.koin.annotations.AnnotationProcessorNotConfigured
 import io.github.krozov.detekt.koin.annotations.SingleAnnotationOnObject
+import io.github.krozov.detekt.koin.annotations.SingleOnAbstractClass
 import io.github.krozov.detekt.koin.annotations.TooManyInjectedParams
 import io.github.krozov.detekt.koin.annotations.InvalidNamedQualifierCharacters
 import io.github.krozov.detekt.koin.annotations.KoinAnnotationOnExtensionFunction
@@ -124,6 +125,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 AnnotationProcessorNotConfigured(config),
                 // New annotation rules
                 SingleAnnotationOnObject(config),
+                SingleOnAbstractClass(config),
                 TooManyInjectedParams(config),
                 InvalidNamedQualifierCharacters(config),
                 KoinAnnotationOnExtensionFunction(config),
