@@ -260,6 +260,10 @@ koin-rules:
   SingleAnnotationOnObject:
     active: true
 
+  # Detects @Single/@Factory/@Scoped on abstract classes or interfaces.
+  SingleOnAbstractClass:
+    active: true
+
   # Detects @ViewModel annotation used where @Single should not be applied.
   ViewModelAnnotatedAsSingle:
     active: true
@@ -283,4 +287,9 @@ koin-rules:
 
   # Detects injected parameters with nested generic types (e.g. List<List<T>>).
   InjectedParamWithNestedGenericType:
+    active: true
+
+
+  # Detects @KoinWorker on a class not extending ListenableWorker or Worker.
+  KoinWorkerOnNonWorker:
     active: true
