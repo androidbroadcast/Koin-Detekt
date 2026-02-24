@@ -94,17 +94,30 @@ class GenericDefinitionWithoutQualifierTest {
     }
 
     @Test
-    fun `does not report generic with qualifier in withOptions block`() {
+    fun `does not report generic with qualifier() in withOptions block`() {
         val code = """
             import org.koin.dsl.module
-            import org.koin.core.qualifier.named
 
             val m = module {
-                single { listOf<String>() } withOptions { qualifier = named("strings") }
+                single { listOf<String>() } withOptions { qualifier = qualifier("myKey") }
             }
         """.trimIndent()
 
         val findings = GenericDefinitionWithoutQualifier(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `still reports generic when withOptions block has no qualifier`() {
+        val code = """
+            import org.koin.dsl.module
+
+            val m = module {
+                single { listOf<String>() } withOptions { createdAtStart = true }
+            }
+        """.trimIndent()
+
+        val findings = GenericDefinitionWithoutQualifier(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 }

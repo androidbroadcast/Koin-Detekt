@@ -29,7 +29,7 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
 
         // Check if this is a Koin definition call
         val calleeName = expression.calleeExpression?.text ?: return
-        if (calleeName !in setOf("single", "factory", "scoped")) return
+        if (calleeName \!in setOf("single", "factory", "scoped")) return
 
         // Get lambda body to check for generic types
         val lambda = expression.lambdaArguments.firstOrNull()?.getLambdaExpression()
@@ -42,7 +42,7 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
             pattern.containsMatchIn(lambdaBodyText)
         }
 
-        if (!hasGeneric) return
+        if (\!hasGeneric) return
 
         // Check if this definition has a qualifier argument
         val hasQualifier = expression.valueArguments.any { arg ->
@@ -54,15 +54,15 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
         // Pattern: the single call is the receiver of a dot expression, and the selector is withOptions
         val hasQualifierInOptions = run {
             val dotExpr = expression.parent as? KtDotQualifiedExpression ?: return@run false
-            if (dotExpr.receiverExpression != expression) return@run false
+            if (dotExpr.receiverExpression \!= expression) return@run false
             val withOptionsCall = dotExpr.selectorExpression as? KtCallExpression ?: return@run false
-            if (withOptionsCall.calleeExpression?.text != "withOptions") return@run false
+            if (withOptionsCall.calleeExpression?.text \!= "withOptions") return@run false
             val body = withOptionsCall.lambdaArguments.firstOrNull()
                 ?.getLambdaExpression()?.bodyExpression?.text ?: return@run false
-            body.contains("qualifier") && (body.contains("named(") || body.contains("qualifier("))
+            body.contains("named(") || body.contains("qualifier(")
         }
 
-        if (!hasQualifier && !hasQualifierInOptions) {
+        if (\!hasQualifier && \!hasQualifierInOptions) {
             report(
                 CodeSmell(
                     issue,
