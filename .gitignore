@@ -49,4 +49,4 @@ docs/plans/
 # Article drafts and cloned repos for PR work
 docs/article-draft.md
 docs/article-final.md
-detekt/
+/detekt/
