@@ -288,3 +288,8 @@ koin-rules:
   # Detects injected parameters with nested generic types (e.g. List<List<T>>).
   InjectedParamWithNestedGenericType:
     active: true
+
+
+  # Detects @KoinWorker on a class not extending ListenableWorker or Worker.
+  KoinWorkerOnNonWorker:
+    active: true

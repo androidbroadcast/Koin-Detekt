@@ -50,7 +50,19 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
             argText.contains("named(") || argText.contains("qualifier(")
         }
 
-        if (!hasQualifier) {
+        // Check for qualifier in chained: single { ... } withOptions { qualifier = named(...) }
+        // Pattern: the single call is the receiver of a dot expression, and the selector is withOptions
+        val hasQualifierInOptions = run {
+            val dotExpr = expression.parent as? KtDotQualifiedExpression ?: return@run false
+            if (dotExpr.receiverExpression != expression) return@run false
+            val withOptionsCall = dotExpr.selectorExpression as? KtCallExpression ?: return@run false
+            if (withOptionsCall.calleeExpression?.text != "withOptions") return@run false
+            val body = withOptionsCall.lambdaArguments.firstOrNull()
+                ?.getLambdaExpression()?.bodyExpression?.text ?: return@run false
+            body.contains("named(") || body.contains("qualifier(")
+        }
+
+        if (!hasQualifier && !hasQualifierInOptions) {
             report(
                 CodeSmell(
                     issue,

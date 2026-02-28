@@ -102,7 +102,10 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in init block`() {
         val code = """
-            class MyRepo {
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.get
+
+            class MyRepo : KoinComponent {
                 init {
                     val service = get<ApiService>()
                 }
@@ -116,7 +119,10 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in property initializer`() {
         val code = """
-            class MyRepo {
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.get
+
+            class MyRepo : KoinComponent {
                 val service = get<ApiService>()
             }
         """.trimIndent()
@@ -128,7 +134,10 @@ class NoGetOutsideModuleDefinitionTest {
     @Test
     fun `reports get in companion object`() {
         val code = """
-            class MyRepo {
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.get
+
+            class MyRepo : KoinComponent {
                 companion object {
                     val service = get<ApiService>()
                 }
@@ -161,5 +170,84 @@ class NoGetOutsideModuleDefinitionTest {
 
         val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report get() in file without Koin imports`() {
+        val code = """
+            import java.util.concurrent.atomic.AtomicReference
+
+            class MyClass {
+                private val ref = AtomicReference<String>("value")
+                fun getValue() = ref.get()
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report getOrNull() on Result in non-Koin file`() {
+        val code = """
+            fun process(result: Result<String>) = result.getOrNull()
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report getOrNull() on List in non-Koin file`() {
+        val code = """
+            fun first(list: List<String>) = list.getOrNull(0)
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report safe-qualified get call`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyRepository(private val cache: Cache?) : KoinComponent {
+                fun getValue() = cache?.get("key")
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report safe-qualified getOrNull call`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+
+            class MyRepository(private val result: Result<String>?) : KoinComponent {
+                fun getValue() = result?.getOrNull()
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports unqualified get() in file with Koin imports despite non-Koin qualified calls`() {
+        val code = """
+            import org.koin.core.component.KoinComponent
+            import org.koin.core.component.get
+
+            class MyRepository(private val cache: Cache) : KoinComponent {
+                val cachedValue = cache.get("key")  // qualified — safe
+                val service = get<ApiService>()      // unqualified — Koin service locator
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 }
