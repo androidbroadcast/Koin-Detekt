@@ -95,7 +95,7 @@ class KoinRulesIntegrationTest {
             "AnnotatedClassImplementsNestedInterface",
             "InjectedParamWithNestedGenericType",
             "KoinWorkerOnNonWorker",
-            ""
+            "KoinViewModelOnNonViewModel"
         )
     }
 

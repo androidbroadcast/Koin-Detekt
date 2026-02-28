@@ -11,10 +11,16 @@ koin-rules:
       - 'Application'
       - 'Activity'
       - 'ComponentActivity'
+      - 'AppCompatActivity'
+      - 'FragmentActivity'
       - 'Fragment'
+      - 'DialogFragment'
+      - 'BottomSheetDialogFragment'
       - 'Service'
       - 'BroadcastReceiver'
       - 'ViewModel'
+      - 'GlanceAppWidget'
+      - 'GlanceAppWidgetReceiver'
 
   NoKoinComponentInterface:
     active: true

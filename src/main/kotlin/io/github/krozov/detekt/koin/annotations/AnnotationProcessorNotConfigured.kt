@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * // (no KSP plugin and no Koin Compiler Plugin)
  *
  * @Single
- * class MyService // annotations will be ignored at runtime\!
+ * class MyService // annotations will be ignored at runtime!
  * </noncompliant>
  *
  * <compliant>
