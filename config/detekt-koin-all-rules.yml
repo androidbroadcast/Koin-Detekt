@@ -294,6 +294,10 @@ koin-rules:
   KoinWorkerOnNonWorker:
     active: true
 
+  # Detects test classes that call startKoin() without stopKoin() in @After/@AfterEach.
+  MissingKoinStopInTest:
+    active: true
+
   # Detects constructor parameters where @InjectedParam is not the first annotation.
   InjectedParamAnnotationOrder:
     active: true

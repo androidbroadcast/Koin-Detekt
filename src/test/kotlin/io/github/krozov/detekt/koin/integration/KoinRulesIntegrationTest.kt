@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(54)
+        assertThat(ruleSet.rules).hasSize(55)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -95,6 +95,7 @@ class KoinRulesIntegrationTest {
             "AnnotatedClassImplementsNestedInterface",
             "InjectedParamWithNestedGenericType",
             "KoinWorkerOnNonWorker",
+            "MissingKoinStopInTest",
             "InjectedParamAnnotationOrder",
             "SingleOnAbstractClass"
         )
