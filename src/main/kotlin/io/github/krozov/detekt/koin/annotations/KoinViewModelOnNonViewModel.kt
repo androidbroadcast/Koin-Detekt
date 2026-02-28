@@ -42,14 +42,14 @@ public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(c
 
         val hasKoinViewModelAnnotation = klass.annotationEntries
             .any { it.shortName?.asString() == "KoinViewModel" }
-        if (\!hasKoinViewModelAnnotation) return
+        if (!hasKoinViewModelAnnotation) return
 
         val superTypeNames = klass.superTypeListEntries
             .mapNotNull { it.typeReference?.text }
             .map { it.substringBefore('<').substringAfterLast('.') }
 
         val extendsViewModel = superTypeNames.any { it.endsWith("ViewModel") }
-        if (\!extendsViewModel) {
+        if (!extendsViewModel) {
             report(
                 CodeSmell(
                     issue,
