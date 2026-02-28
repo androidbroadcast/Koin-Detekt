@@ -285,4 +285,60 @@ class NoInjectDelegateTest {
         val findings = NoInjectDelegate(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report inject() in class extending AppCompatActivity`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyActivity : AppCompatActivity() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report inject() in class extending FragmentActivity`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyActivity : FragmentActivity() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report inject() in class extending DialogFragment`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyDialog : DialogFragment() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report inject() in class extending BottomSheetDialogFragment`() {
+        val code = """
+            import org.koin.core.component.inject
+
+            class MyBottomSheet : BottomSheetDialogFragment() {
+                val repo: Repository by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
