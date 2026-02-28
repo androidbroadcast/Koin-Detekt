@@ -2,7 +2,6 @@ package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.*
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) {
 
