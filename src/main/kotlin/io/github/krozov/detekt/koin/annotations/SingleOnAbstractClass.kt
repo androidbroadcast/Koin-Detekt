@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 
 /**
@@ -59,7 +60,7 @@ public class SingleOnAbstractClass(config: Config = Config.empty) : Rule(config)
                     """.trimIndent()
                 )
             )
-            klass.isAbstract() -> report(
+            klass.hasModifier(KtTokens.ABSTRACT_KEYWORD) -> report(
                 CodeSmell(
                     issue,
                     Entity.from(klass),

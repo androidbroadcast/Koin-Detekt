@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtClass
 
 /**
@@ -37,6 +38,9 @@ public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(c
         debt = Debt.FIVE_MINS
     )
 
+    private val additionalViewModelSuperTypes: List<String> =
+        config.value(key = "additionalViewModelSuperTypes", default = emptyList())
+
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
@@ -48,7 +52,7 @@ public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(c
             .mapNotNull { it.typeReference?.text }
             .map { it.substringBefore('(').substringBefore('<').substringAfterLast('.') }
 
-        val extendsViewModel = superTypeNames.any { it.endsWith("ViewModel") }
+        val extendsViewModel = superTypeNames.any { it.endsWith("ViewModel") || it in additionalViewModelSuperTypes }
         if (!extendsViewModel) {
             report(
                 CodeSmell(

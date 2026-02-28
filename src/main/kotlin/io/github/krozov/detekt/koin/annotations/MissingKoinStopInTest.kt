@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
@@ -39,7 +40,8 @@ public class MissingKoinStopInTest(config: Config = Config.empty) : Rule(config)
         debt = Debt.FIVE_MINS
     )
 
-    private val teardownAnnotations = setOf("After", "AfterEach", "AfterAll")
+    private val teardownAnnotations: List<String> =
+        config.value(key = "teardownAnnotations", default = listOf("After", "AfterEach", "AfterAll"))
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)

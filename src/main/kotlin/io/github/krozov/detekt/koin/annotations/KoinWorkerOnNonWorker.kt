@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtClass
 
 /**
@@ -35,6 +36,9 @@ public class KoinWorkerOnNonWorker(config: Config = Config.empty) : Rule(config)
         debt = Debt.FIVE_MINS
     )
 
+    private val additionalWorkerSuperTypes: List<String> =
+        config.value(key = "additionalWorkerSuperTypes", default = emptyList())
+
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
@@ -46,7 +50,7 @@ public class KoinWorkerOnNonWorker(config: Config = Config.empty) : Rule(config)
             .mapNotNull { it.typeReference?.text }
             .map { it.substringBefore('<').substringAfterLast('.') }
 
-        val extendsWorker = superTypeNames.any { it.endsWith("Worker") }
+        val extendsWorker = superTypeNames.any { it.endsWith("Worker") || it in additionalWorkerSuperTypes }
         if (!extendsWorker) {
             report(
                 CodeSmell(

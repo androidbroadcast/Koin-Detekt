@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.annotations
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -58,6 +59,33 @@ class KoinWorkerOnNonWorkerTest {
 
         val findings = KoinWorkerOnNonWorker(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report KoinWorker when base class is in additionalWorkerSuperTypes`() {
+        val code = """
+            import org.koin.android.annotation.KoinWorker
+
+            @KoinWorker
+            class MyTask : BackgroundTask()
+        """.trimIndent()
+
+        val config = TestConfig("additionalWorkerSuperTypes" to listOf("BackgroundTask"))
+        val findings = KoinWorkerOnNonWorker(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports KoinWorker when base class is not in additionalWorkerSuperTypes`() {
+        val code = """
+            import org.koin.android.annotation.KoinWorker
+
+            @KoinWorker
+            class MyTask : BackgroundTask()
+        """.trimIndent()
+
+        val findings = KoinWorkerOnNonWorker(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 
     @Test

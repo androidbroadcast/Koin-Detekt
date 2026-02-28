@@ -107,6 +107,21 @@ koin-rules:
   CircularModuleDependency:
     active: true
 
+  MissingKoinStopInTest:
+    active: true
+    teardownAnnotations:
+      - 'After'
+      - 'AfterEach'
+      - 'AfterAll'
+
+  KoinViewModelOnNonViewModel:
+    active: true
+    additionalViewModelSuperTypes: []
+
+  KoinWorkerOnNonWorker:
+    active: true
+    additionalWorkerSuperTypes: []
+
   # Koin Annotations Rules
   MixingDslAndAnnotations:
     active: true

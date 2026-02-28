@@ -94,6 +94,46 @@ The project runs its own Koin rules on itself. Config: `detekt-config.yml`.
 
 Commit style: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.)
 
+## Config Parameter Backward Compatibility
+
+Config parameter names are **public API** — users embed them in their `detekt.yml` and upgrades must not silently break their configuration.
+
+### Rules
+
+- Config parameter names must not be renamed or removed in a minor/patch release
+- Deprecation requires a two-phase cycle: warn in one minor version, remove in the next major
+
+### Reading Config in Rules
+
+Use `Config.value()` from `util/ConfigExtensions.kt` for all configurable parameters:
+
+```kotlin
+import io.github.krozov.detekt.koin.util.value
+
+// New parameter (no prior key):
+private val myParam: List<String> =
+    config.value(key = "myParam", default = emptyList())
+
+// Phase 1 — rename "oldParam" to "newParam" (minor release):
+private val newParam: List<String> = config.value(
+    key = "newParam",
+    default = emptyList(),
+    deprecatedKey = "oldParam"   // reads old key with a stderr warning
+)
+
+// Phase 2 — next major release: drop deprecatedKey, use plain value()
+```
+
+Update `config.yml` in Phase 1 to document the migration:
+```yaml
+MyRule:
+  active: true
+  newParam: []          # replaces deprecated 'oldParam' (removed in X.0.0)
+  # oldParam: []        # DEPRECATED — rename to newParam
+```
+
+Do **not** use `by config()` delegate for new parameters — it bypasses the deprecation mechanism.
+
 ## Gotchas
 
 - `detekt/` directory is a copy of upstream detekt — don't modify it for this project
