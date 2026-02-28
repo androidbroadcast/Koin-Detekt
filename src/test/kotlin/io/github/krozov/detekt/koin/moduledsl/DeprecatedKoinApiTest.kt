@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -360,6 +361,33 @@ class DeprecatedKoinApiTest {
                     val repo = get<Repository>(named("remote"))
                     MyViewModel(repo)
                 }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports project-specific deprecated API via additionalDeprecations config`() {
+        val code = """
+            fun test() {
+                legacyGet()
+            }
+        """.trimIndent()
+
+        val config = TestConfig("additionalDeprecations" to listOf("legacyGet:get()"))
+        val findings = DeprecatedKoinApi(config).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("legacyGet")
+        assertThat(findings[0].message).contains("get()")
+    }
+
+    @Test
+    fun `does not report project-specific deprecated API without additionalDeprecations config`() {
+        val code = """
+            fun test() {
+                legacyGet()
             }
         """.trimIndent()
 

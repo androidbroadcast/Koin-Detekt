@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.scope
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -140,5 +141,34 @@ class ScopeDeclareWithActivityOrFragmentTest {
 
         val findings = ScopeDeclareWithActivityOrFragment(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports scope declare with additional leak-prone type via config`() {
+        val code = """
+            import org.koin.core.scope.Scope
+
+            fun setupScope(scope: Scope, presenter: Any) {
+                scope.declare(presenter)
+            }
+        """.trimIndent()
+
+        val config = TestConfig("additionalLeakProneTypes" to listOf("Presenter"))
+        val findings = ScopeDeclareWithActivityOrFragment(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `does not report scope declare with unrecognized type when no additional config`() {
+        val code = """
+            import org.koin.core.scope.Scope
+
+            fun setupScope(scope: Scope, presenter: Any) {
+                scope.declare(presenter)
+            }
+        """.trimIndent()
+
+        val findings = ScopeDeclareWithActivityOrFragment(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
     }
 }

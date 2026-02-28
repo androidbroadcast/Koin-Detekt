@@ -1,5 +1,6 @@
 package io.github.krozov.detekt.koin.scope
 
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -46,6 +47,9 @@ public class ScopeDeclareWithActivityOrFragment(config: Config = Config.empty) :
         debt = Debt.FIVE_MINS
     )
 
+    private val additionalLeakProneTypes: List<String> =
+        config.value(key = "additionalLeakProneTypes", default = emptyList())
+
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
 
@@ -55,16 +59,18 @@ public class ScopeDeclareWithActivityOrFragment(config: Config = Config.empty) :
         // Check the argument passed to declare()
         val argument = expression.valueArguments.firstOrNull()?.getArgumentExpression()?.text ?: return
 
-        // Check if argument contains "activity" or "fragment" (case-insensitive)
-        val suspiciousArgument = argument.contains("activity", ignoreCase = true) ||
-                argument.contains("fragment", ignoreCase = true) ||
-                argument == "this"
+        // Check if argument contains "activity", "fragment", or any additional leak-prone type (case-insensitive)
+        val isBuiltInLeakProne = argument.contains("activity", ignoreCase = true) ||
+                argument.contains("fragment", ignoreCase = true)
+        val isAdditionalLeakProne = additionalLeakProneTypes.any { argument.contains(it, ignoreCase = true) }
+        val suspiciousArgument = isBuiltInLeakProne || isAdditionalLeakProne || argument == "this"
 
-        // If argument is "this", check if we're inside Activity/Fragment class
+        // If argument is "this", check if we're inside Activity/Fragment class (or additional leak-prone types)
         val isThisInActivityOrFragment = if (argument == "this") {
             val containingClass = expression.parents.filterIsInstance<org.jetbrains.kotlin.psi.KtClass>().firstOrNull()
             containingClass?.superTypeListEntries?.any {
-                it.text.contains("Activity") || it.text.contains("Fragment")
+                it.text.contains("Activity") || it.text.contains("Fragment") ||
+                        additionalLeakProneTypes.any { type -> it.text.contains(type, ignoreCase = true) }
             } ?: false
         } else {
             false

@@ -55,6 +55,7 @@ koin-rules:
 
   DeprecatedKoinApi:
     active: true
+    additionalDeprecations: []
 
   ModuleIncludesOrganization:
     active: false
@@ -72,6 +73,10 @@ koin-rules:
 
   KtorRequestScopeMisuse:
     active: true
+
+  ScopeDeclareWithActivityOrFragment:
+    active: true
+    additionalLeakProneTypes: []
 
   # Platform Rules - Compose
   KoinViewModelOutsideComposable:
