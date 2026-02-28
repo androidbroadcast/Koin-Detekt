@@ -58,14 +58,14 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
-        if (callName \!= "startKoin") return
+        if (callName != "startKoin") return
 
         val containingClass = expression.parents.filterIsInstance<KtClass>().firstOrNull()
 
         var isFrameworkEntry = false
         var isApplication = false
 
-        if (containingClass \!= null) {
+        if (containingClass != null) {
             // Extract simple supertype names: strip package prefix and generic args
             val superTypeNames = containingClass.superTypeListEntries
                 .mapNotNull { it.typeReference?.text }
@@ -82,7 +82,7 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
         val containingFunction = expression.parents
             .filterIsInstance<org.jetbrains.kotlin.psi.KtNamedFunction>()
             .firstOrNull()
-        if (containingFunction \!= null) {
+        if (containingFunction != null) {
             val isComposable = containingFunction.annotationEntries
                 .any { it.shortName?.asString() == "Composable" }
             if (isComposable) {
@@ -90,7 +90,7 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
             }
         }
 
-        if (isFrameworkEntry && \!isApplication) {
+        if (isFrameworkEntry && !isApplication) {
             report(
                 CodeSmell(
                     issue,
