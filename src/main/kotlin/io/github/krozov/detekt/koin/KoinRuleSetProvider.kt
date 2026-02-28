@@ -60,8 +60,8 @@ import io.github.krozov.detekt.koin.annotations.KoinAnnotationOnExtensionFunctio
 import io.github.krozov.detekt.koin.annotations.ViewModelAnnotatedAsSingle
 import io.github.krozov.detekt.koin.annotations.AnnotatedClassImplementsNestedInterface
 import io.github.krozov.detekt.koin.annotations.InjectedParamWithNestedGenericType
-import io.github.krozov.detekt.koin.annotations.KoinViewModelOnNonViewModel
 import io.github.krozov.detekt.koin.annotations.MissingKoinStopInTest
+import io.github.krozov.detekt.koin.annotations.KoinWorkerOnNonWorker
 
 public class KoinRuleSetProvider : RuleSetProvider {
 
@@ -132,7 +132,8 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 ViewModelAnnotatedAsSingle(config),
                 AnnotatedClassImplementsNestedInterface(config),
                 InjectedParamWithNestedGenericType(config),
-                MissingKoinStopInTest(config)
+                MissingKoinStopInTest(config),
+                KoinWorkerOnNonWorker(config)
             )
         )
     }

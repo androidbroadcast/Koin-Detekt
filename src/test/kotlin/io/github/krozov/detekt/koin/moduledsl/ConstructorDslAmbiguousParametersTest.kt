@@ -109,4 +109,24 @@ class ConstructorDslAmbiguousParametersTest {
         val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports scopedOf with duplicate parameter types`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.module.dsl.scopedOf
+
+            class MyScoped(val host: String, val path: String)
+
+            val m = module {
+                scope<MyScope> {
+                    scopedOf(::MyScoped)
+                }
+            }
+        """.trimIndent()
+
+        val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("ambiguous")
+    }
 }
