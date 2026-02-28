@@ -44,7 +44,7 @@ public class InjectedParamAnnotationOrder(config: Config = Config.empty) : Rule(
 
         val hasKoinAnnotation = klass.annotationEntries
             .any { it.shortName?.asString() in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
-        if (\!hasKoinAnnotation) return
+        if (!hasKoinAnnotation) return
 
         klass.primaryConstructor?.valueParameters?.forEach { param ->
             checkParameter(param)
