@@ -40,14 +40,14 @@ public class KoinWorkerOnNonWorker(config: Config = Config.empty) : Rule(config)
 
         val hasKoinWorkerAnnotation = klass.annotationEntries
             .any { it.shortName?.asString() == "KoinWorker" }
-        if (\!hasKoinWorkerAnnotation) return
+        if (!hasKoinWorkerAnnotation) return
 
         val superTypeNames = klass.superTypeListEntries
             .mapNotNull { it.typeReference?.text }
             .map { it.substringBefore('<').substringAfterLast('.') }
 
         val extendsWorker = superTypeNames.any { it.endsWith("Worker") }
-        if (\!extendsWorker) {
+        if (!extendsWorker) {
             report(
                 CodeSmell(
                     issue,
