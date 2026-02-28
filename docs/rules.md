@@ -239,6 +239,7 @@ module {
 
 **Severity:** Warning
 **Active by default:** Yes
+**Configurable:** Yes
 
 Detects deprecated Koin 4.x APIs.
 
@@ -247,6 +248,19 @@ Detects deprecated Koin 4.x APIs.
 | `checkModules()` | `verify()` |
 | `koinNavViewModel()` | `koinViewModel()` |
 | `stateViewModel()` | `viewModel()` |
+
+**Configuration:**
+```yaml
+DeprecatedKoinApi:
+  active: true
+  additionalDeprecations: []
+  # Add project-specific deprecated Koin wrappers:
+  # additionalDeprecations:
+  #   - 'legacyGet:get()'
+  #   - 'oldStartKoin:startKoin()'
+```
+
+`additionalDeprecations` entries use the format `"oldName:replacement"`. Built-in entries always take precedence — you cannot override them via this parameter. Malformed entries (no colon, empty key) are silently ignored.
 
 **Edge Cases:**
 - ✅ Detects `checkModules()`, `koinNavViewModel()`, `stateViewModel()`
@@ -832,6 +846,7 @@ module {
 
 **Severity:** Warning
 **Active by default:** Yes
+**Configurable:** Yes
 
 Detects `scope.declare()` called with Activity or Fragment instances. The declared instance is never automatically cleared when the scope closes, causing the Activity/Fragment to remain referenced in memory even after it should be garbage collected.
 
@@ -859,9 +874,23 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
+**Configuration:**
+```yaml
+ScopeDeclareWithActivityOrFragment:
+  active: true
+  additionalLeakProneTypes: []
+  # Add custom base classes whose instances should not be declared in scopes:
+  # additionalLeakProneTypes:
+  #   - 'Presenter'
+  #   - 'Controller'
+```
+
+`additionalLeakProneTypes` entries are matched as **case-insensitive substrings** of the argument variable name and the containing class supertypes. For example, `"Presenter"` will flag `scope.declare(mainPresenter)` and `scope.declare(this)` inside a class extending `BasePresenter`. Choose sufficiently specific type name fragments to avoid false positives.
+
 **Edge Cases:**
 - ✅ Detects `scope.declare(activity)` and `scope.declare(fragment)` by argument name
 - ✅ Detects `scope.declare(this)` when called inside an Activity or Fragment class
+- ✅ Detects `scope.declare(this)` when called inside a class extending a configured additional type
 - ✅ Uses heuristic name matching ("activity", "fragment") and supertype checks
 
 **Related Issue:** [Koin#1122](https://github.com/InsertKoinIO/koin/issues/1122)
@@ -1742,5 +1771,133 @@ class MyService(@InjectedParam val items: List<StringList>)
 - ✅ Allows simple generics: `List<String>`
 - ✅ Allows non-generic types
 - ✅ Only checks `@InjectedParam` annotated parameters
+
+---
+
+### MissingKoinStopInTest
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Detects test classes that call `startKoin` without a corresponding `stopKoin()` in an `@After` / `@AfterEach` method. Without `stopKoin()`, subsequent tests fail with `KoinApplicationAlreadyStartedException` because Koin remains started from the previous test.
+
+❌ **Bad:**
+```kotlin
+class MyTest {
+    @Before
+    fun setup() { startKoin { modules(appModule) } }
+    // No @After with stopKoin() — next test will crash
+}
+```
+
+✅ **Good:**
+```kotlin
+class MyTest {
+    @Before fun setup() { startKoin { modules(appModule) } }
+    @After fun teardown() { stopKoin() }
+}
+```
+
+**Configuration:**
+```yaml
+MissingKoinStopInTest:
+  active: true
+  additionalTeardownAnnotations: []
+  # Add project-specific teardown annotations:
+  # additionalTeardownAnnotations:
+  #   - 'CustomAfter'
+  #   - 'TearDown'
+```
+
+`additionalTeardownAnnotations` extends the built-in set (`After`, `AfterEach`, `AfterAll`) — it does not replace them.
+
+**Edge Cases:**
+- ✅ Detects JUnit 4 `@Before` / `@After`
+- ✅ Detects JUnit 5 `@BeforeEach` / `@AfterEach`
+- ✅ Detects `@AfterAll`
+- ✅ Ignores classes that do not call `startKoin`
+
+---
+
+### KoinViewModelOnNonViewModel
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Detects `@KoinViewModel` annotation on classes that do not extend `ViewModel` or a recognised ViewModel base class. Koin will attempt to register the class as a ViewModel and fail at runtime.
+
+❌ **Bad:**
+```kotlin
+@KoinViewModel
+class MyPresenter  // Not a ViewModel — runtime crash
+```
+
+✅ **Good:**
+```kotlin
+@KoinViewModel
+class MyViewModel : ViewModel()
+```
+
+**Configuration:**
+```yaml
+KoinViewModelOnNonViewModel:
+  active: true
+  additionalViewModelSuperTypes: []
+  # Add custom ViewModel base classes used in your project:
+  # additionalViewModelSuperTypes:
+  #   - 'RxViewModel'
+  #   - 'BaseViewModel'
+```
+
+`additionalViewModelSuperTypes` extends the built-in heuristic (class name ends with `"ViewModel"`) with an exact-match list. Use the simple class name (no package prefix).
+
+**Edge Cases:**
+- ✅ Detects classes that do not extend any ViewModel-like base
+- ✅ Allows classes whose name ends with `"ViewModel"` (heuristic)
+- ✅ Allows classes in `additionalViewModelSuperTypes`
+- ✅ Only checks classes annotated with `@KoinViewModel`
+
+---
+
+### KoinWorkerOnNonWorker
+
+**Severity:** Warning
+**Active by default:** Yes
+**Configurable:** Yes
+
+Detects `@KoinWorker` annotation on classes that do not extend `Worker` or a recognised Worker base class. Koin will attempt to register the class as a Worker and fail at runtime.
+
+❌ **Bad:**
+```kotlin
+@KoinWorker
+class MyTask  // Not a Worker — runtime crash
+```
+
+✅ **Good:**
+```kotlin
+@KoinWorker
+class MyWorker : CoroutineWorker(context, params)
+```
+
+**Configuration:**
+```yaml
+KoinWorkerOnNonWorker:
+  active: true
+  additionalWorkerSuperTypes: []
+  # Add custom Worker base classes used in your project:
+  # additionalWorkerSuperTypes:
+  #   - 'BaseWorker'
+  #   - 'RxWorker'
+```
+
+`additionalWorkerSuperTypes` extends the built-in heuristic (class name ends with `"Worker"`) with an exact-match list. Use the simple class name (no package prefix).
+
+**Edge Cases:**
+- ✅ Detects classes that do not extend any Worker-like base
+- ✅ Allows classes whose name ends with `"Worker"` (heuristic)
+- ✅ Allows classes in `additionalWorkerSuperTypes`
+- ✅ Only checks classes annotated with `@KoinWorker`
 
 ---

@@ -43,8 +43,8 @@ public class MissingKoinStopInTest(config: Config = Config.empty) : Rule(config)
     private val additionalTeardownAnnotations: List<String> =
         config.value(key = "additionalTeardownAnnotations", default = emptyList())
 
-    private val teardownAnnotations: List<String> =
-        listOf("After", "AfterEach", "AfterAll") + additionalTeardownAnnotations
+    private val teardownAnnotations: Set<String> =
+        (listOf("After", "AfterEach", "AfterAll") + additionalTeardownAnnotations).toSet()
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
