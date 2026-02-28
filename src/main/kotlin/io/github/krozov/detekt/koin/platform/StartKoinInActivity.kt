@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
 /**
@@ -66,10 +67,10 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
         var isApplication = false
 
         if (containingClass != null) {
-            // Extract simple supertype names: strip package prefix and generic args
+            // Extract simple supertype names: strip package prefix, generic args, and constructor calls
             val superTypeNames = containingClass.superTypeListEntries
                 .mapNotNull { it.typeReference?.text }
-                .map { it.substringBefore('<').substringAfterLast('.') }
+                .map { it.substringBefore('(').substringBefore('<').substringAfterLast('.') }
 
             val isActivity = superTypeNames.any { it in activityTypes }
             val isFragment = superTypeNames.any { it in fragmentTypes }
@@ -80,7 +81,7 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
 
         // Also check if inside a @Composable function
         val containingFunction = expression.parents
-            .filterIsInstance<org.jetbrains.kotlin.psi.KtNamedFunction>()
+            .filterIsInstance<KtNamedFunction>()
             .firstOrNull()
         if (containingFunction != null) {
             val isComposable = containingFunction.annotationEntries
