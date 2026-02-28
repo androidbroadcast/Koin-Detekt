@@ -33,15 +33,22 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
     )
 
     // Format: "oldName:replacement" — e.g., "legacyGet:get()"
+    // Built-in entries always take precedence over additional ones.
     private val additionalDeprecations: Map<String, String> =
         config.value(key = "additionalDeprecations", default = emptyList<String>())
             .mapNotNull { entry ->
                 val parts = entry.split(":", limit = 2)
-                if (parts.size == 2) parts[0].trim() to parts[1].trim() else null
+                if (parts.size == 2) {
+                    val oldName = parts[0].trim()
+                    val replacement = parts[1].trim()
+                    if (oldName.isNotEmpty()) oldName to replacement else null
+                } else {
+                    null
+                }
             }
             .toMap()
 
-    private val deprecations = builtInDeprecations + additionalDeprecations
+    private val deprecations = additionalDeprecations + builtInDeprecations
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)

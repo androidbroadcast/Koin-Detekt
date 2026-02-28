@@ -171,4 +171,23 @@ class ScopeDeclareWithActivityOrFragmentTest {
         val findings = ScopeDeclareWithActivityOrFragment(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports scope declare this when containing class extends additional leak-prone supertype`() {
+        val code = """
+            import org.koin.core.scope.Scope
+
+            open class Presenter
+
+            class MyPresenter : Presenter() {
+                fun setup(scope: Scope) {
+                    scope.declare(this)
+                }
+            }
+        """.trimIndent()
+
+        val config = TestConfig("additionalLeakProneTypes" to listOf("Presenter"))
+        val findings = ScopeDeclareWithActivityOrFragment(config).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }
