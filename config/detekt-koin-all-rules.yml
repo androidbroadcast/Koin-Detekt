@@ -297,3 +297,7 @@ koin-rules:
   # Detects @KoinViewModel on a class not extending ViewModel or AndroidViewModel.
   KoinViewModelOnNonViewModel:
     active: true
+
+  # Detects constructor parameters where @InjectedParam is not the first annotation.
+  InjectedParamAnnotationOrder:
+    active: true
