@@ -99,7 +99,7 @@ class MissingKoinStopInTestTest {
             }
         """.trimIndent()
 
-        val config = TestConfig("teardownAnnotations" to listOf("After", "AfterEach", "AfterAll", "CustomAfter"))
+        val config = TestConfig("additionalTeardownAnnotations" to listOf("CustomAfter"))
         val findings = MissingKoinStopInTest(config).lint(code)
         assertThat(findings).isEmpty()
     }
