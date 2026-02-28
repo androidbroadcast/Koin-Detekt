@@ -294,6 +294,10 @@ koin-rules:
   KoinWorkerOnNonWorker:
     active: true
 
+  # Detects @KoinViewModel on a class not extending ViewModel or AndroidViewModel.
+  KoinViewModelOnNonViewModel:
+    active: true
+
   # Detects test classes that call startKoin() without stopKoin() in @After/@AfterEach.
   MissingKoinStopInTest:
     active: true
