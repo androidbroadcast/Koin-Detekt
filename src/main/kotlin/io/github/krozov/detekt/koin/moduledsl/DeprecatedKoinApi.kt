@@ -1,5 +1,6 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -23,13 +24,31 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
         debt = Debt.FIVE_MINS
     )
 
-    private val deprecations = mapOf(
+    private val builtInDeprecations = mapOf(
         "checkModules" to "verify()",
         "koinNavViewModel" to "koinViewModel()",
         "stateViewModel" to "viewModel()",
         "viewModel" to "viewModelOf()",
         "getViewModel" to "get()"
     )
+
+    // Format: "oldName:replacement" — e.g., "legacyGet:get()"
+    // Built-in entries always take precedence over additional ones.
+    private val additionalDeprecations: Map<String, String> =
+        config.value(key = "additionalDeprecations", default = emptyList<String>())
+            .mapNotNull { entry ->
+                val parts = entry.split(":", limit = 2)
+                if (parts.size == 2) {
+                    val oldName = parts[0].trim()
+                    val replacement = parts[1].trim()
+                    if (oldName.isNotEmpty()) oldName to replacement else null
+                } else {
+                    null
+                }
+            }
+            .toMap()
+
+    private val deprecations = additionalDeprecations + builtInDeprecations
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
