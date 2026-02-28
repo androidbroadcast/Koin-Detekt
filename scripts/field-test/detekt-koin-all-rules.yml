@@ -71,8 +71,10 @@ koin-rules:
     allowOneDefault: true  # Allow one unqualified definition per scope
 
   # Detects deprecated Koin API usage.
+  # additionalDeprecations: add project-specific deprecated wrappers (format: "oldName:replacement")
   DeprecatedKoinApi:
     active: true
+    additionalDeprecations: []
 
   # Detects modules that mix includes() with definitions — prefer separation.
   # Inactive by default (style rule).
@@ -150,9 +152,11 @@ koin-rules:
   KtorRequestScopeMisuse:
     active: true
 
-  # Detects scope {} declared with Activity or Fragment as scope qualifier.
+  # Detects scope.declare() called with Activity/Fragment instances (memory leak).
+  # additionalLeakProneTypes: add custom base classes to detect (substring match, case-insensitive)
   ScopeDeclareWithActivityOrFragment:
     active: true
+    additionalLeakProneTypes: []
 
   # ---------------------------------------------------------------------------
   # Platform — Android
@@ -235,6 +239,24 @@ koin-rules:
   # ---------------------------------------------------------------------------
   # Koin Annotations
   # ---------------------------------------------------------------------------
+
+  # Detects test classes that call startKoin without stopKoin() in @After/@AfterEach.
+  # additionalTeardownAnnotations: extend built-in set (After, AfterEach, AfterAll)
+  MissingKoinStopInTest:
+    active: true
+    additionalTeardownAnnotations: []
+
+  # Detects @KoinViewModel on classes that do not extend ViewModel.
+  # additionalViewModelSuperTypes: add custom ViewModel base classes (exact simple name match)
+  KoinViewModelOnNonViewModel:
+    active: true
+    additionalViewModelSuperTypes: []
+
+  # Detects @KoinWorker on classes that do not extend Worker.
+  # additionalWorkerSuperTypes: add custom Worker base classes (exact simple name match)
+  KoinWorkerOnNonWorker:
+    active: true
+    additionalWorkerSuperTypes: []
 
   # Detects mixing of DSL module() {} and @Module annotation in the same project.
   MixingDslAndAnnotations:

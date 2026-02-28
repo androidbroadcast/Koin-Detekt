@@ -394,4 +394,32 @@ class DeprecatedKoinApiTest {
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `silently ignores malformed additionalDeprecations entry without colon`() {
+        val code = """
+            fun test() {
+                legacyGet()
+            }
+        """.trimIndent()
+
+        // Entry without ":" separator — should be silently dropped, not crash
+        val config = TestConfig("additionalDeprecations" to listOf("legacyGetWithoutReplacement"))
+        val findings = DeprecatedKoinApi(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `silently ignores malformed additionalDeprecations entry with empty key`() {
+        val code = """
+            fun test() {
+                legacyGet()
+            }
+        """.trimIndent()
+
+        // Entry with empty key (":replacement") — should be silently dropped
+        val config = TestConfig("additionalDeprecations" to listOf(":get()"))
+        val findings = DeprecatedKoinApi(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
