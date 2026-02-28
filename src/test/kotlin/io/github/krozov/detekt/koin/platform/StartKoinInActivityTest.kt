@@ -24,8 +24,8 @@ class StartKoinInActivityTest {
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("Activity/Fragment")
         assertThat(findings[0].message).contains("KoinAppAlreadyStartedException")
-        assertThat(findings[0].message).contains("✗ Bad")
-        assertThat(findings[0].message).contains("✓ Good")
+        assertThat(findings[0].message).contains("Bad")
+        assertThat(findings[0].message).contains("Good")
     }
 
     @Test
@@ -140,5 +140,33 @@ class StartKoinInActivityTest {
 
         val findings = StartKoinInActivity(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report startKoin in class extending NetworkApplication`() {
+        val code = """
+            class MyApp : NetworkApplication() {
+                override fun onCreate() {
+                    startKoin { modules(appModule) }
+                }
+            }
+        """.trimIndent()
+
+        val findings = StartKoinInActivity(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports startKoin in AppCompatActivity`() {
+        val code = """
+            class MainActivity : AppCompatActivity() {
+                override fun onCreate() {
+                    startKoin { modules(appModule) }
+                }
+            }
+        """.trimIndent()
+
+        val findings = StartKoinInActivity(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 }

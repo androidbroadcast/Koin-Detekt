@@ -98,12 +98,35 @@ koin-rules:
 
 Prevent `by inject()` property delegates.
 
-**Default:** Active, no configuration options.
+**Default:** Active. Configurable `allowedSuperTypes` — classes extending these base types are exempt
+(Android entry points where constructor injection is not possible).
+
+| Option | Type | Default |
+|---|---|---|
+| `allowedSuperTypes` | `List<String>` | See below |
+
+Default allowed supertypes: `Application`, `Activity`, `ComponentActivity`, `AppCompatActivity`,
+`FragmentActivity`, `Fragment`, `DialogFragment`, `BottomSheetDialogFragment`, `Service`,
+`BroadcastReceiver`, `ViewModel`, `GlanceAppWidget`, `GlanceAppWidgetReceiver`.
 
 ```yaml
 koin-rules:
   NoInjectDelegate:
     active: true
+    allowedSuperTypes:
+      - 'Application'
+      - 'Activity'
+      - 'ComponentActivity'
+      - 'AppCompatActivity'
+      - 'FragmentActivity'
+      - 'Fragment'
+      - 'DialogFragment'
+      - 'BottomSheetDialogFragment'
+      - 'Service'
+      - 'BroadcastReceiver'
+      - 'ViewModel'
+      - 'GlanceAppWidget'
+      - 'GlanceAppWidgetReceiver'
 ```
 
 #### NoGetOutsideModuleDefinition

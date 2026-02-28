@@ -9,6 +9,8 @@ import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
@@ -24,6 +26,16 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
     private var insideDefinitionBlock = false
     private val definitionFunctions = setOf("single", "factory", "scoped", "viewModel", "worker")
 
+    override fun visitKtFile(file: KtFile) {
+        insideDefinitionBlock = false
+        val hasKoinImport = file.importDirectives.any {
+            it.importedFqName?.asString()?.startsWith("org.koin") == true
+        }
+        if (hasKoinImport) {
+            super.visitKtFile(file)
+        }
+    }
+
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
 
@@ -38,10 +50,15 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
         // Check for get() calls
         if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock) {
-            // Skip qualified calls like alarmDao.getAll() -- those are method calls on arbitrary
-            // objects, not Koin service locator usage. Koin's get() is always unqualified.
-            if (expression.parent is KtDotQualifiedExpression &&
-                (expression.parent as KtDotQualifiedExpression).selectorExpression == expression) {
+            // Skip qualified calls like obj.get() or obj?.get() — those are method calls on
+            // arbitrary objects, not Koin service locator usage. Koin's get() is always unqualified.
+            val parent = expression.parent
+            val isQualified = when (parent) {
+                is KtDotQualifiedExpression -> parent.selectorExpression == expression
+                is KtSafeQualifiedExpression -> parent.selectorExpression == expression
+                else -> false
+            }
+            if (isQualified) {
                 super.visitCallExpression(expression)
                 return
             }

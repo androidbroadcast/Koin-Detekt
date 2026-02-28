@@ -146,4 +146,25 @@ class OverrideInIncludedModuleTest {
         val findings = OverrideInIncludedModule(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report qualified definitions with different names in same module`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.core.qualifier.named
+
+            val module1 = module {
+                single(named("a")) { "first" }
+            }
+
+            val module2 = module {
+                includes(module1)
+                single<String>(named("b")) { "second" }
+                single<String>(named("c")) { "third" }
+            }
+        """.trimIndent()
+
+        val findings = OverrideInIncludedModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
