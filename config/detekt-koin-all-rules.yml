@@ -293,3 +293,7 @@ koin-rules:
   # Detects @KoinWorker on a class not extending ListenableWorker or Worker.
   KoinWorkerOnNonWorker:
     active: true
+
+  # Detects constructor parameters where @InjectedParam is not the first annotation.
+  InjectedParamAnnotationOrder:
+    active: true
