@@ -8,12 +8,12 @@ internal class ConstructorDslAmbiguousParameters(config: Config) : Rule(config) 
     override val issue: Issue = Issue(
         id = "ConstructorDslAmbiguousParameters",
         severity = Severity.Warning,
-        description = "Detects factoryOf/singleOf/viewModelOf with duplicate parameter types, " +
+        description = "Detects factoryOf/singleOf/viewModelOf/scopedOf with duplicate parameter types, " +
                 "which causes Koin to resolve parameters incorrectly",
         debt = Debt.TEN_MINS
     )
 
-    private val constructorDslFunctions = setOf("factoryOf", "singleOf", "viewModelOf")
+    private val constructorDslFunctions = setOf("factoryOf", "singleOf", "viewModelOf", "scopedOf")
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
