@@ -2,6 +2,7 @@ package io.github.krozov.detekt.koin.moduledsl
 
 import io.gitlab.arturbosch.detekt.api.*
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) {
 
@@ -50,16 +51,31 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
             argText.contains("named(") || argText.contains("qualifier(")
         }
 
-        // Check for qualifier in chained: single { ... } withOptions { qualifier = named(...) }
-        // Pattern: the single call is the receiver of a dot expression, and the selector is withOptions
+        // Check for qualifier in chained withOptions — supports both call styles:
+        // dot:    single { ... }.withOptions { qualifier = named(...) }
+        // infix:  single { ... } withOptions { qualifier = named(...) }
         val hasQualifierInOptions = run {
-            val dotExpr = expression.parent as? KtDotQualifiedExpression ?: return@run false
-            if (dotExpr.receiverExpression != expression) return@run false
-            val withOptionsCall = dotExpr.selectorExpression as? KtCallExpression ?: return@run false
-            if (withOptionsCall.calleeExpression?.text != "withOptions") return@run false
-            val body = withOptionsCall.lambdaArguments.firstOrNull()
-                ?.getLambdaExpression()?.bodyExpression?.text ?: return@run false
-            body.contains("named(") || body.contains("qualifier(")
+            fun String.hasQualifier() = contains("named(") || contains("qualifier(")
+
+            val dotExpr = expression.parent as? KtDotQualifiedExpression
+            if (dotExpr != null && dotExpr.receiverExpression == expression) {
+                val withOptionsCall = dotExpr.selectorExpression as? KtCallExpression ?: return@run false
+                if (withOptionsCall.calleeExpression?.text != "withOptions") return@run false
+                val body = withOptionsCall.lambdaArguments.firstOrNull()
+                    ?.getLambdaExpression()?.bodyExpression?.text ?: return@run false
+                return@run body.hasQualifier()
+            }
+
+            val binaryExpr = expression.parent as? KtBinaryExpression
+            if (binaryExpr != null && binaryExpr.left == expression &&
+                binaryExpr.operationReference.text == "withOptions"
+            ) {
+                val body = (binaryExpr.right as? KtLambdaExpression)
+                    ?.bodyExpression?.text ?: return@run false
+                return@run body.hasQualifier()
+            }
+
+            false
         }
 
         if (!hasQualifier && !hasQualifierInOptions) {

@@ -1,5 +1,6 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -39,7 +40,11 @@ public class MissingKoinStopInTest(config: Config = Config.empty) : Rule(config)
         debt = Debt.FIVE_MINS
     )
 
-    private val teardownAnnotations = setOf("After", "AfterEach", "AfterAll")
+    private val additionalTeardownAnnotations: List<String> =
+        config.value(key = "additionalTeardownAnnotations", default = emptyList())
+
+    private val teardownAnnotations: List<String> =
+        listOf("After", "AfterEach", "AfterAll") + additionalTeardownAnnotations
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)

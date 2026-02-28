@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.annotations
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -70,6 +71,33 @@ class KoinViewModelOnNonViewModelTest {
 
         val findings = KoinViewModelOnNonViewModel(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report KoinViewModel when base class is in additionalViewModelSuperTypes`() {
+        val code = """
+            import org.koin.android.annotation.KoinViewModel
+
+            @KoinViewModel
+            class MyPresenter : RxModel()
+        """.trimIndent()
+
+        val config = TestConfig("additionalViewModelSuperTypes" to listOf("RxModel"))
+        val findings = KoinViewModelOnNonViewModel(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports KoinViewModel when base class is not in additionalViewModelSuperTypes`() {
+        val code = """
+            import org.koin.android.annotation.KoinViewModel
+
+            @KoinViewModel
+            class MyPresenter : RxModel()
+        """.trimIndent()
+
+        val findings = KoinViewModelOnNonViewModel(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 
     @Test

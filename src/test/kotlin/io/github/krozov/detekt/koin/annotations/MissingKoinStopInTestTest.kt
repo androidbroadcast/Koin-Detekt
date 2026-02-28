@@ -1,6 +1,7 @@
 package io.github.krozov.detekt.koin.annotations
 
 import io.gitlab.arturbosch.detekt.api.Config
+import io.gitlab.arturbosch.detekt.test.TestConfig
 import io.gitlab.arturbosch.detekt.test.lint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -81,6 +82,45 @@ class MissingKoinStopInTestTest {
 
         val findings = MissingKoinStopInTest(Config.empty).lint(code)
         assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report when stopKoin is in custom teardown annotation`() {
+        val code = """
+            class MyTest {
+                @CustomAfter
+                fun teardown() {
+                    stopKoin()
+                }
+
+                fun setup() {
+                    startKoin { modules(appModule) }
+                }
+            }
+        """.trimIndent()
+
+        val config = TestConfig("additionalTeardownAnnotations" to listOf("CustomAfter"))
+        val findings = MissingKoinStopInTest(config).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports when stopKoin is in unrecognized custom annotation`() {
+        val code = """
+            class MyTest {
+                @CustomAfter
+                fun teardown() {
+                    stopKoin()
+                }
+
+                fun setup() {
+                    startKoin { modules(appModule) }
+                }
+            }
+        """.trimIndent()
+
+        val findings = MissingKoinStopInTest(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
     }
 
     @Test
