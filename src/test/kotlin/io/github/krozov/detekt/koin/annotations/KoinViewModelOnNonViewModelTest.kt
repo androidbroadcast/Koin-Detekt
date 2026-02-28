@@ -71,4 +71,18 @@ class KoinViewModelOnNonViewModelTest {
         val findings = KoinViewModelOnNonViewModel(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report KoinViewModel on class extending ViewModel and interface`() {
+        val code = """
+            import org.koin.android.annotation.KoinViewModel
+            import androidx.lifecycle.ViewModel
+
+            @KoinViewModel
+            class MyViewModel : SomeInterface, ViewModel()
+        """.trimIndent()
+
+        val findings = KoinViewModelOnNonViewModel(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

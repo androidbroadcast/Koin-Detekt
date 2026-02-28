@@ -46,7 +46,7 @@ public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(c
 
         val superTypeNames = klass.superTypeListEntries
             .mapNotNull { it.typeReference?.text }
-            .map { it.substringBefore('<').substringAfterLast('.') }
+            .map { it.substringBefore('(').substringBefore('<').substringAfterLast('.') }
 
         val extendsViewModel = superTypeNames.any { it.endsWith("ViewModel") }
         if (!extendsViewModel) {
