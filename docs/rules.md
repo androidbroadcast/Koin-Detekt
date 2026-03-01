@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 51 Detekt rules for Koin.
+Complete reference for all 56 Detekt rules for Koin.
 
 ---
 
@@ -1901,3 +1901,12 @@ KoinWorkerOnNonWorker:
 - ✅ Only checks classes annotated with `@KoinWorker`
 
 ---
+
+---
+
+## Code Quality Notes
+
+### Import Style
+
+All rule files in this project use explicit imports instead of wildcard imports (`import foo.*`).
+This improves readability and avoids ambiguity when multiple packages export the same names.

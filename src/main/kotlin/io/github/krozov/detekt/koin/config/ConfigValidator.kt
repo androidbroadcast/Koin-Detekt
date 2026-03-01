@@ -33,7 +33,7 @@ public object ConfigValidator {
             value !is List<*> ->
                 ValidationResult(
                     isValid = false,
-                    message = "$configKey must be a list, got ${value!!::class.simpleName}"
+                    message = "$configKey must be a list, got ${value?.javaClass?.simpleName ?: "unknown"}"
                 )
 
             value.isEmpty() && warnIfEmpty ->
