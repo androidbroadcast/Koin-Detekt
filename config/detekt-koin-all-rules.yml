@@ -305,3 +305,7 @@ koin-rules:
   # Detects constructor parameters where @InjectedParam is not the first annotation.
   InjectedParamAnnotationOrder:
     active: true
+
+  # Detects Koin-annotated classes (@Single/@Factory/@Scoped) that contain nested class or object declarations.
+  KoinAnnotationOnClassWithNestedDeclarations:
+    active: true
