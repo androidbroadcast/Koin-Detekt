@@ -169,7 +169,7 @@ PreferLazyConstructorInjection:
 ```
 
 **Edge Cases:**
-- ✅ `checkAllTypes: true` flags every non-lazy constructor parameter in injected classes
+- ✅ `checkAllTypes: true` flags every non-lazy primary-constructor parameter, regardless of whether the class is Koin-injected
 - ✅ `lazyTypes` allowlist takes effect when `checkAllTypes` is false
 - ✅ `excludeTypes` always takes precedence over both `checkAllTypes` and `lazyTypes`
 - ✅ Already-lazy parameters (`Lazy<T>`) are never reported
