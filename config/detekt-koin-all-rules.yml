@@ -305,3 +305,7 @@ koin-rules:
   # Detects constructor parameters where @InjectedParam is not the first annotation.
   InjectedParamAnnotationOrder:
     active: true
+
+  # Detects @Module + @ComponentScan where the scanned package does not match the module package.
+  ComponentScanPackageMismatch:
+    active: true
