@@ -1,16 +1,16 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.koinAnnotationNames
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.github.krozov.detekt.koin.util.ImportAwareRule
-import io.github.krozov.detekt.koin.util.Resolution
-import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
-import io.github.krozov.detekt.koin.util.koinAnnotationNames
-import io.github.krozov.detekt.koin.util.resolveKoin
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement

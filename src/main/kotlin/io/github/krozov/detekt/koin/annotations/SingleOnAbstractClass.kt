@@ -1,5 +1,7 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -8,8 +10,6 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
-import io.github.krozov.detekt.koin.util.ImportAwareRule
-import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 
 /**
  * Detects `@Single`, `@Factory`, or `@Scoped` on abstract classes or interfaces.

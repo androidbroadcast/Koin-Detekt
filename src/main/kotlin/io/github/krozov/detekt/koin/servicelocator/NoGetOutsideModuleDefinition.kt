@@ -1,7 +1,7 @@
 package io.github.krozov.detekt.koin.servicelocator
 
-import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
@@ -36,8 +36,13 @@ internal class NoGetOutsideModuleDefinition(config: Config) : ImportAwareRule(co
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
 
-        // Track entering definition blocks
+        // Track entering definition blocks — guard against non-Koin same-named functions
         if (callName in definitionFunctions) {
+            val fqns = importContext.resolveFqn(callName!!)
+            if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) {
+                super.visitCallExpression(expression)
+                return
+            }
             val wasInside = insideDefinitionBlock
             insideDefinitionBlock = true
             super.visitCallExpression(expression)

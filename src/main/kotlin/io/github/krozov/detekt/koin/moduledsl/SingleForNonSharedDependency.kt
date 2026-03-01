@@ -1,8 +1,6 @@
 package io.github.krozov.detekt.koin.moduledsl
 
 import io.github.krozov.detekt.koin.util.ImportAwareRule
-import io.github.krozov.detekt.koin.util.Resolution
-import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -37,10 +35,10 @@ internal class SingleForNonSharedDependency(config: Config) : ImportAwareRule(co
 
         val callName = expression.getCallNameExpression()?.text
         if (callName !in setOf("single", "singleOf")) return
-        // Guard only for "single" (from org.koin.dsl which is tracked in KOIN_PACKAGES).
-        // "singleOf" lives in org.koin.core.module.dsl which is not tracked, so NOT_KOIN
-        // would fire incorrectly for legitimate Koin imports.
-        if (callName == "single" && importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
+        // Use resolveFqn to cover all org.koin.* packages uniformly:
+        // single → org.koin.dsl, singleOf → org.koin.core.module.dsl
+        val fqns = importContext.resolveFqn(callName!!)
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
 
         val typeName = extractTypeName(expression) ?: return
 
