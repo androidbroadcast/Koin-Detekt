@@ -76,7 +76,7 @@ class PreferLazyConstructorInjectionTest {
             """.trimIndent())
 
             assertThat(findings).hasSize(1)
-            assertThat(findings[0].message).contains("DatabaseClient")
+            assertThat(findings[0].message).contains("Lazy<DatabaseClient>")
         }
 
         @Test
@@ -95,16 +95,17 @@ class PreferLazyConstructorInjectionTest {
             """.trimIndent())
 
             assertThat(findings).hasSize(1)
+            assertThat(findings[0].message).contains("Lazy<DatabaseClient?>")
         }
 
         @Test
         fun `flags multiple matching parameters`() {
-            val config = TestConfig(
+            val multiTypeConfig = TestConfig(
                 "checkAllTypes" to false,
                 "lazyTypes" to listOf("DatabaseClient", "HttpClient")
             )
 
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(multiTypeConfig).lint("""
                 class MyRepo(
                     private val db: DatabaseClient,
                     private val client: HttpClient
