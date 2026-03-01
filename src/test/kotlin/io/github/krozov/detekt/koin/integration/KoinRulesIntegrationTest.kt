@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(56)
+        assertThat(ruleSet.rules).hasSize(57)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -98,7 +98,8 @@ class KoinRulesIntegrationTest {
             "KoinViewModelOnNonViewModel",
             "MissingKoinStopInTest",
             "InjectedParamAnnotationOrder",
-            "SingleOnAbstractClass"
+            "SingleOnAbstractClass",
+            "KoinAnnotationOnClassWithNestedDeclarations"
         )
     }
 

@@ -162,3 +162,6 @@ koin-rules:
   KoinWorkerOnNonWorker:
     active: true
     additionalWorkerSuperTypes: []
+
+  KoinAnnotationOnClassWithNestedDeclarations:
+    active: true

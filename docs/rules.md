@@ -1901,3 +1901,43 @@ KoinWorkerOnNonWorker:
 - ✅ Only checks classes annotated with `@KoinWorker`
 
 ---
+
+### KoinAnnotationOnClassWithNestedDeclarations
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects Koin-annotated classes that contain nested class or object declarations.
+
+Nested declarations inside a Koin-annotated class can confuse KSP code generation. KSP may
+attempt to generate bindings for nested types or the generated factory may capture unintended
+state. Companion objects are exempt — they are static by nature and do not affect the Koin
+lifecycle of the enclosing class.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyService {
+    class Config(val url: String)   // nested class — extract to top-level
+    object Helper { ... }           // nested object — extract to top-level
+}
+```
+
+✅ **Good:**
+```kotlin
+// Extract nested declarations to top-level:
+class MyServiceConfig(val url: String)
+
+@Single
+class MyService {
+    companion object { ... }  // companion objects are always allowed
+}
+```
+
+**Edge Cases:**
+- Reports nested `class` declarations inside `@Single` / `@Factory` / `@Scoped` / etc.
+- Reports nested `object` declarations (non-companion)
+- Allows `companion object` (exempt — static, doesn't affect Koin lifecycle)
+- Allows non-annotated classes with nested declarations
+
+---
