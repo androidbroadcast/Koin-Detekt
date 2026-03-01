@@ -6,6 +6,7 @@ package io.github.krozov.detekt.koin.util
  * - [Resolution.KOIN]     — unambiguously a Koin type
  * - [Resolution.NOT_KOIN] — unambiguously not a Koin type
  * - [Resolution.UNKNOWN]  — cannot be determined; each rule decides how to handle this
+ * @param name Simple name, alias, or FQN. Must not include type parameters — strip `<…>` before calling.
  */
 internal fun FileImportContext.resolveKoin(name: String): Resolution {
     val candidates = resolveFqn(name)
