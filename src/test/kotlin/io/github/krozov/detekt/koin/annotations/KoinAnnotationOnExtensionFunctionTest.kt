@@ -105,4 +105,17 @@ class KoinAnnotationOnExtensionFunctionTest {
         val findings = KoinAnnotationOnExtensionFunction(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Single
+
+            @Single
+            fun String.provideService(): MyService = MyService(this)
+        """.trimIndent()
+
+        val findings = KoinAnnotationOnExtensionFunction(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

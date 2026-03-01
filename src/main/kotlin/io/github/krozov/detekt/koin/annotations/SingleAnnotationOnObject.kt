@@ -5,8 +5,9 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 /**
@@ -25,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  * class MySingleton // Correct: single { MySingleton() }
  * </compliant>
  */
-public class SingleAnnotationOnObject(config: Config = Config.empty) : Rule(config) {
+internal class SingleAnnotationOnObject(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "SingleAnnotationOnObject",
         severity = Severity.Warning,
@@ -40,8 +41,7 @@ public class SingleAnnotationOnObject(config: Config = Config.empty) : Rule(conf
 
         if (declaration.isCompanion()) return
 
-        val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val koinAnnotation = annotations.firstOrNull { it in koinDefinitionAnnotations } ?: return
+        val koinAnnotation = declaration.firstKoinAnnotationName(importContext, koinDefinitionAnnotations) ?: return
 
         report(
             CodeSmell(

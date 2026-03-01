@@ -131,4 +131,18 @@ class ViewModelAnnotatedAsSingleTest {
         val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Single
+            import androidx.lifecycle.ViewModel
+
+            @Single
+            class MyViewModel : ViewModel()
+        """.trimIndent()
+
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

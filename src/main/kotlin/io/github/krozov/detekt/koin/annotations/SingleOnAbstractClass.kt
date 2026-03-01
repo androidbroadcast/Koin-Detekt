@@ -5,8 +5,9 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -30,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class RepositoryImpl : Repository  // ✓ Concrete class
  * </compliant>
  */
-public class SingleOnAbstractClass(config: Config = Config.empty) : Rule(config) {
+internal class SingleOnAbstractClass(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "SingleOnAbstractClass",
         severity = Severity.Warning,
@@ -43,8 +44,7 @@ public class SingleOnAbstractClass(config: Config = Config.empty) : Rule(config)
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val koinAnnotation = annotations.firstOrNull { it in targetAnnotations } ?: return
+        val koinAnnotation = klass.firstKoinAnnotationName(importContext, targetAnnotations) ?: return
 
         when {
             klass.isInterface() -> report(

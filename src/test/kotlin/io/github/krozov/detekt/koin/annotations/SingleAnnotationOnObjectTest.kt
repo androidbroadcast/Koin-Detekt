@@ -86,4 +86,17 @@ class SingleAnnotationOnObjectTest {
         val findings = SingleAnnotationOnObject(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Single
+
+            @Single
+            object Foo
+        """.trimIndent()
+
+        val findings = SingleAnnotationOnObject(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

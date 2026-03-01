@@ -5,8 +5,9 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
@@ -31,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  * }
  * </compliant>
  */
-public class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : Rule(config) {
+internal class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "KoinAnnotationOnExtensionFunction",
         severity = Severity.Warning,
@@ -46,8 +47,7 @@ public class KoinAnnotationOnExtensionFunction(config: Config = Config.empty) : 
 
         if (function.receiverTypeReference == null) return
 
-        val annotations = function.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val koinAnnotation = annotations.firstOrNull { it in koinDefinitionAnnotations } ?: return
+        val koinAnnotation = function.firstKoinAnnotationName(importContext, koinDefinitionAnnotations) ?: return
 
         val receiverType = function.receiverTypeReference?.text ?: "Unknown"
         val simpleReceiverName = receiverType
