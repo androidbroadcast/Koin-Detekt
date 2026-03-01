@@ -1,16 +1,18 @@
 package io.github.krozov.detekt.koin.servicelocator
 
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class NoKoinGetInApplication(config: Config) : Rule(config) {
+internal class NoKoinGetInApplication(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "NoKoinGetInApplication",
@@ -36,6 +38,10 @@ internal class NoKoinGetInApplication(config: Config) : Rule(config) {
 
         // Check for get()/inject() inside application blocks
         if (callName in setOf("get", "inject") && insideStartKoinBlock) {
+            if (importContext.resolveKoin(callName ?: return) == Resolution.NOT_KOIN) {
+                super.visitCallExpression(expression)
+                return
+            }
             report(
                 CodeSmell(
                     issue,

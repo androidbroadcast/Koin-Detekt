@@ -156,4 +156,16 @@ class ModuleAsTopLevelValTest {
         val findings = ModuleAsTopLevelVal(Config.empty).lint(code)
         assertThat(findings).hasSize(2)
     }
+
+    @Test
+    fun `does not report when module is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+
+            val appModule = module { }
+        """.trimIndent()
+
+        val findings = ModuleAsTopLevelVal(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

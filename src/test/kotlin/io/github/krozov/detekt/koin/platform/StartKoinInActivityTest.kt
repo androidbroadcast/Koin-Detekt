@@ -169,4 +169,5 @@ class StartKoinInActivityTest {
         val findings = StartKoinInActivity(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
 }

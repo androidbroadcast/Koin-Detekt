@@ -124,4 +124,16 @@ class ParameterTypeMatchesReturnTypeTest {
         assertThat(findings).hasSize(2)
         assertThat(findings[0].message).contains("parametersOf")
     }
+
+    @Test
+    fun `does not report when factory is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.factory
+
+            val m = factory<Int> { limit: Int -> limit * 2 }
+        """.trimIndent()
+
+        val findings = ParameterTypeMatchesReturnType(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

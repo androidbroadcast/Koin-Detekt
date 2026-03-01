@@ -98,4 +98,18 @@ class KtorRouteScopeMisuseTest {
         val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report koinScope imported from non-Koin package`() {
+        val code = """
+            import com.example.scope.koinScope
+
+            fun Application.module() {
+                val scope = koinScope()
+            }
+        """.trimIndent()
+
+        val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

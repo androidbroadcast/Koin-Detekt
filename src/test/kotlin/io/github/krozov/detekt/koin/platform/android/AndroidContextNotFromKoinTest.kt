@@ -159,4 +159,18 @@ class AndroidContextNotFromKoinTest {
         assertThat(findings).isEmpty()
     }
 
+    @Test
+    fun `does not report androidContext imported from non-Koin package`() {
+        val code = """
+            import com.example.utils.androidContext
+
+            fun setup() {
+                val ctx = androidContext()
+            }
+        """.trimIndent()
+
+        val findings = AndroidContextNotFromKoin(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
 }

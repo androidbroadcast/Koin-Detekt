@@ -100,4 +100,18 @@ class ViewModelAsSingletonTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when single is imported from non-Koin package`() {
+        val code = """
+            import com.other.dsl.single
+
+            class MyViewModel
+
+            val m = single { MyViewModel() }
+        """.trimIndent()
+
+        val findings = ViewModelAsSingleton(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

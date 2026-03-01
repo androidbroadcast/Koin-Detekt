@@ -154,4 +154,23 @@ class GetConcreteTypeInsteadOfInterfaceTest {
         val findings = GetConcreteTypeInsteadOfInterface(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when single is imported from non-Koin package`() {
+        val code = """
+            import com.other.di.single
+            import com.other.di.factory
+
+            interface Service
+            class ServiceImpl : Service
+
+            val m = module {
+                single<Service> { ServiceImpl() }
+                factory { Consumer(get<ServiceImpl>()) }
+            }
+        """.trimIndent()
+
+        val findings = GetConcreteTypeInsteadOfInterface(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

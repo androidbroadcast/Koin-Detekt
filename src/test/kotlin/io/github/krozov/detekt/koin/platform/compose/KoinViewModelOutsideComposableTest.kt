@@ -178,4 +178,18 @@ class KoinViewModelOutsideComposableTest {
         val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report koinViewModel imported from non-Koin package outside Composable`() {
+        val code = """
+            import com.example.viewmodel.koinViewModel
+
+            fun MyScreen() {
+                val viewModel = koinViewModel<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = KoinViewModelOutsideComposable(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

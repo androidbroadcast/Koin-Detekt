@@ -422,4 +422,19 @@ class DeprecatedKoinApiTest {
         val findings = DeprecatedKoinApi(config).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report non-deprecated Koin API calls`() {
+        val code = """
+            import org.koin.dsl.module
+            import org.koin.test.verify.verify
+
+            fun test() {
+                verify { }
+            }
+        """.trimIndent()
+
+        val findings = DeprecatedKoinApi(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

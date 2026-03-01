@@ -1,18 +1,20 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class SingleForNonSharedDependency(config: Config) : Rule(config) {
+internal class SingleForNonSharedDependency(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "SingleForNonSharedDependency",
@@ -35,6 +37,10 @@ internal class SingleForNonSharedDependency(config: Config) : Rule(config) {
 
         val callName = expression.getCallNameExpression()?.text
         if (callName !in setOf("single", "singleOf")) return
+        // Guard only for "single" (from org.koin.dsl which is tracked in KOIN_PACKAGES).
+        // "singleOf" lives in org.koin.core.module.dsl which is not tracked, so NOT_KOIN
+        // would fire incorrectly for legitimate Koin imports.
+        if (callName == "single" && importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
 
         val typeName = extractTypeName(expression) ?: return
 

@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.architecture
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -35,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
  * }
  * </compliant>
  */
-public class CircularModuleDependency(config: Config = Config.empty) : Rule(config) {
+internal class CircularModuleDependency(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "CircularModuleDependency",
         severity = Severity.Warning,
@@ -63,7 +65,8 @@ public class CircularModuleDependency(config: Config = Config.empty) : Rule(conf
         val moduleName = property.name ?: return
         val initializer = property.initializer as? KtCallExpression ?: return
 
-        if (initializer.calleeExpression?.text == "module") {
+        if (initializer.calleeExpression?.text == "module" &&
+            importContext.resolveKoin("module") != Resolution.NOT_KOIN) {
             val includes = findIncludes(initializer)
             modules.add(ModuleInfo(moduleName, property, includes))
         }

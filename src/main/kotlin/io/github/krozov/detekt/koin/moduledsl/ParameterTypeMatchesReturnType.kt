@@ -1,15 +1,17 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 
-internal class ParameterTypeMatchesReturnType(config: Config) : Rule(config) {
+internal class ParameterTypeMatchesReturnType(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "ParameterTypeMatchesReturnType",
@@ -24,6 +26,7 @@ internal class ParameterTypeMatchesReturnType(config: Config) : Rule(config) {
 
         val calleeName = expression.calleeExpression?.text ?: return
         if (calleeName !in setOf("factory", "single", "scoped")) return
+        if (importContext.resolveKoin(calleeName) == Resolution.NOT_KOIN) return
 
         // Get type argument: factory<Int>
         val typeArgument = expression.typeArguments.firstOrNull()?.text ?: return

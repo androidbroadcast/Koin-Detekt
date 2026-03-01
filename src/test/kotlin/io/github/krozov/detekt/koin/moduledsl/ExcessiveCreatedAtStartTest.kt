@@ -150,4 +150,28 @@ class ExcessiveCreatedAtStartTest {
         assertThat(findings).isNotEmpty()
         assertThat(findings[0].message).contains("12")
     }
+
+    @Test
+    fun `does not report when module is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+
+            val m = module {
+                single(createdAtStart = true) { S1() }
+                single(createdAtStart = true) { S2() }
+                single(createdAtStart = true) { S3() }
+                single(createdAtStart = true) { S4() }
+                single(createdAtStart = true) { S5() }
+                single(createdAtStart = true) { S6() }
+                single(createdAtStart = true) { S7() }
+                single(createdAtStart = true) { S8() }
+                single(createdAtStart = true) { S9() }
+                single(createdAtStart = true) { S10() }
+                single(createdAtStart = true) { S11() }
+            }
+        """.trimIndent()
+
+        val findings = ExcessiveCreatedAtStart(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

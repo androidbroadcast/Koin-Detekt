@@ -91,4 +91,18 @@ class ScopedDependencyOutsideScopeBlockTest {
         val findings = ScopedDependencyOutsideScopeBlock(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when scoped is imported from non-Koin package`() {
+        val code = """
+            import com.other.dsl.scoped
+
+            val m = module {
+                scoped { MyService() }
+            }
+        """.trimIndent()
+
+        val findings = ScopedDependencyOutsideScopeBlock(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

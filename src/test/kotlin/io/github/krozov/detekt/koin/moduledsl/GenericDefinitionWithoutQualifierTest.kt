@@ -120,4 +120,16 @@ class GenericDefinitionWithoutQualifierTest {
         val findings = GenericDefinitionWithoutQualifier(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when single is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.single
+
+            val m = single { listOf<String>() }
+        """.trimIndent()
+
+        val findings = GenericDefinitionWithoutQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

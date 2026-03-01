@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.platform.ktor
 
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -30,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  * }
  * </compliant>
  */
-public class KtorRouteScopeMisuse(config: Config = Config.empty) : Rule(config) {
+internal class KtorRouteScopeMisuse(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "KtorRouteScopeMisuse",
         severity = Severity.Warning,
@@ -45,6 +47,7 @@ public class KtorRouteScopeMisuse(config: Config = Config.empty) : Rule(config) 
         val callName = initializer.calleeExpression?.text ?: return
 
         if (callName == "koinScope") {
+            if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
             // Check if it's call.koinScope() - that's ok
             val receiver = (initializer.parent as? KtDotQualifiedExpression)?.receiverExpression?.text
             if (receiver != "call") {

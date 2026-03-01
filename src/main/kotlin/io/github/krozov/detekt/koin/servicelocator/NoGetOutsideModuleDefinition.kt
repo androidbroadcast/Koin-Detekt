@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.servicelocator
 
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -13,7 +15,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
+internal class NoGetOutsideModuleDefinition(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "NoGetOutsideModuleDefinition",
@@ -28,12 +30,7 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
     override fun visitKtFile(file: KtFile) {
         insideDefinitionBlock = false
-        val hasKoinImport = file.importDirectives.any {
-            it.importedFqName?.asString()?.startsWith("org.koin") == true
-        }
-        if (hasKoinImport) {
-            super.visitKtFile(file)
-        }
+        super.visitKtFile(file)
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
@@ -50,6 +47,10 @@ internal class NoGetOutsideModuleDefinition(config: Config) : Rule(config) {
 
         // Check for get() calls
         if (callName in setOf("get", "getOrNull", "getAll") && !insideDefinitionBlock) {
+            if (importContext.resolveKoin(callName ?: return) == Resolution.NOT_KOIN) {
+                super.visitCallExpression(expression)
+                return
+            }
             // Skip qualified calls like obj.get() or obj?.get() — those are method calls on
             // arbitrary objects, not Koin service locator usage. Koin's get() is always unqualified.
             val parent = expression.parent

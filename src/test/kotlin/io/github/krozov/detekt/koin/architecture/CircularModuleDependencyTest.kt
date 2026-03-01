@@ -192,4 +192,22 @@ class CircularModuleDependencyTest {
         val findings = CircularModuleDependency(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when module is imported from non-Koin package`() {
+        val code = """
+            import com.other.di.module
+
+            val moduleA = module {
+                includes(moduleB)
+            }
+
+            val moduleB = module {
+                includes(moduleA)
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

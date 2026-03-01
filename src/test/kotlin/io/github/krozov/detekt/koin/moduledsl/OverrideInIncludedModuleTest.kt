@@ -167,4 +167,20 @@ class OverrideInIncludedModuleTest {
         val findings = OverrideInIncludedModule(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when module is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+
+            val base = module { single<Service> { ServiceA() } }
+            val override = module {
+                includes(base)
+                single<Service> { ServiceB() }
+            }
+        """.trimIndent()
+
+        val findings = OverrideInIncludedModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

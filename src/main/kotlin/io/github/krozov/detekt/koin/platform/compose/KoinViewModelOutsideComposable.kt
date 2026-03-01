@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.platform.compose
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -30,7 +32,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
  * }
  * </compliant>
  */
-public class KoinViewModelOutsideComposable(config: Config = Config.empty) : Rule(config) {
+internal class KoinViewModelOutsideComposable(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "KoinViewModelOutsideComposable",
         severity = Severity.Warning,
@@ -43,6 +45,7 @@ public class KoinViewModelOutsideComposable(config: Config = Config.empty) : Rul
 
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "koinViewModel") return
+        if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
 
         val containingFunction = expression.getStrictParentOfType<KtNamedFunction>()
 

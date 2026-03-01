@@ -173,4 +173,18 @@ class MissingScopeCloseTest {
         val findings = MissingScopeClose(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when createScope is imported from non-Koin package`() {
+        val code = """
+            import com.other.scope.createScope
+
+            class Manager {
+                val scope = db.createScope("id")
+            }
+        """.trimIndent()
+
+        val findings = MissingScopeClose(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

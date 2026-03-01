@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -41,7 +43,7 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
  * }
  * </compliant>
  */
-public class ExcessiveCreatedAtStart(config: Config = Config.empty) : Rule(config) {
+internal class ExcessiveCreatedAtStart(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "ExcessiveCreatedAtStart",
         severity = Severity.Warning,
@@ -55,6 +57,7 @@ public class ExcessiveCreatedAtStart(config: Config = Config.empty) : Rule(confi
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
+        if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
 
         // Only process module {} calls
         if (callName != "module") return

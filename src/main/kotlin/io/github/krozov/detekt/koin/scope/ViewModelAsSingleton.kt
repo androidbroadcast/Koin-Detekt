@@ -1,17 +1,17 @@
 package io.github.krozov.detekt.koin.scope
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class ViewModelAsSingleton(config: Config) : Rule(config) {
+internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "ViewModelAsSingleton",
@@ -26,6 +26,10 @@ internal class ViewModelAsSingleton(config: Config) : Rule(config) {
 
         val callName = expression.getCallNameExpression()?.text ?: return
         if (callName !in setOf("single", "singleOf")) return
+        // Guard: skip if the name resolves to a confirmed non-Koin FQN.
+        // Use resolveFqn directly since org.koin.core.module.dsl is not in KOIN_PACKAGES.
+        val fqns = importContext.resolveFqn(callName)
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
 
         // Get type reference from lambda body or constructor reference
         val isViewModel = when {
