@@ -217,4 +217,82 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).hasSize(3)
         }
     }
+
+    @Nested
+    inner class ConstructorVariants {
+
+        private val config = TestConfig(
+            "checkAllTypes" to false,
+            "lazyTypes" to listOf("DatabaseClient")
+        )
+
+        @Test
+        fun `does not flag secondary constructor parameter`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo {
+                    constructor(db: DatabaseClient)
+                }
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag class with no constructor parameters`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo()
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag vararg parameter`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(vararg val dbs: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag function type parameter`() {
+            val functionTypeConfig = TestConfig("checkAllTypes" to true)
+
+            val findings = PreferLazyConstructorInjection(functionTypeConfig).lint("""
+                class MyRepo(private val factory: () -> DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag List of matching type`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val dbs: List<DatabaseClient>)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags primary constructor when secondary constructor also exists`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient) {
+                    constructor() : this(DatabaseClient())
+                }
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `flags parameter with default value`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient = DatabaseClient())
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+    }
 }
