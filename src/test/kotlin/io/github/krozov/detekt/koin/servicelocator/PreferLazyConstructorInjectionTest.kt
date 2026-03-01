@@ -353,4 +353,95 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).isEmpty()
         }
     }
+
+    @Nested
+    inner class FqnMatching {
+
+        @Test
+        fun `flags when import resolves type to configured FQN`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.example.db.DatabaseClient
+
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `does not flag when import resolves to different package`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.other.DatabaseClient
+
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags when type is written as FQN in constructor`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: com.example.db.DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `falls back to short name match when star import is used`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.example.db.*
+
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `short-name entry in lazyTypes matches unqualified type without import`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `FQN entry in excludeTypes blocks match resolved via import`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.DatabaseClient"),
+                "excludeTypes" to listOf("com.example.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.example.DatabaseClient
+
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+    }
 }
