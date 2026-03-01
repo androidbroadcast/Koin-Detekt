@@ -21,6 +21,9 @@ internal class FileImportContext private constructor(
     val filePackage: String,
 ) {
 
+    /** Returns `true` if the file contains at least one star import (from any package). */
+    val hasAnyStarImport: Boolean get() = starPackages.isNotEmpty()
+
     /**
      * Returns all candidate FQNs for [name].
      *
