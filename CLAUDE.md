@@ -14,8 +14,16 @@ ast-index usages "KoinAnnotationConstants"
 ast-index update                          # run after every git pull
 ```
 
-After cloning / first session: `ast-index rebuild` (requires sudo-free cache write).
-After `git pull`: always run `ast-index update` to keep the index fresh.
+Run `ast-index update` whenever the working tree changes significantly:
+
+| Trigger | Command |
+|---|---|
+| First session / after clone | `ast-index rebuild` |
+| `git pull` | `ast-index update` |
+| `git checkout <branch>` | `ast-index update` |
+| After rebase / merge | `ast-index update` |
+| After `git stash pop` | `ast-index update` |
+| Added/deleted many files | `ast-index update` |
 
 ## Commands
 
