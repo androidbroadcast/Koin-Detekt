@@ -1901,3 +1901,51 @@ KoinWorkerOnNonWorker:
 - ✅ Only checks classes annotated with `@KoinWorker`
 
 ---
+
+### ComponentScanPackageMismatch
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Module` classes with `@ComponentScan` pointing to an unrelated package.
+
+When `@ComponentScan("com.some.package")` specifies a package unrelated to the module's own package
+(neither an ancestor nor descendant), Koin Annotations scans the wrong package — potentially missing
+intended components or picking up unrelated ones. An empty `@ComponentScan("")` is also flagged
+as it scans nothing or the entire classpath root.
+
+**Bad:**
+```kotlin
+package com.example.feature
+
+@Module
+@ComponentScan("com.other.module")  // unrelated — wrong components scanned
+class FeatureModule
+
+@Module
+@ComponentScan("")  // empty — scans nothing useful
+class AnotherModule
+```
+
+**Good:**
+```kotlin
+package com.example.feature
+
+@Module
+@ComponentScan("com.example.feature")  // matches own package
+class FeatureModule
+
+@Module
+@ComponentScan  // no arg — scans current package, recommended
+class FeatureModule
+```
+
+**Edge Cases:**
+- Reports `@ComponentScan("")` (empty string)
+- Reports package unrelated to the module's package (neither ancestor nor descendant)
+- Allows `@ComponentScan` with no arguments (scans current package)
+- Allows when scan package is an ancestor of the module package
+- Allows when scan package is a descendant of the module package
+- Only triggers when `@Module` is also present
+
+---
