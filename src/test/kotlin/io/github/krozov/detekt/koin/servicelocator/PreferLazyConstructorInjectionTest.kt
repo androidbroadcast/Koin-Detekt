@@ -180,4 +180,41 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).isEmpty()
         }
     }
+
+    @Nested
+    inner class CheckAllTypes {
+
+        private val config = TestConfig("checkAllTypes" to true)
+
+        @Test
+        fun `flags any parameter type when checkAllTypes is true`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `does not flag Lazy type even with checkAllTypes true`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: Lazy<DatabaseClient>)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags all parameters when checkAllTypes is true`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(
+                    private val db: DatabaseClient,
+                    private val api: HttpClient,
+                    private val logger: Logger
+                )
+            """.trimIndent())
+
+            assertThat(findings).hasSize(3)
+        }
+    }
 }
