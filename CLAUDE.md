@@ -46,8 +46,9 @@ Rule set ID: `KoinRuleSet`
 1. Create `src/main/kotlin/io/github/krozov/detekt/koin/<category>/YourRule.kt`
 2. Register in `KoinRuleSetProvider.kt` — add `YourRule(config)` to the list
 3. Add default config to `src/main/resources/config/config.yml`
-4. Write tests in `src/test/kotlin/io/github/krozov/detekt/koin/<category>/YourRuleTest.kt`
-5. Document in `docs/rules.md`
+4. Add entry to `config/detekt-koin-all-rules.yml` ← **often forgotten, also required**
+5. Write tests in `src/test/kotlin/io/github/krozov/detekt/koin/<category>/YourRuleTest.kt`
+6. Document in `docs/rules.md`
 
 Rule skeleton:
 ```kotlin
@@ -134,8 +135,33 @@ MyRule:
 
 Do **not** use `by config()` delegate for new parameters — it bypasses the deprecation mechanism.
 
+## Rule Quality Checklist
+
+Before implementing a rule, verify its premise:
+
+1. **Verify the Koin behaviour** against official docs or source — not assumptions. Several rule ideas were rejected because the described problem doesn't actually occur:
+   - `@Scoped` supports `binds=` exactly like `@Single` and `@Factory`
+   - KSP ignores un-annotated nested classes — no "confusion" occurs
+   - `@ComponentScan` takes `vararg String`, not a single value
+
+2. **No false positives > no analysis.** A rule that fires on correct code is worse than no rule at all.
+
+3. **Package matching** — `startsWith` is substring-unsafe. Always use:
+   ```kotlin
+   pkg == other || pkg.startsWith("$other.") || other.startsWith("$pkg.")
+   ```
+
+4. **Short-name annotation matching** is a known limitation. Generic names (`Qualifier`, `Module`, `Inject`) collide with non-Koin libraries. Document known false-positive risk in tests.
+
+5. **Tests must cover:**
+   - The primary detection case
+   - At least one negative case (should not report)
+   - Edge cases relevant to the detection logic (vararg, companion objects, etc.)
+
 ## Gotchas
 
 - `detekt/` directory is a copy of upstream detekt — don't modify it for this project
 - Coverage is enforced — adding rules requires tests with sufficient coverage
-- Rule must be added to **both** `KoinRuleSetProvider.kt` and the default config YAML
+- Rule must be added to **both** `KoinRuleSetProvider.kt` **and both config YAMLs**:
+  - `src/main/resources/config/config.yml` (default, bundled)
+  - `config/detekt-koin-all-rules.yml` (user-facing reference config)
