@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 51 Detekt rules for Koin.
+Complete reference for all 57 Detekt rules for Koin.
 
 ---
 
@@ -1899,5 +1899,43 @@ KoinWorkerOnNonWorker:
 - ✅ Allows classes whose name ends with `"Worker"` (heuristic)
 - ✅ Allows classes in `additionalWorkerSuperTypes`
 - ✅ Only checks classes annotated with `@KoinWorker`
+
+---
+
+### ScopedBindsHasNoEffect
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Scoped(binds = [...])` which has no effect.
+
+Unlike `@Single` and `@Factory`, the `@Scoped` annotation does not support the `binds` parameter.
+Koin Annotations silently ignores `binds=` on `@Scoped` — the binding is never registered at runtime.
+This creates a silent no-op bug that's hard to diagnose.
+
+❌ **Bad:**
+```kotlin
+interface MyInterface
+
+@Scoped(binds = [MyInterface::class])
+class MyService : MyInterface
+// binds= is silently ignored — MyInterface is NOT bound
+```
+
+✅ **Good:**
+```kotlin
+// Option 1: Use @Single if you need interface binding
+@Single(binds = [MyInterface::class])
+class MyService : MyInterface
+
+// Option 2: Use @Scoped without binds (binds to own class only)
+@Scoped
+class MyService : MyInterface
+```
+
+**Edge Cases:**
+- ✅ Reports `@Scoped(binds = [...])` regardless of how many types are listed
+- ✅ Does not report `@Scoped` without the `binds` parameter
+- ✅ Does not report `@Single(binds = [...])` or `@Factory(binds = [...])`
 
 ---

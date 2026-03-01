@@ -65,6 +65,7 @@ import io.github.krozov.detekt.koin.annotations.KoinViewModelOnNonViewModel
 import io.github.krozov.detekt.koin.annotations.MissingKoinStopInTest
 import io.github.krozov.detekt.koin.annotations.InjectedParamAnnotationOrder
 import io.github.krozov.detekt.koin.annotations.KoinWorkerOnNonWorker
+import io.github.krozov.detekt.koin.annotations.ScopedBindsHasNoEffect
 
 public class KoinRuleSetProvider : RuleSetProvider {
 
@@ -139,7 +140,8 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 KoinViewModelOnNonViewModel(config),
                 MissingKoinStopInTest(config),
                 InjectedParamAnnotationOrder(config),
-                KoinWorkerOnNonWorker(config)
+                KoinWorkerOnNonWorker(config),
+                ScopedBindsHasNoEffect(config)
             )
         )
     }
