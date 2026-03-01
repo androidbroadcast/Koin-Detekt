@@ -11,6 +11,14 @@ import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 
+/**
+ * Detects constructor parameters whose type should be wrapped in `Lazy<T>` for deferred resolution.
+ *
+ * **Known limitation — star imports:** When a FQN entry (e.g. `com.example.Foo`) is configured and
+ * the file uses a star import (`import com.example.*`), type resolution falls back to short-name
+ * matching. This may produce false positives if another package also exports a class with the same
+ * simple name.
+ */
 internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
 
     override val issue: Issue = Issue(
@@ -85,10 +93,14 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
         return lazyTypes.any { entry -> matchesEntry(entry, fqn, shortName) }
     }
 
-    private fun matchesEntry(entry: String, fqn: String?, shortName: String): Boolean =
-        if (entry.contains('.')) {
-            fqn == entry || (fqn == null && shortName == entry.substringAfterLast('.'))
+    private fun matchesEntry(entry: String, fqn: String?, shortName: String): Boolean {
+        val baseShortName = shortName.substringBefore("<")
+        val normalizedFqn = fqn?.substringBefore("<")
+        return if (entry.contains('.')) {
+            val entryShortName = entry.substringAfterLast('.')
+            normalizedFqn == entry || (normalizedFqn == null && (shortName == entryShortName || baseShortName == entryShortName))
         } else {
-            shortName == entry
+            shortName == entry || baseShortName == entry
         }
+    }
 }

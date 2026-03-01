@@ -38,6 +38,12 @@ koin-rules:
   NoKoinGetInApplication:
     active: true
 
+  PreferLazyConstructorInjection:
+    active: false
+    checkAllTypes: false
+    lazyTypes: []
+    excludeTypes: []
+
   # Module DSL Rules
   EmptyModule:
     active: true

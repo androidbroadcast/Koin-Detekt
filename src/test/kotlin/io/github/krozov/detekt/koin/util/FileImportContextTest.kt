@@ -1,0 +1,204 @@
+package io.github.krozov.detekt.koin.util
+
+import io.github.detekt.test.utils.compileContentForTest
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+
+class FileImportContextTest {
+
+    @Nested
+    inner class ExactImports {
+        @Test
+        fun `resolves koin exact import`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("Single"))
+                .containsExactly("org.koin.core.annotation.Single")
+        }
+
+        @Test
+        fun `resolves non-koin exact import`() {
+            val ctx = ctx("""
+                package com.example
+                import javax.inject.Single
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("Single"))
+                .containsExactly("javax.inject.Single")
+        }
+
+        @Test
+        fun `returns empty when name not imported`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Factory
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("Single")).isEmpty()
+        }
+    }
+
+    @Nested
+    inner class AliasImports {
+        @Test
+        fun `resolves alias to original FQN`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single as KoinSingle
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("KoinSingle"))
+                .containsExactly("org.koin.core.annotation.Single")
+        }
+
+        @Test
+        fun `original name no longer resolves when aliased`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single as KoinSingle
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("Single")).isEmpty()
+        }
+    }
+
+    @Nested
+    inner class FqnInName {
+        @Test
+        fun `FQN passed directly is returned as-is`() {
+            val ctx = ctx("package com.example\nclass Foo")
+            assertThat(ctx.resolveFqn("org.koin.core.annotation.Single"))
+                .containsExactly("org.koin.core.annotation.Single")
+        }
+    }
+
+    @Nested
+    inner class EmptyFile {
+        @Test
+        fun `empty file returns empty set`() {
+            val ctx = ctx("")
+            assertThat(ctx.resolveFqn("Single")).isEmpty()
+        }
+
+        @Test
+        fun `empty file has empty filePackage`() {
+            val ctx = ctx("")
+            assertThat(ctx.filePackage).isEmpty()
+        }
+
+        @Test
+        fun `empty name returns empty set`() {
+            val ctx = ctx("package com.example\nclass Foo")
+            assertThat(ctx.resolveFqn("")).isEmpty()
+        }
+    }
+
+    @Nested
+    inner class SamePackage {
+        @Test
+        fun `includes same-package candidate when no import found`() {
+            val ctx = ctx("""
+                package org.koin.core.annotation
+                class Foo
+            """)
+            assertThat(ctx.resolveFqn("Single"))
+                .contains("org.koin.core.annotation.Single")
+        }
+
+        @Test
+        fun `exact import wins over same-package`() {
+            val ctx = ctx("""
+                package org.koin.core.annotation
+                import javax.inject.Single
+                class Foo
+            """)
+            // exact import takes priority — only javax result
+            assertThat(ctx.resolveFqn("Single"))
+                .containsExactly("javax.inject.Single")
+        }
+    }
+
+    @Nested
+    inner class StarImports {
+        @Test
+        fun `detects koin star import`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin.core.annotation")).isTrue()
+        }
+
+        @Test
+        fun `does not detect non-koin star as koin star`() {
+            val ctx = ctx("""
+                package com.example
+                import javax.inject.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin")).isFalse()
+        }
+
+        @Test
+        fun `detects koin star with sub-package prefix`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                class Foo
+            """)
+            // querying parent prefix also matches
+            assertThat(ctx.hasStarImportFrom("org.koin")).isTrue()
+        }
+
+        @Test
+        fun `exact import wins over star import for same name`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                import javax.inject.Single
+                class Foo
+            """)
+            // exact takes priority in resolveFqn
+            assertThat(ctx.resolveFqn("Single"))
+                .containsExactly("javax.inject.Single")
+        }
+
+        @Test
+        fun `two star imports both present in hasStarImportFrom`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                import javax.inject.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin.core.annotation")).isTrue()
+            assertThat(ctx.hasStarImportFrom("javax.inject")).isTrue()
+        }
+    }
+
+    @Nested
+    inner class EmptySentinel {
+        @Test
+        fun `EMPTY sentinel returns empty set`() {
+            assertThat(FileImportContext.EMPTY.resolveFqn("Single")).isEmpty()
+        }
+
+        @Test
+        fun `EMPTY sentinel filePackage is empty`() {
+            assertThat(FileImportContext.EMPTY.filePackage).isEmpty()
+        }
+
+        @Test
+        fun `EMPTY sentinel hasStarImportFrom returns false`() {
+            assertThat(FileImportContext.EMPTY.hasStarImportFrom("org.koin")).isFalse()
+        }
+    }
+
+    // --- helpers ---
+    private fun ctx(code: String) = FileImportContext(compileContentForTest(code.trimIndent()))
+}

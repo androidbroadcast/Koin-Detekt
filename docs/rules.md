@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 57 Detekt rules for Koin.
+Complete reference for all 58 Detekt rules for Koin.
 
 ---
 
@@ -138,6 +138,42 @@ startKoin {
 - ✅ Detects with parameters: `inject { parametersOf("param") }`
 - ✅ Detects in nested lambdas inside startKoin
 - ✅ Does not report `get()` in module definitions passed to `modules()`
+
+---
+
+### PreferLazyConstructorInjection
+
+**Severity:** Warning
+**Active by default:** No
+**Configurable:** Yes
+
+Detects constructor parameters whose type should be wrapped in `Lazy<T>` for deferred resolution. Koin resolves `Lazy<T>` natively — for Koin Annotations, changing the parameter type is sufficient; for Koin DSL, the compiler will guide updating `get()` to `inject()`.
+
+❌ **Bad:**
+```kotlin
+class MyViewModel(private val repo: HeavyRepository) : ViewModel()
+```
+
+✅ **Good:**
+```kotlin
+class MyViewModel(private val repo: Lazy<HeavyRepository>) : ViewModel()
+```
+
+**Configuration:**
+```yaml
+PreferLazyConstructorInjection:
+  active: false
+  checkAllTypes: false   # when true, all injected types must be Lazy<T>
+  lazyTypes: []          # explicit list of types that must be wrapped in Lazy<T>
+  excludeTypes: []       # types exempt from the rule even when checkAllTypes is true
+```
+
+**Edge Cases:**
+- ✅ `checkAllTypes: true` flags every non-lazy primary-constructor parameter, regardless of whether the class is Koin-injected
+- ✅ `lazyTypes` allowlist takes effect when `checkAllTypes` is false
+- ✅ `excludeTypes` always takes precedence over both `checkAllTypes` and `lazyTypes`
+- ✅ Already-lazy parameters (`Lazy<T>`) are never reported
+- ✅ Supports both simple names and fully-qualified type names in config lists
 
 ---
 

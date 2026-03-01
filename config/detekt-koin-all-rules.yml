@@ -48,6 +48,14 @@ koin-rules:
   NoKoinGetInApplication:
     active: true
 
+  # Detects constructor parameters whose type should be wrapped in Lazy<T> for deferred resolution.
+  # Inactive by default — project-specific opt-in rule.
+  PreferLazyConstructorInjection:
+    active: false
+    checkAllTypes: false
+    lazyTypes: []
+    excludeTypes: []
+
   # ---------------------------------------------------------------------------
   # Module DSL
   # ---------------------------------------------------------------------------
