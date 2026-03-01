@@ -241,4 +241,20 @@ class KoinInjectInPreviewTest {
         val findings = KoinInjectInPreview(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report koinInject imported from non-Koin package in Preview`() {
+        val code = """
+            import com.example.inject.koinInject
+
+            @Preview
+            @Composable
+            fun MyScreenPreview() {
+                val repository = koinInject<Repository>()
+            }
+        """.trimIndent()
+
+        val findings = KoinInjectInPreview(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

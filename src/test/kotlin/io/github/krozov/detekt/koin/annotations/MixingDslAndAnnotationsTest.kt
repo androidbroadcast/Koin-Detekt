@@ -103,7 +103,7 @@ class MixingDslAndAnnotationsTest {
     @Test
     fun `reports mixing DSL with KoinViewModel annotation`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
             import org.koin.dsl.module
 
             @KoinViewModel
@@ -116,6 +116,22 @@ class MixingDslAndAnnotationsTest {
 
         val findings = MixingDslAndAnnotations(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `should not report when module call is from non-Koin package`() {
+        val findings = MixingDslAndAnnotations(Config.empty).lint("""
+            import com.other.module
+            import org.koin.core.annotation.Module
+
+            @Module
+            class AnnotatedModule
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent())
+        assertThat(findings).isEmpty()
     }
 
     @Test

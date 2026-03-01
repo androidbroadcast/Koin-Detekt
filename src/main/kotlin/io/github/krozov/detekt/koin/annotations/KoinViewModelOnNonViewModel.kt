@@ -1,12 +1,13 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
 import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -30,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class MyViewModel : ViewModel()  // ✓ Correct base class
  * </compliant>
  */
-public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(config) {
+internal class KoinViewModelOnNonViewModel(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "KoinViewModelOnNonViewModel",
         severity = Severity.Warning,
@@ -44,8 +45,7 @@ public class KoinViewModelOnNonViewModel(config: Config = Config.empty) : Rule(c
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val hasKoinViewModelAnnotation = klass.annotationEntries
-            .any { it.shortName?.asString() == "KoinViewModel" }
+        val hasKoinViewModelAnnotation = klass.hasKoinAnnotationFrom(importContext, setOf("KoinViewModel"))
         if (!hasKoinViewModelAnnotation) return
 
         val superTypeNames = klass.superTypeListEntries

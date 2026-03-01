@@ -1,11 +1,11 @@
 package io.github.krozov.detekt.koin.platform
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
  * }
  * </compliant>
  */
-public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
+internal class StartKoinInActivity(config: Config = Config.empty) : ImportAwareRule(config) {
     private val activityTypes = setOf(
         "Activity", "AppCompatActivity", "FragmentActivity", "ComponentActivity"
     )
@@ -60,6 +60,9 @@ public class StartKoinInActivity(config: Config = Config.empty) : Rule(config) {
 
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "startKoin") return
+        // startKoin is from org.koin.core.context — skip if imported from elsewhere
+        val fqns = importContext.resolveFqn(callName)
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         val containingClass = expression.parents.filterIsInstance<KtClass>().firstOrNull()
 

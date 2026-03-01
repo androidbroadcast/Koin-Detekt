@@ -184,7 +184,7 @@ class MissingModuleAnnotationTest {
     fun `allows Module with ActivityScope provider function`() {
         val code = """
             import org.koin.core.annotation.Module
-            import org.koin.android.annotation.ActivityScope
+            import org.koin.core.annotation.ActivityScope
             import androidx.activity.ComponentActivity
             import androidx.metrics.performance.JankStats
 
@@ -204,7 +204,7 @@ class MissingModuleAnnotationTest {
     fun `allows Module with FragmentScope provider function`() {
         val code = """
             import org.koin.core.annotation.Module
-            import org.koin.android.annotation.FragmentScope
+            import org.koin.core.annotation.FragmentScope
 
             @Module
             class FragmentModule {
@@ -237,7 +237,7 @@ class MissingModuleAnnotationTest {
         val code = """
             import org.koin.core.annotation.Module
             import org.koin.core.annotation.Configuration
-            import org.koin.android.annotation.ActivityScope
+            import org.koin.core.annotation.ActivityScope
             import androidx.activity.ComponentActivity
             import androidx.metrics.performance.JankStats
 
@@ -247,6 +247,23 @@ class MissingModuleAnnotationTest {
                 @ActivityScope
                 fun jankStats(activity: ComponentActivity): JankStats =
                     JankStats.createAndTrack(activity.window) {}
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `should not report when Module annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Module
+            import com.other.Single
+
+            @Module
+            class MyServices {
+                @Single
+                fun provideRepo(): Repository = RepositoryImpl()
             }
         """.trimIndent()
 

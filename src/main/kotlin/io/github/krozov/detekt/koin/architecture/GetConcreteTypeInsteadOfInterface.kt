@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.architecture
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -53,7 +55,7 @@ import org.jetbrains.kotlin.psi.KtTypeArgumentList
  * }
  * </compliant>
  */
-public class GetConcreteTypeInsteadOfInterface(config: Config = Config.empty) : Rule(config) {
+internal class GetConcreteTypeInsteadOfInterface(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "GetConcreteTypeInsteadOfInterface",
         severity = Severity.Warning,
@@ -98,6 +100,7 @@ public class GetConcreteTypeInsteadOfInterface(config: Config = Config.empty) : 
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
+        if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
 
         // Track single/factory/scoped definitions
         if (callName in setOf("single", "factory", "scoped")) {

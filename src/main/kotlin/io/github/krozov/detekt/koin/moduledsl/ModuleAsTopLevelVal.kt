@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -33,7 +35,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  * }
  * </compliant>
  */
-public class ModuleAsTopLevelVal(config: Config = Config.empty) : Rule(config) {
+internal class ModuleAsTopLevelVal(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "ModuleAsTopLevelVal",
         severity = Severity.CodeSmell,
@@ -51,6 +53,7 @@ public class ModuleAsTopLevelVal(config: Config = Config.empty) : Rule(config) {
         // Check if initializer is module { }
         val initializer = property.initializer as? KtCallExpression ?: return
         if (initializer.calleeExpression?.text != "module") return
+        if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) return
 
         report(
             CodeSmell(

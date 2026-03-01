@@ -819,4 +819,19 @@ class MissingScopedDependencyQualifierTest {
         val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when module is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+
+            val m = module {
+                single { HttpClient() }
+                single { HttpClient() }
+            }
+        """.trimIndent()
+
+        val findings = MissingScopedDependencyQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

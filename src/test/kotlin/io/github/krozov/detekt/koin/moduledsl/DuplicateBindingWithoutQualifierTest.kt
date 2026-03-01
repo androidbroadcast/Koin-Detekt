@@ -92,4 +92,18 @@ class DuplicateBindingWithoutQualifierTest {
         val findings = DuplicateBindingWithoutQualifier(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report single bind without duplicate regardless of module import`() {
+        val code = """
+            import com.other.dsl.module
+
+            val m = module {
+                single { A() } bind Foo::class
+            }
+        """.trimIndent()
+
+        val findings = DuplicateBindingWithoutQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

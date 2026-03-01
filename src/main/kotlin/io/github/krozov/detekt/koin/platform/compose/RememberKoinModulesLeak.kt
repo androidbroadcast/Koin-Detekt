@@ -1,11 +1,11 @@
 package io.github.krozov.detekt.koin.platform.compose
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
  * }
  * </compliant>
  */
-public class RememberKoinModulesLeak(config: Config = Config.empty) : Rule(config) {
+internal class RememberKoinModulesLeak(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "RememberKoinModulesLeak",
         severity = Severity.Warning,
@@ -47,6 +47,9 @@ public class RememberKoinModulesLeak(config: Config = Config.empty) : Rule(confi
 
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "loadKoinModules") return
+        // loadKoinModules lives in org.koin.core.context which is not in KOIN_PACKAGES.
+        val fqns = importContext.resolveFqn(callName)
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Check if inside remember {} lambda
         val parentLambda = expression.getStrictParentOfType<KtLambdaExpression>() ?: return

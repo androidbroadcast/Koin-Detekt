@@ -277,4 +277,21 @@ class NoKoinGetInApplicationTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report get() imported from non-Koin package inside startKoin-named block`() {
+        val code = """
+            import com.example.config.startKoin
+            import com.example.cache.get
+
+            fun main() {
+                startKoin {
+                    val value = get("key")
+                }
+            }
+        """.trimIndent()
+
+        val findings = NoKoinGetInApplication(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

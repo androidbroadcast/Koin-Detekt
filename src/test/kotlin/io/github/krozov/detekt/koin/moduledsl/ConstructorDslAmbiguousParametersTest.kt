@@ -129,4 +129,16 @@ class ConstructorDslAmbiguousParametersTest {
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("ambiguous")
     }
+
+    @Test
+    fun `does not report factoryOf when class is not found in file`() {
+        val code = """
+            import org.koin.core.module.dsl.factoryOf
+
+            val m = factoryOf(::ExternalService)
+        """.trimIndent()
+
+        val findings = ConstructorDslAmbiguousParameters(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

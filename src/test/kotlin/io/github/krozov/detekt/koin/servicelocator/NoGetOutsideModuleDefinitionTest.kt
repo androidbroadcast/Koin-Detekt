@@ -250,4 +250,18 @@ class NoGetOutsideModuleDefinitionTest {
         val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report get() imported from non-Koin package`() {
+        val code = """
+            import com.example.cache.get
+
+            class MyRepository {
+                val value = get("key")
+            }
+        """.trimIndent()
+
+        val findings = NoGetOutsideModuleDefinition(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

@@ -1,16 +1,18 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 
-internal class EnumQualifierCollision(config: Config) : Rule(config) {
+internal class EnumQualifierCollision(config: Config) : ImportAwareRule(config) {
 
     override val issue = Issue(
         id = "EnumQualifierCollision",
@@ -28,16 +30,22 @@ internal class EnumQualifierCollision(config: Config) : Rule(config) {
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
-        super.visitCallExpression(expression)
-
-        // Reset tracking when entering a new module
+        // Reset tracking BEFORE visiting module children so state from a previous module
+        // does not leak into the next module block in the same file.
         if (expression.calleeExpression?.text == "module") {
-            enumQualifiersInModule.clear()
+            if (importContext.resolveKoin("module") != Resolution.NOT_KOIN) {
+                enumQualifiersInModule.clear()
+            }
+            super.visitCallExpression(expression)
+            return
         }
+
+        super.visitCallExpression(expression)
 
         // Check for Koin definition calls with named() qualifiers
         val calleeName = expression.calleeExpression?.text ?: return
         if (calleeName !in setOf("single", "factory", "scoped", "viewModel", "worker")) return
+        if (importContext.resolveKoin(calleeName) == Resolution.NOT_KOIN) return
 
         // Look for named(EnumType.VALUE) patterns in arguments
         expression.valueArguments.forEach { arg ->

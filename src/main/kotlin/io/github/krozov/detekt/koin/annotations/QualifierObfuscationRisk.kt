@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassLiteralExpression
@@ -29,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtClassLiteralExpression
  * class MyService
  * </compliant>
  */
-public class QualifierObfuscationRisk(config: Config = Config.empty) : Rule(config) {
+internal class QualifierObfuscationRisk(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "QualifierObfuscationRisk",
         severity = Severity.Warning,
@@ -40,7 +42,9 @@ public class QualifierObfuscationRisk(config: Config = Config.empty) : Rule(conf
     override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
         super.visitAnnotationEntry(annotationEntry)
 
-        if (annotationEntry.shortName?.asString() != "Qualifier") return
+        val name = annotationEntry.shortName?.asString() ?: return
+        if (name != "Qualifier") return
+        if (importContext.resolveKoin(name) == Resolution.NOT_KOIN) return
 
         val classRef = annotationEntry.valueArgumentList?.arguments
             ?.firstOrNull { it.getArgumentExpression() is KtClassLiteralExpression }

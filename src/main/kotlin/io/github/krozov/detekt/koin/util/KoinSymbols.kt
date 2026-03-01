@@ -16,11 +16,16 @@ internal object KoinSymbols {
 
     val KOIN_PACKAGES: Set<String> = setOf(
         "org.koin.core.annotation",
-        "org.koin.dsl",
         "org.koin.core.component",
+        "org.koin.core.context",
+        "org.koin.core.module.dsl",
+        "org.koin.dsl",
         "org.koin.android.ext.android",
-        "org.koin.androidx.viewmodel.ext.android",
+        "org.koin.android.ext.koin",
         "org.koin.androidx.compose",
+        "org.koin.androidx.scope",
+        "org.koin.androidx.viewmodel.dsl",
+        "org.koin.androidx.viewmodel.ext.android",
         "org.koin.ktor.ext",
     )
 

@@ -274,6 +274,21 @@ class KtorRequestScopeMisuseTest {
     }
 
     @Test
+    fun `does not report when requestScope and single are imported from non-Koin package`() {
+        val code = """
+            import com.other.ktor.requestScope
+            import com.other.dsl.single
+
+            val myModule = requestScope {
+                single { Logger() }
+            }
+        """.trimIndent()
+
+        val findings = KtorRequestScopeMisuse(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `handles mixed valid and invalid definitions`() {
         val code = """
             import org.koin.dsl.module

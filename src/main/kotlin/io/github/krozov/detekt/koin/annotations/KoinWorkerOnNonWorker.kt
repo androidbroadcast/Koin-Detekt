@@ -1,12 +1,13 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
 import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -28,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class MyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params)
  * </compliant>
  */
-public class KoinWorkerOnNonWorker(config: Config = Config.empty) : Rule(config) {
+internal class KoinWorkerOnNonWorker(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "KoinWorkerOnNonWorker",
         severity = Severity.Warning,
@@ -42,8 +43,7 @@ public class KoinWorkerOnNonWorker(config: Config = Config.empty) : Rule(config)
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val hasKoinWorkerAnnotation = klass.annotationEntries
-            .any { it.shortName?.asString() == "KoinWorker" }
+        val hasKoinWorkerAnnotation = klass.hasKoinAnnotationFrom(importContext, setOf("KoinWorker"))
         if (!hasKoinWorkerAnnotation) return
 
         val superTypeNames = klass.superTypeListEntries

@@ -1,11 +1,12 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -64,7 +65,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class MyService
  * </compliant>
  */
-public class AnnotationProcessorNotConfigured(config: Config = Config.empty) : Rule(config) {
+internal class AnnotationProcessorNotConfigured(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "AnnotationProcessorNotConfigured",
         severity = Severity.Minor,
@@ -79,8 +80,7 @@ public class AnnotationProcessorNotConfigured(config: Config = Config.empty) : R
 
         if (skipCheck) return
 
-        val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        if (annotations.any { it in KoinAnnotationConstants.ALL_ANNOTATIONS }) {
+        if (klass.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.ALL_ANNOTATIONS)) {
             report(
                 CodeSmell(
                     issue,

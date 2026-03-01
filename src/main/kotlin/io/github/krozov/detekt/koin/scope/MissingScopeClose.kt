@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.scope
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -16,7 +18,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class MissingScopeClose(config: Config) : Rule(config) {
+internal class MissingScopeClose(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "MissingScopeClose",
@@ -83,6 +85,7 @@ internal class MissingScopeClose(config: Config) : Rule(config) {
 
         when (callName) {
             "createScope", "getOrCreateScope" -> {
+                if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
                 containingClass?.let { classesWithScopeCreation.add(it) }
             }
             "close" -> {

@@ -1,11 +1,12 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtParameter
@@ -31,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtParameter
  * )
  * </compliant>
  */
-public class InjectedParamAnnotationOrder(config: Config = Config.empty) : Rule(config) {
+internal class InjectedParamAnnotationOrder(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "InjectedParamAnnotationOrder",
         severity = Severity.Warning,
@@ -42,9 +43,7 @@ public class InjectedParamAnnotationOrder(config: Config = Config.empty) : Rule(
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val hasKoinAnnotation = klass.annotationEntries
-            .any { it.shortName?.asString() in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
-        if (!hasKoinAnnotation) return
+        if (!klass.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)) return
 
         klass.primaryConstructor?.valueParameters?.forEach { param ->
             checkParameter(param)

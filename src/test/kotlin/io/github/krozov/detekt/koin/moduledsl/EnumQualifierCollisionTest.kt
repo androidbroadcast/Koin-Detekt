@@ -98,4 +98,22 @@ class EnumQualifierCollisionTest {
         val findings = EnumQualifierCollision(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when single is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.single
+
+            enum class Type1 { VALUE }
+            enum class Type2 { VALUE }
+
+            val m = listOf(
+                single(named(Type1.VALUE)) { ServiceA() },
+                single(named(Type2.VALUE)) { ServiceB() }
+            )
+        """.trimIndent()
+
+        val findings = EnumQualifierCollision(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

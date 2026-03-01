@@ -111,4 +111,19 @@ class FactoryInScopeBlockTest {
         val findings = FactoryInScopeBlock(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when factory and scope are imported from non-Koin package`() {
+        val code = """
+            import com.other.dsl.scope
+            import com.other.dsl.factory
+
+            val m = scope<MyActivity> {
+                factory { Presenter() }
+            }
+        """.trimIndent()
+
+        val findings = FactoryInScopeBlock(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

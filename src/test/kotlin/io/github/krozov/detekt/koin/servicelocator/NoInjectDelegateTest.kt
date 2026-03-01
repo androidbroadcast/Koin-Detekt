@@ -341,4 +341,18 @@ class NoInjectDelegateTest {
         val findings = NoInjectDelegate(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report inject() delegate imported from non-Koin package`() {
+        val code = """
+            import com.example.di.inject
+
+            class MyRepository {
+                val api: ApiService by inject()
+            }
+        """.trimIndent()
+
+        val findings = NoInjectDelegate(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

@@ -1,11 +1,14 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -25,7 +28,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class MyService
  * </compliant>
  */
-public class ScopedWithoutQualifier(config: Config = Config.empty) : Rule(config) {
+internal class ScopedWithoutQualifier(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "ScopedWithoutQualifier",
         severity = Severity.Warning,
@@ -40,15 +43,15 @@ public class ScopedWithoutQualifier(config: Config = Config.empty) : Rule(config
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val hasScopedAnnotation = "Scoped" in annotations
+        val hasScopedAnnotation = klass.hasKoinAnnotationFrom(importContext, setOf("Scoped"))
         if (!hasScopedAnnotation) return
 
-        val hasScopeAnnotation = annotations.any { it in scopeArchetypes }
+        val hasScopeAnnotation = klass.hasKoinAnnotationFrom(importContext, scopeArchetypes)
 
         if (!hasScopeAnnotation) {
             val scopedAnnotation = klass.annotationEntries.find {
-                it.shortName?.asString() == "Scoped"
+                it.shortName?.asString() == "Scoped" &&
+                    importContext.resolveKoin("Scoped") != Resolution.NOT_KOIN
             } ?: return
             report(
                 CodeSmell(

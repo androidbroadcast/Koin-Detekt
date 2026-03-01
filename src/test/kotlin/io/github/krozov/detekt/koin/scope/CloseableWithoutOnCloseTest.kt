@@ -100,4 +100,17 @@ class CloseableWithoutOnCloseTest {
         val findings = CloseableWithoutOnClose(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when single is imported from non-Koin package`() {
+        val code = """
+            import com.other.dsl.single
+            import java.sql.Connection
+
+            val x = single { Connection() }
+        """.trimIndent()
+
+        val findings = CloseableWithoutOnClose(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

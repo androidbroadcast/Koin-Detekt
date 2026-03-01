@@ -62,7 +62,7 @@ class SingleAnnotationOnObjectTest {
     @Test
     fun `reports KoinViewModel on object`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             object BadViewModel
@@ -81,6 +81,19 @@ class SingleAnnotationOnObjectTest {
             class MyService {
                 companion object
             }
+        """.trimIndent()
+
+        val findings = SingleAnnotationOnObject(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Single
+
+            @Single
+            object Foo
         """.trimIndent()
 
         val findings = SingleAnnotationOnObject(Config.empty).lint(code)

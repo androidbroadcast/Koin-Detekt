@@ -1,18 +1,20 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class ModuleIncludesOrganization(config: Config) : Rule(config) {
+internal class ModuleIncludesOrganization(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "ModuleIncludesOrganization",
@@ -27,6 +29,10 @@ internal class ModuleIncludesOrganization(config: Config) : Rule(config) {
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
         if (callName != "module") {
+            super.visitCallExpression(expression)
+            return
+        }
+        if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) {
             super.visitCallExpression(expression)
             return
         }

@@ -1,11 +1,11 @@
 package io.github.krozov.detekt.koin.platform.android
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
  * }
  * </compliant>
  */
-public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(config) {
+internal class AndroidContextNotFromKoin(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "AndroidContextNotFromKoin",
         severity = Severity.Warning,
@@ -55,6 +55,10 @@ public class AndroidContextNotFromKoin(config: Config = Config.empty) : Rule(con
 
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "androidContext" && callName != "androidApplication") return
+        // androidContext lives in org.koin.android.ext.koin which is not in KOIN_PACKAGES.
+        // Use resolveFqn + startsWith("org.koin.") to cover all Koin sub-packages.
+        val fqns = importContext.resolveFqn(callName)
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Check if inside a valid Koin context (startKoin or module definitions)
         var current = expression.parent

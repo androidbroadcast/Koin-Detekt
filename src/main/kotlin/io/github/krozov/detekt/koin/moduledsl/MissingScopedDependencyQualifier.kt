@@ -1,18 +1,21 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
+internal class MissingScopedDependencyQualifier(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "MissingScopedDependencyQualifier",
@@ -32,11 +35,20 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
         val expression: KtCallExpression
     )
 
+    override fun visitKtFile(file: KtFile) {
+        definitionsByModule.clear()
+        super.visitKtFile(file)
+    }
+
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
 
         // Track module definitions
         if (callName == "module") {
+            if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) {
+                super.visitCallExpression(expression)
+                return
+            }
             definitionsByModule[expression] = mutableListOf()
             super.visitCallExpression(expression)
             checkForDuplicates(expression)
@@ -45,15 +57,17 @@ internal class MissingScopedDependencyQualifier(config: Config) : Rule(config) {
 
         // Track definitions inside module
         if (callName in setOf("single", "factory", "scoped", "viewModel", "worker")) {
-            val moduleCall = findParentModule(expression)
-            if (moduleCall != null) {
-                val typeName = extractTypeName(expression)
-                val hasQualifier = hasQualifierArgument(expression)
+            if (importContext.resolveKoin(callName!!) != Resolution.NOT_KOIN) {
+                val moduleCall = findParentModule(expression)
+                if (moduleCall != null) {
+                    val typeName = extractTypeName(expression)
+                    val hasQualifier = hasQualifierArgument(expression)
 
-                if (typeName != null) {
-                    definitionsByModule[moduleCall]?.add(
-                        TypeDefinition(typeName, hasQualifier, expression)
-                    )
+                    if (typeName != null) {
+                        definitionsByModule[moduleCall]?.add(
+                            TypeDefinition(typeName, hasQualifier, expression)
+                        )
+                    }
                 }
             }
         }

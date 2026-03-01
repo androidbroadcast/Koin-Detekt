@@ -46,4 +46,18 @@ class ActivityFragmentKoinScopeTest {
         val findings = ActivityFragmentKoinScope(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report activityScope imported from non-Koin package in Fragment`() {
+        val code = """
+            import com.example.scope.activityScope
+
+            class MyFragment : Fragment() {
+                val viewModel by activityScope().get<MyViewModel>()
+            }
+        """.trimIndent()
+
+        val findings = ActivityFragmentKoinScope(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

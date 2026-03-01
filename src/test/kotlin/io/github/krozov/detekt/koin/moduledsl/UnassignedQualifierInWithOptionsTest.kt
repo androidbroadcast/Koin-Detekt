@@ -74,4 +74,16 @@ class UnassignedQualifierInWithOptionsTest {
         val findings = UnassignedQualifierInWithOptions(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when withOptions is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.withOptions
+
+            val m = something withOptions { named("x") }
+        """.trimIndent()
+
+        val findings = UnassignedQualifierInWithOptions(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

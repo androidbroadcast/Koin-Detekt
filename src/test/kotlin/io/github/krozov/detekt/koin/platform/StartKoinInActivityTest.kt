@@ -169,4 +169,21 @@ class StartKoinInActivityTest {
         val findings = StartKoinInActivity(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when startKoin is from non-Koin package`() {
+        val code = """
+            import com.other.startKoin
+
+            class MainActivity : AppCompatActivity() {
+                override fun onCreate() {
+                    startKoin { }
+                }
+            }
+        """.trimIndent()
+
+        val findings = StartKoinInActivity(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
 }

@@ -52,4 +52,19 @@ class RememberKoinModulesLeakTest {
         val findings = RememberKoinModulesLeak(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report loadKoinModules imported from non-Koin package inside remember`() {
+        val code = """
+            import com.example.modules.loadKoinModules
+
+            @Composable
+            fun FeatureScreen() {
+                remember { loadKoinModules(featureModule) }
+            }
+        """.trimIndent()
+
+        val findings = RememberKoinModulesLeak(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

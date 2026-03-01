@@ -1,11 +1,14 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -29,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * }
  * </compliant>
  */
-public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(config) {
+internal class MissingModuleAnnotation(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "MissingModuleAnnotation",
         severity = Severity.Warning,
@@ -40,14 +43,12 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val classAnnotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val hasModuleAnnotation = "Module" in classAnnotations
+        val hasModuleAnnotation = klass.hasKoinAnnotationFrom(importContext, setOf("Module"))
 
         if (!hasModuleAnnotation) {
             // Check if class has methods with Koin annotations
             val hasKoinDefinitions = klass.declarations.any { declaration ->
-                val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
+                declaration.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)
             }
 
             if (hasKoinDefinitions) {
@@ -68,18 +69,18 @@ public class MissingModuleAnnotation(config: Config = Config.empty) : Rule(confi
         }
 
         if (hasModuleAnnotation) {
-            val hasComponentScan = classAnnotations.any { it == "ComponentScan" }
+            val hasComponentScan = klass.hasKoinAnnotationFrom(importContext, setOf("ComponentScan"))
             // @Configuration signals Koin Compiler Plugin auto-discovery; module is valid as-is
-            val hasConfiguration = classAnnotations.any { it == "Configuration" }
+            val hasConfiguration = klass.hasKoinAnnotationFrom(importContext, setOf("Configuration"))
             val hasIncludes = klass.annotationEntries.any { entry ->
                 entry.shortName?.asString() == "Module" &&
+                    importContext.resolveKoin("Module") != Resolution.NOT_KOIN &&
                     entry.valueArgumentList?.arguments?.any { arg ->
                         arg.getArgumentName()?.asName?.asString() == "includes"
                     } == true
             }
             val hasKoinDefinitions = klass.declarations.any { declaration ->
-                val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-                annotations.any { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
+                declaration.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)
             }
 
             if (!hasComponentScan && !hasConfiguration && !hasIncludes && !hasKoinDefinitions) {

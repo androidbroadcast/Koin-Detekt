@@ -1,18 +1,20 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class UnassignedQualifierInWithOptions(config: Config) : Rule(config) {
+internal class UnassignedQualifierInWithOptions(config: Config) : ImportAwareRule(config) {
 
     override val issue = Issue(
         id = "UnassignedQualifierInWithOptions",
@@ -26,6 +28,7 @@ internal class UnassignedQualifierInWithOptions(config: Config) : Rule(config) {
 
         // Find "withOptions" infix calls
         if (expression.operationReference.text != "withOptions") return
+        if (importContext.resolveKoin("withOptions") == Resolution.NOT_KOIN) return
 
         // Get the lambda argument (right side of infix)
         val rightSide = expression.right as? KtLambdaExpression ?: return

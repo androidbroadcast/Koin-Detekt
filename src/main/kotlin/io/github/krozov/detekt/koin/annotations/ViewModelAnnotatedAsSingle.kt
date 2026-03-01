@@ -1,11 +1,12 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -30,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * class MyViewModel : ViewModel()
  * </compliant>
  */
-public class ViewModelAnnotatedAsSingle(config: Config = Config.empty) : Rule(config) {
+internal class ViewModelAnnotatedAsSingle(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "ViewModelAnnotatedAsSingle",
         severity = Severity.Warning,
@@ -44,8 +45,7 @@ public class ViewModelAnnotatedAsSingle(config: Config = Config.empty) : Rule(co
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val annotations = klass.annotationEntries.mapNotNull { it.shortName?.asString() }
-        val wrongAnnotation = annotations.firstOrNull { it in wrongAnnotations } ?: return
+        val wrongAnnotation = klass.firstKoinAnnotationName(importContext, wrongAnnotations) ?: return
 
         // Check supertypes for ViewModel
         val supertypes = klass.superTypeListEntries.mapNotNull { entry ->

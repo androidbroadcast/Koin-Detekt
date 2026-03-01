@@ -160,4 +160,17 @@ class InvalidNamedQualifierCharactersTest {
         val findings = InvalidNamedQualifierCharacters(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = InvalidNamedQualifierCharacters(Config.empty).lint("""
+            import com.other.Named
+            import org.koin.core.annotation.Single
+
+            @Single
+            @Named("ricky-morty")
+            class MyService
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

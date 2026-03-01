@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.servicelocator
 
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import io.gitlab.arturbosch.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -15,7 +17,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
-internal class NoInjectDelegate(config: Config) : Rule(config) {
+internal class NoInjectDelegate(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "NoInjectDelegate",
@@ -62,6 +64,7 @@ internal class NoInjectDelegate(config: Config) : Rule(config) {
         }
 
         if (callName in setOf("inject", "injectOrNull")) {
+            if (importContext.resolveKoin(callName ?: return) == Resolution.NOT_KOIN) return
             // Check if the containing class extends an allowed super type
             val containingClass = property.getStrictParentOfType<KtClassOrObject>()
             if (containingClass != null && hasAllowedSuperType(containingClass)) {

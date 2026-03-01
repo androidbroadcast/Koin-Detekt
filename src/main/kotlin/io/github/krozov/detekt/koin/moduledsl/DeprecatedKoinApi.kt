@@ -1,12 +1,12 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
-internal class DeprecatedKoinApi(config: Config) : Rule(config) {
+internal class DeprecatedKoinApi(config: Config) : ImportAwareRule(config) {
 
     override val issue: Issue = Issue(
         id = "DeprecatedKoinApi",
@@ -54,28 +54,26 @@ internal class DeprecatedKoinApi(config: Config) : Rule(config) {
         super.visitCallExpression(expression)
 
         val callName = expression.getCallNameExpression()?.text ?: return
-        val replacement = deprecations[callName]
+        val replacement = deprecations[callName] ?: return
 
-        if (replacement != null) {
-            // Skip viewModel -> viewModelOf() suggestion when lambda has named dependencies
-            if (callName == "viewModel" && hasNamedDependenciesInLambda(expression)) {
-                return
-            }
-
-            report(
-                CodeSmell(
-                    issue,
-                    Entity.from(expression),
-                    """
-                    Deprecated API '$callName' used → May be removed in future Koin versions
-                    → Migrate to '$replacement'
-
-                    ✗ Bad:  $callName()
-                    ✓ Good: $replacement
-                    """.trimIndent()
-                )
-            )
+        // Skip viewModel -> viewModelOf() suggestion when lambda has named dependencies
+        if (callName == "viewModel" && hasNamedDependenciesInLambda(expression)) {
+            return
         }
+
+        report(
+            CodeSmell(
+                issue,
+                Entity.from(expression),
+                """
+                Deprecated API '$callName' used → May be removed in future Koin versions
+                → Migrate to '$replacement'
+
+                ✗ Bad:  $callName()
+                ✓ Good: $replacement
+                """.trimIndent()
+            )
+        )
     }
 
     private val qualifierCallNames: Set<String> = setOf("named", "qualifier", "StringQualifier")

@@ -1,18 +1,20 @@
 package io.github.krozov.detekt.koin.moduledsl
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
-internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) {
+internal class GenericDefinitionWithoutQualifier(config: Config) : ImportAwareRule(config) {
 
     override val issue = Issue(
         id = "GenericDefinitionWithoutQualifier",
@@ -39,6 +41,7 @@ internal class GenericDefinitionWithoutQualifier(config: Config) : Rule(config) 
         // Check if this is a Koin definition call
         val calleeName = expression.calleeExpression?.text ?: return
         if (calleeName !in setOf("single", "factory", "scoped")) return
+        if (importContext.resolveKoin(calleeName) == Resolution.NOT_KOIN) return
 
         // Get lambda body to check for generic types
         val lambda = expression.lambdaArguments.firstOrNull()?.getLambdaExpression()

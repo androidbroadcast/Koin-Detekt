@@ -1,11 +1,13 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -27,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
  * class MyService
  * </compliant>
  */
-public class InvalidNamedQualifierCharacters(config: Config = Config.empty) : Rule(config) {
+internal class InvalidNamedQualifierCharacters(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "InvalidNamedQualifierCharacters",
         severity = Severity.Warning,
@@ -40,7 +42,9 @@ public class InvalidNamedQualifierCharacters(config: Config = Config.empty) : Ru
     override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
         super.visitAnnotationEntry(annotationEntry)
 
-        if (annotationEntry.shortName?.asString() != "Named") return
+        val name = annotationEntry.shortName?.asString() ?: return
+        if (name != "Named") return
+        if (importContext.resolveKoin(name) == Resolution.NOT_KOIN) return
 
         val args = annotationEntry.valueArgumentList?.arguments ?: return
         val firstArg = args.firstOrNull() ?: return

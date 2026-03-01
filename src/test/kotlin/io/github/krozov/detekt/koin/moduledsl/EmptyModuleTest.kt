@@ -218,4 +218,16 @@ class EmptyModuleTest {
         val findings = EmptyModule(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `does not report when module is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+
+            val m = module { }
+        """.trimIndent()
+
+        val findings = EmptyModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

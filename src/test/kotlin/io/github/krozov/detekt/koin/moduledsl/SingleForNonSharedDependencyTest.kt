@@ -252,4 +252,19 @@ class SingleForNonSharedDependencyTest {
         val findings = SingleForNonSharedDependency(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when single is from non-Koin package`() {
+        val code = """
+            import com.other.dsl.module
+            import com.other.dsl.single
+
+            val m = module {
+                single { GetUserUseCase() }
+            }
+        """.trimIndent()
+
+        val findings = SingleForNonSharedDependency(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

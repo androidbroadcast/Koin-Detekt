@@ -1,11 +1,14 @@
 package io.github.krozov.detekt.koin.annotations
 
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -45,7 +48,7 @@ import org.jetbrains.kotlin.psi.KtFile
  * }
  * </compliant>
  */
-public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(config) {
+internal class MixingDslAndAnnotations(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "MixingDslAndAnnotations",
         severity = Severity.Warning,
@@ -62,15 +65,15 @@ public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(confi
         hasModuleAnnotation = false
         moduleCallElement = null
 
-        // Check for Koin annotations
+        // super sets importContext and visits all children (including visitCallExpression)
+        super.visitKtFile(file)
+
+        // Check for Koin annotations now that importContext is populated
         file.declarations.forEach { declaration ->
-            val annotations = declaration.annotationEntries.mapNotNull { it.shortName?.asString() }
-            if (annotations.any { it in KoinAnnotationConstants.ALL_ANNOTATIONS }) {
+            if (declaration.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.ALL_ANNOTATIONS)) {
                 hasModuleAnnotation = true
             }
         }
-
-        super.visitKtFile(file)
 
         // Report if mixing both
         val element = moduleCallElement
@@ -95,7 +98,7 @@ public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(confi
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
-        if (callName == "module") {
+        if (callName == "module" && importContext.resolveKoin(callName) != Resolution.NOT_KOIN) {
             hasModuleCall = true
             if (moduleCallElement == null) {
                 moduleCallElement = expression
