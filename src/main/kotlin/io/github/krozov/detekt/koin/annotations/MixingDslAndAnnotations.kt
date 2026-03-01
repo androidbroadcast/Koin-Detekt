@@ -73,11 +73,12 @@ public class MixingDslAndAnnotations(config: Config = Config.empty) : Rule(confi
         super.visitKtFile(file)
 
         // Report if mixing both
-        if (hasModuleCall && hasModuleAnnotation && moduleCallElement != null) {
+        val element = moduleCallElement
+        if (hasModuleCall && hasModuleAnnotation && element != null) {
             report(
                 CodeSmell(
                     issue,
-                    Entity.from(moduleCallElement!!),
+                    Entity.from(element),
                     """
                     Mixing DSL and Annotations in same file → Inconsistent, harder to maintain
                     → Choose one approach per file for consistency
