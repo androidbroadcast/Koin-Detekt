@@ -2,6 +2,21 @@
 
 Detekt extension with Koin-specific static analysis rules for Kotlin.
 
+## Code Search (ast-index)
+
+For fast structural search use `ast-index` — 17-69x faster than grep.
+
+```bash
+ast-index search "visitAnnotationEntry"   # universal search
+ast-index class "QualifierObfuscationRisk"
+ast-index implementations "Rule"          # all rules in the project
+ast-index usages "KoinAnnotationConstants"
+ast-index update                          # run after every git pull
+```
+
+After cloning / first session: `ast-index rebuild` (requires sudo-free cache write).
+After `git pull`: always run `ast-index update` to keep the index fresh.
+
 ## Commands
 
 ```bash
