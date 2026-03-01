@@ -30,6 +30,7 @@ import io.github.krozov.detekt.koin.servicelocator.NoGlobalContextAccess
 import io.github.krozov.detekt.koin.servicelocator.NoInjectDelegate
 import io.github.krozov.detekt.koin.servicelocator.NoKoinComponentInterface
 import io.github.krozov.detekt.koin.servicelocator.NoKoinGetInApplication
+import io.github.krozov.detekt.koin.servicelocator.PreferLazyConstructorInjection
 // Platform rules - Compose
 import io.github.krozov.detekt.koin.platform.compose.KoinInjectInPreview
 import io.github.krozov.detekt.koin.platform.compose.KoinViewModelOutsideComposable
@@ -81,6 +82,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 NoKoinComponentInterface(config),
                 NoGlobalContextAccess(config),
                 NoKoinGetInApplication(config),
+                PreferLazyConstructorInjection(config),
                 // Module DSL Rules
                 EmptyModule(config),
                 SingleForNonSharedDependency(config),

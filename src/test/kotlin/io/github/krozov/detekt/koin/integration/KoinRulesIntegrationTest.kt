@@ -28,7 +28,7 @@ class KoinRulesIntegrationTest {
         val ruleSet = koinProvider!!.instance(Config.empty)
 
         assertThat(ruleSet.id).isEqualTo("koin-rules")
-        assertThat(ruleSet.rules).hasSize(57)
+        assertThat(ruleSet.rules).hasSize(58)
 
         // Verify all rule names
         val ruleIds = ruleSet.rules.map { it.ruleId }
@@ -39,6 +39,7 @@ class KoinRulesIntegrationTest {
             "NoKoinComponentInterface",
             "NoGlobalContextAccess",
             "NoKoinGetInApplication",
+            "PreferLazyConstructorInjection",
             // Module DSL Rules
             "EmptyModule",
             "SingleForNonSharedDependency",
