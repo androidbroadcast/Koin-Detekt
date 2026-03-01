@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 
 class KoinAnnotationUtilsTest {
 
-    private val ALLOWED = setOf("Single", "Factory")
+    private val allowed = setOf("Single", "Factory")
 
     /**
      * Minimal rule that records results of [firstKoinAnnotationName] for every class it visits.
@@ -22,7 +22,7 @@ class KoinAnnotationUtilsTest {
 
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            results += klass.firstKoinAnnotationName(importContext, ALLOWED)
+            results += klass.firstKoinAnnotationName(importContext, allowed)
         }
     }
 
@@ -35,7 +35,7 @@ class KoinAnnotationUtilsTest {
 
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            results += klass.hasKoinAnnotationFrom(importContext, ALLOWED)
+            results += klass.hasKoinAnnotationFrom(importContext, allowed)
         }
     }
 
@@ -48,7 +48,7 @@ class KoinAnnotationUtilsTest {
 
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            results += klass.koinAnnotationNames(importContext, ALLOWED)
+            results += klass.koinAnnotationNames(importContext, allowed)
         }
     }
 
@@ -116,6 +116,13 @@ class KoinAnnotationUtilsTest {
         assertThat(rule.results).containsExactly("Single")
     }
 
+    @Test
+    fun `firstKoinAnnotationName returns null when class has no annotations`() {
+        val rule = FirstNameRule()
+        rule.lint("class Foo")
+        assertThat(rule.results).containsExactly(null)
+    }
+
     // ── hasKoinAnnotationFrom ──────────────────────────────────────────────
 
     @Test
@@ -151,6 +158,13 @@ class KoinAnnotationUtilsTest {
             @Scoped
             class Foo
         """.trimIndent())
+        assertThat(rule.results).containsExactly(false)
+    }
+
+    @Test
+    fun `hasKoinAnnotationFrom returns false when class has no annotations`() {
+        val rule = HasAnnotationRule()
+        rule.lint("class Foo")
         assertThat(rule.results).containsExactly(false)
     }
 
