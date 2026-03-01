@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtFile
  * Resolution order for [resolveFqn]:
  * 1. If [name] already contains '.' it is treated as an FQN and returned as-is.
  * 2. Exact or alias imports are consulted — a match returns a single-element set.
- * 3. If the file has a non-empty package and no explicit imports at all,
+ * 3. If the file has a non-empty package and no exact or alias imports,
  *    a same-package candidate is returned
  * 4. Otherwise an empty set is returned.
  *
