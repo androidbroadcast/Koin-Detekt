@@ -66,5 +66,10 @@ class TypeNameUtilsTest {
         fun `nullable generic extracts argument`() {
             assertThat(typeArgumentsText("Lazy<Single>?")).isEqualTo("Single")
         }
+
+        @Test
+        fun `empty angle brackets returns null`() {
+            assertThat(typeArgumentsText("<>")).isNull()
+        }
     }
 }

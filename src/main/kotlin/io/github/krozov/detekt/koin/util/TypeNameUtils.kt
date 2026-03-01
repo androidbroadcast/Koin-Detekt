@@ -28,5 +28,6 @@ internal fun typeArgumentsText(typeText: String): String? {
     if (start == -1) return null
     val end = typeText.lastIndexOf('>')
     if (end <= start) return null
-    return typeText.substring(start + 1, end).trim()
+    val content = typeText.substring(start + 1, end).trim()
+    return content.ifEmpty { null }
 }
