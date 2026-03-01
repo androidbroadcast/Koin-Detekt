@@ -11,19 +11,9 @@ ast-index search "visitAnnotationEntry"   # universal search
 ast-index class "QualifierObfuscationRisk"
 ast-index implementations "Rule"          # all rules in the project
 ast-index usages "KoinAnnotationConstants"
-ast-index update                          # run after every git pull
 ```
 
-Run `ast-index update` whenever the working tree changes significantly:
-
-| Trigger | Command |
-|---|---|
-| First session / after clone | `ast-index rebuild` |
-| `git pull` | `ast-index update` |
-| `git checkout <branch>` | `ast-index update` |
-| After rebase / merge | `ast-index update` |
-| After `git stash pop` | `ast-index update` |
-| Added/deleted many files | `ast-index update` |
+After first clone run `ast-index rebuild` once. If you use Claude Code with hooks configured, `ast-index` updates after git operations automatically; otherwise run `ast-index update` manually after `git pull`, `checkout`, or `merge`.
 
 ## Commands
 
