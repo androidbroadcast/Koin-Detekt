@@ -67,4 +67,22 @@ class QualifierObfuscationRiskTest {
 
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `known limitation - reports non-Koin Qualifier with class reference`() {
+        // Rule uses short-name matching: any annotation named "Qualifier" with a class literal
+        // argument is flagged, including non-Koin @Qualifier annotations from javax.inject,
+        // jakarta.inject, Dagger, etc. This is a known false-positive risk.
+        val code = """
+            annotation class Qualifier(val value: kotlin.reflect.KClass<*>)
+            class SomeClass
+            @Qualifier(SomeClass::class)
+            annotation class MyQualifier
+        """.trimIndent()
+
+        val findings = QualifierObfuscationRisk(Config.empty).lint(code)
+
+        // Documents the known limitation: non-Koin @Qualifier with class ref is also flagged.
+        assertThat(findings).hasSize(1)
+    }
 }

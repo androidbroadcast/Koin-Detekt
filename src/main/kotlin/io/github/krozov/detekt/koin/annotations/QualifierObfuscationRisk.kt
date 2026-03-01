@@ -42,28 +42,23 @@ public class QualifierObfuscationRisk(config: Config = Config.empty) : Rule(conf
 
         if (annotationEntry.shortName?.asString() != "Qualifier") return
 
-        val hasClassRef = annotationEntry.valueArgumentList?.arguments
-            ?.any { it.getArgumentExpression() is KtClassLiteralExpression } == true
+        val classRef = annotationEntry.valueArgumentList?.arguments
+            ?.firstOrNull { it.getArgumentExpression() is KtClassLiteralExpression }
+            ?.getArgumentExpression()?.text ?: return
 
-        if (hasClassRef) {
-            val classRef = annotationEntry.valueArgumentList?.arguments
-                ?.firstOrNull { it.getArgumentExpression() is KtClassLiteralExpression }
-                ?.getArgumentExpression()?.text ?: "SomeClass::class"
+        report(
+            CodeSmell(
+                issue,
+                Entity.from(annotationEntry),
+                """
+                @Qualifier($classRef) uses a class reference that generates a FQN-based StringQualifier
+                → After R8/ProGuard obfuscation, the FQN changes and the qualifier breaks at runtime
+                → Use @Named("explicit-string") instead for obfuscation-safe qualifiers
 
-            report(
-                CodeSmell(
-                    issue,
-                    Entity.from(annotationEntry),
-                    """
-                    @Qualifier($classRef) uses a class reference that generates a FQN-based StringQualifier
-                    → After R8/ProGuard obfuscation, the FQN changes and the qualifier breaks at runtime
-                    → Use @Named("explicit-string") instead for obfuscation-safe qualifiers
-
-                    ✗ Bad:  @Qualifier($classRef)
-                    ✓ Good: @Named("explicit-qualifier-name")
-                    """.trimIndent()
-                )
+                ✗ Bad:  @Qualifier($classRef)
+                ✓ Good: @Named("explicit-qualifier-name")
+                """.trimIndent()
             )
-        }
+        )
     }
 }
