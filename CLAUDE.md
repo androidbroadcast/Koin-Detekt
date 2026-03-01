@@ -13,7 +13,7 @@ ast-index implementations "Rule"          # all rules in the project
 ast-index usages "KoinAnnotationConstants"
 ```
 
-After first clone run `ast-index rebuild` once. Updates after git operations are automatic (via hooks).
+After first clone run `ast-index rebuild` once. If you use Claude Code with hooks configured, `ast-index` updates after git operations automatically; otherwise run `ast-index update` manually after `git pull`, `checkout`, or `merge`.
 
 ## Commands
 
