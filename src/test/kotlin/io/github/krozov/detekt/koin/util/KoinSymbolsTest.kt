@@ -40,6 +40,7 @@ class KoinSymbolsTest {
             "org.koin.core.component",
             "org.koin.android.ext.android",
             "org.koin.androidx.viewmodel.ext.android",
+            "org.koin.androidx.compose",
             "org.koin.ktor.ext",
         ).forEach { pkg ->
             assertThat(KoinSymbols.KOIN_PACKAGES)

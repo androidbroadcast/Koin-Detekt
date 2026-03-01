@@ -20,6 +20,7 @@ internal object KoinSymbols {
         "org.koin.core.component",
         "org.koin.android.ext.android",
         "org.koin.androidx.viewmodel.ext.android",
+        "org.koin.androidx.compose",
         "org.koin.ktor.ext",
     )
 

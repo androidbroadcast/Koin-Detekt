@@ -149,5 +149,42 @@ class KoinResolutionTest {
         }
     }
 
+    @Nested
+    inner class GenericTypes {
+        @Test
+        fun `generic type name without stripping returns UNKNOWN - callers must use stripTypeMetadata`() {
+            // Contract: resolveKoin does not parse type parameters.
+            // Callers must call stripTypeMetadata("Lazy<Single>") → "Lazy" before passing to resolveKoin.
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single
+                class Foo
+            """)
+            assertThat(ctx.resolveKoin("Lazy<Single>")).isEqualTo(Resolution.UNKNOWN)
+        }
+
+        @Test
+        fun `stripped outer type resolves correctly`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single
+                class Foo
+            """)
+            assertThat(ctx.resolveKoin(stripTypeMetadata("Lazy<Single>"))).isEqualTo(Resolution.UNKNOWN)
+            // Lazy is from kotlin stdlib, not Koin — correctly UNKNOWN
+        }
+
+        @Test
+        fun `stripped type argument resolves correctly`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.Single
+                class Foo
+            """)
+            val arg = typeArgumentsText("Lazy<Single>") ?: ""
+            assertThat(ctx.resolveKoin(arg)).isEqualTo(Resolution.KOIN)
+        }
+    }
+
     private fun ctx(code: String) = FileImportContext(compileContentForTest(code.trimIndent()))
 }
