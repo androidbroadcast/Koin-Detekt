@@ -115,4 +115,69 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).hasSize(2)
         }
     }
+
+    @Nested
+    inner class ExcludeTypes {
+
+        @Test
+        fun `does not flag type that is in excludeTypes even if in lazyTypes`() {
+            val config = TestConfig(
+                "checkAllTypes" to false,
+                "lazyTypes" to listOf("DatabaseClient"),
+                "excludeTypes" to listOf("DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag excluded type in checkAllTypes mode`() {
+            val config = TestConfig(
+                "checkAllTypes" to true,
+                "excludeTypes" to listOf("String")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val name: String)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags non-excluded type when checkAllTypes is true`() {
+            val config = TestConfig(
+                "checkAllTypes" to true,
+                "excludeTypes" to listOf("String")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `excludeTypes with multiple entries — none are flagged`() {
+            val config = TestConfig(
+                "checkAllTypes" to true,
+                "excludeTypes" to listOf("String", "Int", "Boolean")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(
+                    private val name: String,
+                    private val count: Int,
+                    private val flag: Boolean
+                )
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+    }
 }
