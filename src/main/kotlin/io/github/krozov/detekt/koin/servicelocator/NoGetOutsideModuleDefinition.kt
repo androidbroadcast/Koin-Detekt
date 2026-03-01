@@ -39,7 +39,7 @@ internal class NoGetOutsideModuleDefinition(config: Config) : ImportAwareRule(co
         // Track entering definition blocks — guard against non-Koin same-named functions
         if (callName in definitionFunctions) {
             val fqns = importContext.resolveFqn(callName!!)
-            if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) {
+            if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) {
                 super.visitCallExpression(expression)
                 return
             }

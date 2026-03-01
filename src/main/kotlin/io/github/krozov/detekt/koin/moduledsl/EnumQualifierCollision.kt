@@ -30,15 +30,17 @@ internal class EnumQualifierCollision(config: Config) : ImportAwareRule(config) 
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
-        super.visitCallExpression(expression)
-
-        // Reset tracking when entering a new module
+        // Reset tracking BEFORE visiting module children so state from a previous module
+        // does not leak into the next module block in the same file.
         if (expression.calleeExpression?.text == "module") {
             if (importContext.resolveKoin("module") != Resolution.NOT_KOIN) {
                 enumQualifiersInModule.clear()
             }
+            super.visitCallExpression(expression)
             return
         }
+
+        super.visitCallExpression(expression)
 
         // Check for Koin definition calls with named() qualifiers
         val calleeName = expression.calleeExpression?.text ?: return

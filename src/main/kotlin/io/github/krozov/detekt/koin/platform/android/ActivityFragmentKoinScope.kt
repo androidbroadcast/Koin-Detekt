@@ -43,9 +43,9 @@ internal class ActivityFragmentKoinScope(config: Config = Config.empty) : Import
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "activityScope" && callName != "fragmentScope") return
         // activityScope/fragmentScope live in org.koin.androidx.scope which is not in KOIN_PACKAGES.
-        // Use resolveFqn + startsWith("org.koin") to cover all Koin sub-packages.
+        // Use resolveFqn + startsWith("org.koin.") to cover all Koin sub-packages.
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         val containingClass = expression.getStrictParentOfType<KtClass>() ?: return
         val superTypes = containingClass.getSuperTypeListEntries()

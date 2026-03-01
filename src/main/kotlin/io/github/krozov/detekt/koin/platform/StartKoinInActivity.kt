@@ -62,7 +62,7 @@ internal class StartKoinInActivity(config: Config = Config.empty) : ImportAwareR
         if (callName != "startKoin") return
         // startKoin is from org.koin.core.context — skip if imported from elsewhere
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         val containingClass = expression.parents.filterIsInstance<KtClass>().firstOrNull()
 

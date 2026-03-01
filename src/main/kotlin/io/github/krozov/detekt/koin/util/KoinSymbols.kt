@@ -24,6 +24,7 @@ internal object KoinSymbols {
         "org.koin.android.ext.koin",
         "org.koin.androidx.compose",
         "org.koin.androidx.scope",
+        "org.koin.androidx.viewmodel.dsl",
         "org.koin.androidx.viewmodel.ext.android",
         "org.koin.ktor.ext",
     )

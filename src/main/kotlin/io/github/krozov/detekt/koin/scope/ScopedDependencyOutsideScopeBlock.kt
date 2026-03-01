@@ -31,7 +31,7 @@ internal class ScopedDependencyOutsideScopeBlock(config: Config) : ImportAwareRu
         // org.koin.androidx.scope (activityScope, fragmentScope) which are not in KOIN_PACKAGES.
         if (callName in scopeBlockFunctions) {
             val fqns = importContext.resolveFqn(callName!!)
-            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }
+            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }
             if (confirmedNonKoin) {
                 super.visitCallExpression(expression)
                 return
@@ -46,7 +46,7 @@ internal class ScopedDependencyOutsideScopeBlock(config: Config) : ImportAwareRu
         // Check for scoped definitions outside scope blocks.
         if (callName in setOf("scoped", "scopedOf") && !insideScopeBlock) {
             val fqns = importContext.resolveFqn(callName!!)
-            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }
+            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }
             if (confirmedNonKoin) {
                 super.visitCallExpression(expression)
                 return

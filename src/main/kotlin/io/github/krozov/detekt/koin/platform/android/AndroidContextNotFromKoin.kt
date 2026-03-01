@@ -56,9 +56,9 @@ internal class AndroidContextNotFromKoin(config: Config = Config.empty) : Import
         val callName = expression.calleeExpression?.text ?: return
         if (callName != "androidContext" && callName != "androidApplication") return
         // androidContext lives in org.koin.android.ext.koin which is not in KOIN_PACKAGES.
-        // Use resolveFqn + startsWith("org.koin") to cover all Koin sub-packages.
+        // Use resolveFqn + startsWith("org.koin.") to cover all Koin sub-packages.
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Check if inside a valid Koin context (startKoin or module definitions)
         var current = expression.parent

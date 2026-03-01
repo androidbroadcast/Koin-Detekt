@@ -49,7 +49,7 @@ internal class RememberKoinModulesLeak(config: Config = Config.empty) : ImportAw
         if (callName != "loadKoinModules") return
         // loadKoinModules lives in org.koin.core.context which is not in KOIN_PACKAGES.
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Check if inside remember {} lambda
         val parentLambda = expression.getStrictParentOfType<KtLambdaExpression>() ?: return

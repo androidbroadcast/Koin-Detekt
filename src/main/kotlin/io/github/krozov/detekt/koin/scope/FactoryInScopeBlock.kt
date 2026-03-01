@@ -31,7 +31,7 @@ internal class FactoryInScopeBlock(config: Config) : ImportAwareRule(config) {
         // org.koin.androidx.scope (activityScope, fragmentScope) which are not in KOIN_PACKAGES.
         if (callName in scopeBlockFunctions) {
             val fqns = importContext.resolveFqn(callName!!)
-            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }
+            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }
             if (confirmedNonKoin) {
                 super.visitCallExpression(expression)
                 return

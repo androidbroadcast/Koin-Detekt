@@ -29,7 +29,7 @@ internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
         // Guard: skip if the name resolves to a confirmed non-Koin FQN.
         // Use resolveFqn directly since org.koin.core.module.dsl is not in KOIN_PACKAGES.
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Get type reference from lambda body or constructor reference
         val isViewModel = when {

@@ -50,7 +50,7 @@ internal class KoinInjectInPreview(config: Config = Config.empty) : ImportAwareR
         val callName = expression.calleeExpression?.text ?: return
         if (callName !in koinInjectionFunctions) return
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         val containingFunction = expression.getStrictParentOfType<KtNamedFunction>() ?: return
         val annotations = containingFunction.annotationEntries.mapNotNull { it.shortName?.asString() }

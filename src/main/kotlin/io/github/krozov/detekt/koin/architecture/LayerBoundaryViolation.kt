@@ -106,7 +106,7 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
         val importPath = directive.importPath?.pathStr ?: return
 
         // Check if it's a Koin import
-        if (!importPath.startsWith("org.koin")) return
+        if (!importPath.startsWith("org.koin.")) return
 
         // Check if it's in allowed list
         if (allowedImports.any { importPath == it || importPath.startsWith("$it.") }) return

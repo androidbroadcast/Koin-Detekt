@@ -38,7 +38,7 @@ internal class SingleForNonSharedDependency(config: Config) : ImportAwareRule(co
         // Use resolveFqn to cover all org.koin.* packages uniformly:
         // single → org.koin.dsl, singleOf → org.koin.core.module.dsl
         val fqns = importContext.resolveFqn(callName!!)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         val typeName = extractTypeName(expression) ?: return
 

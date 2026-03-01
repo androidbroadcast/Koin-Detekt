@@ -29,7 +29,7 @@ internal class KtorRequestScopeMisuse(config: Config) : ImportAwareRule(config) 
         // Use resolveFqn with org.koin prefix to cover all Koin packages.
         if (callName == "requestScope") {
             val fqns = importContext.resolveFqn(callName)
-            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }
+            val confirmedNonKoin = fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }
             if (confirmedNonKoin) {
                 super.visitCallExpression(expression)
                 return

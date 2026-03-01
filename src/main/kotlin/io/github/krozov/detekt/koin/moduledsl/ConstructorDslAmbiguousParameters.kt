@@ -30,7 +30,7 @@ internal class ConstructorDslAmbiguousParameters(config: Config) : ImportAwareRu
         if (callName !in constructorDslFunctions) return
         // constructorDslFunctions are from org.koin.core.module.dsl — skip if imported elsewhere
         val fqns = importContext.resolveFqn(callName)
-        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin") }) return
+        if (fqns.isNotEmpty() && fqns.none { it.startsWith("org.koin.") }) return
 
         // Get constructor reference: factoryOf(::MyClass)
         val arg = expression.valueArguments.firstOrNull()?.text ?: return
