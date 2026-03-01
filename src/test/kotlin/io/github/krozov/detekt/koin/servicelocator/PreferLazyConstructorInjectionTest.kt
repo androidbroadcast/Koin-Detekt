@@ -295,4 +295,62 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).hasSize(1)
         }
     }
+
+    @Nested
+    inner class ClassKindVariants {
+
+        private val config = TestConfig(
+            "checkAllTypes" to false,
+            "lazyTypes" to listOf("DatabaseClient")
+        )
+
+        @Test
+        fun `flags parameter in data class`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                data class MyData(val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `flags parameter in abstract class`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                abstract class MyBase(val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `flags parameter in sealed class`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                sealed class MySealed(val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `does not flag object declaration`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                object MySingleton {
+                    val db: DatabaseClient = DatabaseClient()
+                }
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `does not flag interface`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                interface MyInterface {
+                    val db: DatabaseClient
+                }
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+    }
 }
