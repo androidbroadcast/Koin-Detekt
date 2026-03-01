@@ -305,3 +305,7 @@ koin-rules:
   # Detects constructor parameters where @InjectedParam is not the first annotation.
   InjectedParamAnnotationOrder:
     active: true
+
+  # Detects @Qualifier(SomeClass::class) which generates a FQN-based StringQualifier
+  # that breaks after R8/ProGuard obfuscation.
+  QualifierObfuscationRisk:

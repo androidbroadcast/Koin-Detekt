@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 56 Detekt rules for Koin.
+Complete reference for all 57 Detekt rules for Koin.
 
 ---
 
@@ -1901,6 +1901,43 @@ KoinWorkerOnNonWorker:
 - ✅ Only checks classes annotated with `@KoinWorker`
 
 ---
+
+---
+
+### QualifierObfuscationRisk
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Qualifier(SomeClass::class)` which generates a FQN-based `StringQualifier` that breaks after R8/ProGuard obfuscation.
+
+When Koin Annotations processes `@Qualifier(SomeClass::class)`, it generates a qualifier using the
+**fully-qualified class name (FQN)** of `SomeClass` as a string. After R8/ProGuard obfuscation,
+class names are shortened (e.g. `com.example.SomeClass` → `a.b`), causing a mismatch between
+the qualifier registered by the provider and the qualifier expected by the consumer — resulting
+in a runtime `NoBeanDefFoundException`.
+
+**Bad:**
+```kotlin
+class SomeClass
+
+@Qualifier(SomeClass::class)  // generates StringQualifier("com.example.SomeClass") — breaks after obfuscation
+annotation class MyQualifier
+```
+
+**Good:**
+```kotlin
+// Use an explicit string that survives obfuscation:
+@Named("my-explicit-qualifier")
+@Single
+class MyService
+```
+
+**Edge Cases:**
+- ✅ Reports `@Qualifier(SomeClass::class)` (class literal reference)
+- ✅ Does not report `@Qualifier` without arguments
+- ✅ Does not report `@Qualifier("string-value")`
+- ✅ Does not report `@Named("string-value")`
 
 ---
 
