@@ -89,6 +89,12 @@ class FileImportContextTest {
             val ctx = ctx("")
             assertThat(ctx.filePackage).isEmpty()
         }
+
+        @Test
+        fun `empty name returns empty set`() {
+            val ctx = ctx("package com.example\nclass Foo")
+            assertThat(ctx.resolveFqn("")).isEmpty()
+        }
     }
 
     @Nested

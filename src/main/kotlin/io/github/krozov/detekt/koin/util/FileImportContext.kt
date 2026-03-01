@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.psi.KtFile
  * Resolution order for [resolveFqn]:
  * 1. If [name] already contains '.' it is treated as an FQN and returned as-is.
  * 2. Exact or alias imports are consulted — a match returns a single-element set.
- * 3. If no explicit import is found and the file has a non-empty package, a same-package
- *    candidate (`<filePackage>.<name>`) is returned.
+ * 3. If the file has a non-empty package and no explicit imports at all,
+ *    a same-package candidate is returned
  * 4. Otherwise an empty set is returned.
  *
  * Star imports are NOT expanded here — use [hasStarImportFrom] to check for wildcard presence.
@@ -27,6 +27,7 @@ internal class FileImportContext private constructor(
      * See class-level KDoc for the resolution order.
      */
     fun resolveFqn(name: String): Set<String> {
+        if (name.isEmpty()) return emptySet()
         if (name.contains('.')) return setOf(name)
 
         val exact = exactImports[name]
