@@ -37,4 +37,81 @@ class PreferLazyConstructorInjectionTest {
             assertThat(findings).isEmpty()
         }
     }
+
+    @Nested
+    inner class LazyTypesAllowlist {
+
+        private val config = TestConfig(
+            "checkAllTypes" to false,
+            "lazyTypes" to listOf("DatabaseClient")
+        )
+
+        @Test
+        fun `flags parameter whose type is in lazyTypes`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+            assertThat(findings[0].message).contains("Lazy<DatabaseClient>")
+        }
+
+        @Test
+        fun `does not flag parameter whose type is not in lazyTypes`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val api: HttpClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags only matching parameters when constructor has mixed types`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(
+                    private val db: DatabaseClient,
+                    private val name: String,
+                    private val api: HttpClient
+                )
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+            assertThat(findings[0].message).contains("DatabaseClient")
+        }
+
+        @Test
+        fun `does not flag when type is already Lazy`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: Lazy<DatabaseClient>)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags nullable type that matches lazyTypes`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: DatabaseClient?)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `flags multiple matching parameters`() {
+            val config = TestConfig(
+                "checkAllTypes" to false,
+                "lazyTypes" to listOf("DatabaseClient", "HttpClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(
+                    private val db: DatabaseClient,
+                    private val client: HttpClient
+                )
+            """.trimIndent())
+
+            assertThat(findings).hasSize(2)
+        }
+    }
 }
