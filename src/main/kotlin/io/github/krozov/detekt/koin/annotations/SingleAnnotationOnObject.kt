@@ -6,9 +6,9 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 /**
  * Detects Koin definition annotations (`@Single`, `@Factory`, etc.) on Kotlin `object` declarations.

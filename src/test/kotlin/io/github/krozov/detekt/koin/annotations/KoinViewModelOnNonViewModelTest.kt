@@ -11,7 +11,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `reports KoinViewModel on class without ViewModel supertype`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             class MyPresenter
@@ -25,7 +25,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `does not report KoinViewModel on ViewModel subclass`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
             import androidx.lifecycle.ViewModel
 
             @KoinViewModel
@@ -39,7 +39,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `does not report KoinViewModel on AndroidViewModel subclass`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
             import androidx.lifecycle.AndroidViewModel
 
             @KoinViewModel
@@ -53,7 +53,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `does not report KoinViewModel on custom ViewModel base`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             class MyViewModel : BaseViewModel()
@@ -76,7 +76,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `does not report KoinViewModel when base class is in additionalViewModelSuperTypes`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             class MyPresenter : RxModel()
@@ -90,7 +90,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `reports KoinViewModel when base class is not in additionalViewModelSuperTypes`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             class MyPresenter : RxModel()
@@ -103,7 +103,7 @@ class KoinViewModelOnNonViewModelTest {
     @Test
     fun `does not report KoinViewModel on class extending ViewModel and interface`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
             import androidx.lifecycle.ViewModel
 
             @KoinViewModel

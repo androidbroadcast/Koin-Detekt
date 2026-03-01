@@ -6,9 +6,9 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
+import org.jetbrains.kotlin.psi.KtClass
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.firstKoinAnnotationName
-import org.jetbrains.kotlin.psi.KtClass
 
 /**
  * Detects ViewModel classes annotated with `@Single` or `@Factory` instead of `@KoinViewModel`.

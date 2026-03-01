@@ -58,7 +58,7 @@ class ScopedWithoutQualifierTest {
     fun `allows Scoped with ActivityScope archetype`() {
         val code = """
             import org.koin.core.annotation.Scoped
-            import org.koin.android.annotation.ActivityScope
+            import org.koin.core.annotation.ActivityScope
 
             @ActivityScope
             @Scoped

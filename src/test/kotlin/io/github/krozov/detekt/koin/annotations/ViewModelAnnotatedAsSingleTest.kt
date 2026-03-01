@@ -55,7 +55,7 @@ class ViewModelAnnotatedAsSingleTest {
     @Test
     fun `allows ViewModel with KoinViewModel annotation`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
             import androidx.lifecycle.ViewModel
 
             @KoinViewModel
@@ -128,6 +128,18 @@ class ViewModelAnnotatedAsSingleTest {
             class MyService : SomeRepository
         """.trimIndent()
 
+        val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `should not report when Factory annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Factory
+            import androidx.lifecycle.ViewModel
+            @Factory
+            class MyViewModel : ViewModel()
+        """.trimIndent()
         val findings = ViewModelAnnotatedAsSingle(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }

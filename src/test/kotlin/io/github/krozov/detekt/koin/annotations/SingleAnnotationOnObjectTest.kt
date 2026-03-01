@@ -62,7 +62,7 @@ class SingleAnnotationOnObjectTest {
     @Test
     fun `reports KoinViewModel on object`() {
         val code = """
-            import org.koin.android.annotation.KoinViewModel
+            import org.koin.core.annotation.KoinViewModel
 
             @KoinViewModel
             object BadViewModel

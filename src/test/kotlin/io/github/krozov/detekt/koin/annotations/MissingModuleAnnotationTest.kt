@@ -184,7 +184,7 @@ class MissingModuleAnnotationTest {
     fun `allows Module with ActivityScope provider function`() {
         val code = """
             import org.koin.core.annotation.Module
-            import org.koin.android.annotation.ActivityScope
+            import org.koin.core.annotation.ActivityScope
             import androidx.activity.ComponentActivity
             import androidx.metrics.performance.JankStats
 
@@ -204,7 +204,7 @@ class MissingModuleAnnotationTest {
     fun `allows Module with FragmentScope provider function`() {
         val code = """
             import org.koin.core.annotation.Module
-            import org.koin.android.annotation.FragmentScope
+            import org.koin.core.annotation.FragmentScope
 
             @Module
             class FragmentModule {
@@ -237,7 +237,7 @@ class MissingModuleAnnotationTest {
         val code = """
             import org.koin.core.annotation.Module
             import org.koin.core.annotation.Configuration
-            import org.koin.android.annotation.ActivityScope
+            import org.koin.core.annotation.ActivityScope
             import androidx.activity.ComponentActivity
             import androidx.metrics.performance.JankStats
 
