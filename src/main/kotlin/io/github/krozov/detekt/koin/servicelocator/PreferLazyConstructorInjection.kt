@@ -85,10 +85,13 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
         return lazyTypes.any { entry -> matchesEntry(entry, fqn, shortName) }
     }
 
-    private fun matchesEntry(entry: String, fqn: String?, shortName: String): Boolean =
-        if (entry.contains('.')) {
-            fqn == entry || (fqn == null && shortName == entry.substringAfterLast('.'))
+    private fun matchesEntry(entry: String, fqn: String?, shortName: String): Boolean {
+        val baseShortName = shortName.substringBefore("<")
+        return if (entry.contains('.')) {
+            val entryShortName = entry.substringAfterLast('.')
+            fqn == entry || (fqn == null && (shortName == entryShortName || baseShortName == entryShortName))
         } else {
-            shortName == entry
+            shortName == entry || baseShortName == entry
         }
+    }
 }

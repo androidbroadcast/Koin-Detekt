@@ -289,6 +289,20 @@ class PreferLazyConstructorInjectionTest {
 
             assertThat(findings).hasSize(1)
         }
+
+        @Test
+        fun `does not flag List parameter when List is in excludeTypes`() {
+            val listExcludeConfig = TestConfig(
+                "checkAllTypes" to true,
+                "excludeTypes" to listOf("List")
+            )
+
+            val findings = PreferLazyConstructorInjection(listExcludeConfig).lint("""
+                class MyRepo(private val dbs: List<DatabaseClient>)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
     }
 
     @Nested
