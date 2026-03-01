@@ -113,4 +113,15 @@ class KoinViewModelOnNonViewModelTest {
         val findings = KoinViewModelOnNonViewModel(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = KoinViewModelOnNonViewModel(Config.empty).lint("""
+            import com.other.KoinViewModel
+
+            @KoinViewModel
+            class MyPresenter
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

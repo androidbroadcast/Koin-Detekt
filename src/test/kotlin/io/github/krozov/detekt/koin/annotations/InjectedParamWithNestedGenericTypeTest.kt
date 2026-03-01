@@ -133,4 +133,16 @@ class InjectedParamWithNestedGenericTypeTest {
         val findings = InjectedParamWithNestedGenericType(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = InjectedParamWithNestedGenericType(Config.empty).lint("""
+            import com.other.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(@InjectedParam val items: List<List<String>>)
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

@@ -253,4 +253,21 @@ class MissingModuleAnnotationTest {
         val findings = MissingModuleAnnotation(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when Module annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Module
+            import com.other.Single
+
+            @Module
+            class MyServices {
+                @Single
+                fun provideRepo(): Repository = RepositoryImpl()
+            }
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

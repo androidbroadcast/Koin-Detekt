@@ -121,4 +121,23 @@ class TooManyInjectedParamsTest {
         val findings = TooManyInjectedParams(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = TooManyInjectedParams(Config.empty).lint("""
+            import com.other.InjectedParam
+            import org.koin.core.annotation.Single
+
+            @Single
+            class MyService(
+                @InjectedParam val a: String,
+                @InjectedParam val b: Int,
+                @InjectedParam val c: Long,
+                @InjectedParam val d: Float,
+                @InjectedParam val e: Double,
+                @InjectedParam val f: Boolean
+            )
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

@@ -97,4 +97,15 @@ class KoinWorkerOnNonWorkerTest {
         val findings = KoinWorkerOnNonWorker(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = KoinWorkerOnNonWorker(Config.empty).lint("""
+            import com.other.KoinWorker
+
+            @KoinWorker
+            class MyTask
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

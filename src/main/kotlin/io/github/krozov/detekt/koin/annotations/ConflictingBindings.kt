@@ -5,8 +5,12 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.koinAnnotationNames
+import io.github.krozov.detekt.koin.util.resolveKoin
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -39,7 +43,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  * }
  * </compliant>
  */
-public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
+internal class ConflictingBindings(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "ConflictingBindings",
         severity = Severity.Warning,
@@ -82,9 +86,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)
 
-        val koinAnnotations = klass.annotationEntries
-            .mapNotNull { it.shortName?.asString() }
-            .filter { it in KoinAnnotationConstants.DEFINITION_ANNOTATIONS }
+        val koinAnnotations = klass.koinAnnotationNames(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)
 
         if (koinAnnotations.size > 1) {
             report(
@@ -106,8 +108,7 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
 
-        val annotations = function.annotationEntries.mapNotNull { it.shortName?.asString() }
-        if (annotations.any { it in KoinAnnotationConstants.PROVIDER_ANNOTATIONS }) {
+        if (function.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.PROVIDER_ANNOTATIONS)) {
             val returnType = function.typeReference?.text
             if (returnType != null) {
                 val typeName = returnType.substringBefore("<").substringAfterLast(".")
@@ -123,18 +124,18 @@ public class ConflictingBindings(config: Config = Config.empty) : Rule(config) {
         super.visitCallExpression(expression)
 
         val callName = expression.calleeExpression?.text ?: return
-        if (callName in setOf("single", "factory", "scoped")) {
-            // Try to extract type from type argument
-            val typeArgs = expression.typeArgumentList?.arguments
-            val typeName = typeArgs?.firstOrNull()?.typeReference?.text
-                ?.substringBefore("<")
-                ?.substringAfterLast(".")
+        if (callName !in setOf("single", "factory", "scoped")) return
+        if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
+        // Try to extract type from type argument
+        val typeArgs = expression.typeArgumentList?.arguments
+        val typeName = typeArgs?.firstOrNull()?.typeReference?.text
+            ?.substringBefore("<")
+            ?.substringAfterLast(".")
 
-            if (typeName != null) {
-                dslTypes.add(typeName)
-                if (typeName !in typeToElement) {
-                    typeToElement[typeName] = expression
-                }
+        if (typeName != null) {
+            dslTypes.add(typeName)
+            if (typeName !in typeToElement) {
+                typeToElement[typeName] = expression
             }
         }
     }

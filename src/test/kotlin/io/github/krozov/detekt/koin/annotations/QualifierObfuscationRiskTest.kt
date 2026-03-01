@@ -85,4 +85,15 @@ class QualifierObfuscationRiskTest {
         // Documents the known limitation: non-Koin @Qualifier with class ref is also flagged.
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = QualifierObfuscationRisk(Config.empty).lint("""
+            import com.other.Qualifier
+            import com.example.SomeClass
+            @Qualifier(SomeClass::class)
+            annotation class MyQualifier
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
 }

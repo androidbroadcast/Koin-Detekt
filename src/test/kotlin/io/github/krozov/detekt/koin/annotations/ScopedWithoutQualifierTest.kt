@@ -85,4 +85,17 @@ class ScopedWithoutQualifierTest {
         val findings = ScopedWithoutQualifier(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when Scoped annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Scoped
+
+            @Scoped
+            class MyService
+        """.trimIndent()
+
+        val findings = ScopedWithoutQualifier(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

@@ -119,6 +119,22 @@ class MixingDslAndAnnotationsTest {
     }
 
     @Test
+    fun `should not report when module call is from non-Koin package`() {
+        val findings = MixingDslAndAnnotations(Config.empty).lint("""
+            import com.other.module
+            import org.koin.core.annotation.Module
+
+            @Module
+            class AnnotatedModule
+
+            val dslModule = module {
+                single { ApiService() }
+            }
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `reports mixing with multiple DSL module calls`() {
         val code = """
             import org.koin.core.annotation.Module

@@ -5,8 +5,10 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import org.jetbrains.kotlin.psi.KtClass
 
 /**
@@ -34,7 +36,7 @@ import org.jetbrains.kotlin.psi.KtClass
  * )
  * </compliant>
  */
-public class TooManyInjectedParams(config: Config = Config.empty) : Rule(config) {
+internal class TooManyInjectedParams(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "TooManyInjectedParams",
         severity = Severity.Warning,
@@ -50,7 +52,10 @@ public class TooManyInjectedParams(config: Config = Config.empty) : Rule(config)
 
         val primaryConstructor = klass.primaryConstructor ?: return
         val injectedParamCount = primaryConstructor.valueParameters.count { param ->
-            param.annotationEntries.any { it.shortName?.asString() == "InjectedParam" }
+            param.annotationEntries.any { entry ->
+                val name = entry.shortName?.asString() ?: return@any false
+                name == "InjectedParam" && importContext.resolveKoin(name) != Resolution.NOT_KOIN
+            }
         }
 
         if (injectedParamCount > maxInjectedParams) {

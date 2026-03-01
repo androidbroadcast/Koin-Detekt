@@ -226,6 +226,18 @@ class ConflictingBindingsTest {
     }
 
     @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val findings = ConflictingBindings(Config.empty).lint("""
+            import com.other.Single
+            class AnnotatedModule {
+                @Single
+                fun provideRepo(): Repository = RepoImpl()
+            }
+        """.trimIndent())
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `reports conflict when DSL has duplicate type entries`() {
         val code = """
             import org.koin.core.annotation.Module

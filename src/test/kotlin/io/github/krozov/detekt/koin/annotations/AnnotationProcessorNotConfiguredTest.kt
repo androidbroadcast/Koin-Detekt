@@ -82,4 +82,17 @@ class AnnotationProcessorNotConfiguredTest {
         val findings = AnnotationProcessorNotConfigured(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
     }
+
+    @Test
+    fun `should not report when annotation is from non-Koin package`() {
+        val code = """
+            import com.other.Single
+
+            @Single
+            class MyService
+        """.trimIndent()
+
+        val findings = AnnotationProcessorNotConfigured(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

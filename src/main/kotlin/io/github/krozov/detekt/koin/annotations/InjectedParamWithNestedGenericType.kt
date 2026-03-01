@@ -5,8 +5,10 @@ import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
-import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
+import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
+import io.github.krozov.detekt.koin.util.resolveKoin
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProjectionKind
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
@@ -30,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  * class MyService(@InjectedParam val items: List<StringList>) // Workaround
  * </compliant>
  */
-public class InjectedParamWithNestedGenericType(config: Config = Config.empty) : Rule(config) {
+internal class InjectedParamWithNestedGenericType(config: Config = Config.empty) : ImportAwareRule(config) {
     override val issue: Issue = Issue(
         id = "InjectedParamWithNestedGenericType",
         severity = Severity.Warning,
@@ -41,8 +43,9 @@ public class InjectedParamWithNestedGenericType(config: Config = Config.empty) :
     override fun visitParameter(parameter: KtParameter) {
         super.visitParameter(parameter)
 
-        val hasInjectedParam = parameter.annotationEntries.any {
-            it.shortName?.asString() == "InjectedParam"
+        val hasInjectedParam = parameter.annotationEntries.any { entry ->
+            val name = entry.shortName?.asString() ?: return@any false
+            name == "InjectedParam" && importContext.resolveKoin(name) != Resolution.NOT_KOIN
         }
         if (!hasInjectedParam) return
 
