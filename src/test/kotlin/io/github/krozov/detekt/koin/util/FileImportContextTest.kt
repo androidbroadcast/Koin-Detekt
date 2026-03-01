@@ -123,6 +123,65 @@ class FileImportContextTest {
     }
 
     @Nested
+    inner class StarImports {
+        @Test
+        fun `detects koin star import`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin.core.annotation")).isTrue()
+        }
+
+        @Test
+        fun `does not detect non-koin star as koin star`() {
+            val ctx = ctx("""
+                package com.example
+                import javax.inject.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin")).isFalse()
+        }
+
+        @Test
+        fun `detects koin star with sub-package prefix`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                class Foo
+            """)
+            // querying parent prefix also matches
+            assertThat(ctx.hasStarImportFrom("org.koin")).isTrue()
+        }
+
+        @Test
+        fun `exact import wins over star import for same name`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                import javax.inject.Single
+                class Foo
+            """)
+            // exact takes priority in resolveFqn
+            assertThat(ctx.resolveFqn("Single"))
+                .containsExactly("javax.inject.Single")
+        }
+
+        @Test
+        fun `two star imports both present in hasStarImportFrom`() {
+            val ctx = ctx("""
+                package com.example
+                import org.koin.core.annotation.*
+                import javax.inject.*
+                class Foo
+            """)
+            assertThat(ctx.hasStarImportFrom("org.koin.core.annotation")).isTrue()
+            assertThat(ctx.hasStarImportFrom("javax.inject")).isTrue()
+        }
+    }
+
+    @Nested
     inner class EmptySentinel {
         @Test
         fun `EMPTY sentinel returns empty set`() {
