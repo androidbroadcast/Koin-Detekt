@@ -50,6 +50,7 @@ src/main/kotlin/io/github/krozov/detekt/koin/
 │   └── ktor/                   ← Ktor rules
 ├── scope/                      ← Scope lifecycle rules (8 rules)
 └── servicelocator/             ← Service locator anti-patterns (5 rules)
+└── util/                       ← Shared utilities (import resolution, type utils)
 ```
 
 Rule set ID: `KoinRuleSet`
@@ -78,6 +79,14 @@ internal class YourRule(config: Config) : Rule(config) {
     }
 }
 ```
+
+## Available Utilities
+
+- `KoinAnnotationConstants` — `DEFINITION_ANNOTATIONS`, `PROVIDER_ANNOTATIONS`, `ALL_ANNOTATIONS` (short names, no import check)
+- `ImportAwareRule` — base class providing `importContext: FileImportContext`; call `importContext.resolveKoin(name)` → `Resolution.KOIN / NOT_KOIN / UNKNOWN` to disambiguate same-named annotations
+- `KoinSymbols` — canonical Koin annotation/DSL names and `KOIN_PACKAGES`
+- `TypeNameUtils` — `stripTypeMetadata()` / `typeArgumentsText()` for handling generic type strings
+- `ConfigExtensions` — `config.value(key, default, deprecatedKey?)` for backward-compatible parameters
 
 ## Testing
 
@@ -174,6 +183,7 @@ Before implementing a rule, verify its premise:
 ## Gotchas
 
 - `detekt/` directory is a copy of upstream detekt — don't modify it for this project
+- Companion object detection: use `KtObjectDeclaration.isCompanion()`, not `klass.companionObjects.toHashSet()` membership check
 - Coverage is enforced — adding rules requires tests with sufficient coverage
 - Rule must be added to **both** `KoinRuleSetProvider.kt` **and both config YAMLs**:
   - `src/main/resources/config/config.yml` (default, bundled)
