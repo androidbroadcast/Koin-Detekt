@@ -89,6 +89,15 @@ class PreferLazyConstructorInjectionTest {
         }
 
         @Test
+        fun `does not flag nullable Lazy type`() {
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                class MyRepo(private val db: Lazy<DatabaseClient>?)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
         fun `flags nullable type that matches lazyTypes`() {
             val findings = PreferLazyConstructorInjection(config).lint("""
                 class MyRepo(private val db: DatabaseClient?)
@@ -210,6 +219,20 @@ class PreferLazyConstructorInjectionTest {
             """.trimIndent())
 
             assertThat(findings).hasSize(3)
+        }
+
+        @Test
+        fun `flags types not in lazyTypes when checkAllTypes overrides it`() {
+            val configWithBoth = TestConfig(
+                "checkAllTypes" to true,
+                "lazyTypes" to listOf("DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(configWithBoth).lint("""
+                class MyRepo(private val api: HttpClient)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
         }
     }
 
@@ -436,6 +459,36 @@ class PreferLazyConstructorInjectionTest {
                 import com.example.DatabaseClient
 
                 class MyRepo(private val db: DatabaseClient)
+            """.trimIndent())
+
+            assertThat(findings).isEmpty()
+        }
+
+        @Test
+        fun `flags generic type whose outer name resolves to configured FQN via import`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.example.db.DatabaseClient
+
+                class MyRepo(private val dbs: DatabaseClient<String>)
+            """.trimIndent())
+
+            assertThat(findings).hasSize(1)
+        }
+
+        @Test
+        fun `does not flag generic type when outer name resolves to different package`() {
+            val config = TestConfig(
+                "lazyTypes" to listOf("com.example.db.DatabaseClient")
+            )
+
+            val findings = PreferLazyConstructorInjection(config).lint("""
+                import com.other.DatabaseClient
+
+                class MyRepo(private val dbs: DatabaseClient<String>)
             """.trimIndent())
 
             assertThat(findings).isEmpty()
