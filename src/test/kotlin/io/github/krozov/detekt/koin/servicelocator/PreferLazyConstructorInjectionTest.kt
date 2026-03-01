@@ -119,6 +119,11 @@ class PreferLazyConstructorInjectionTest {
     @Nested
     inner class ExcludeTypes {
 
+        private val checkAllTypesWithStringExcluded = TestConfig(
+            "checkAllTypes" to true,
+            "excludeTypes" to listOf("String")
+        )
+
         @Test
         fun `does not flag type that is in excludeTypes even if in lazyTypes`() {
             val config = TestConfig(
@@ -136,12 +141,7 @@ class PreferLazyConstructorInjectionTest {
 
         @Test
         fun `does not flag excluded type in checkAllTypes mode`() {
-            val config = TestConfig(
-                "checkAllTypes" to true,
-                "excludeTypes" to listOf("String")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(checkAllTypesWithStringExcluded).lint("""
                 class MyRepo(private val name: String)
             """.trimIndent())
 
@@ -150,12 +150,7 @@ class PreferLazyConstructorInjectionTest {
 
         @Test
         fun `flags non-excluded type when checkAllTypes is true`() {
-            val config = TestConfig(
-                "checkAllTypes" to true,
-                "excludeTypes" to listOf("String")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(checkAllTypesWithStringExcluded).lint("""
                 class MyRepo(private val db: DatabaseClient)
             """.trimIndent())
 
@@ -357,13 +352,13 @@ class PreferLazyConstructorInjectionTest {
     @Nested
     inner class FqnMatching {
 
+        private val fqnConfig = TestConfig(
+            "lazyTypes" to listOf("com.example.db.DatabaseClient")
+        )
+
         @Test
         fun `flags when import resolves type to configured FQN`() {
-            val config = TestConfig(
-                "lazyTypes" to listOf("com.example.db.DatabaseClient")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(fqnConfig).lint("""
                 import com.example.db.DatabaseClient
 
                 class MyRepo(private val db: DatabaseClient)
@@ -374,11 +369,7 @@ class PreferLazyConstructorInjectionTest {
 
         @Test
         fun `does not flag when import resolves to different package`() {
-            val config = TestConfig(
-                "lazyTypes" to listOf("com.example.db.DatabaseClient")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(fqnConfig).lint("""
                 import com.other.DatabaseClient
 
                 class MyRepo(private val db: DatabaseClient)
@@ -389,11 +380,7 @@ class PreferLazyConstructorInjectionTest {
 
         @Test
         fun `flags when type is written as FQN in constructor`() {
-            val config = TestConfig(
-                "lazyTypes" to listOf("com.example.db.DatabaseClient")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(fqnConfig).lint("""
                 class MyRepo(private val db: com.example.db.DatabaseClient)
             """.trimIndent())
 
@@ -402,11 +389,7 @@ class PreferLazyConstructorInjectionTest {
 
         @Test
         fun `falls back to short name match when star import is used`() {
-            val config = TestConfig(
-                "lazyTypes" to listOf("com.example.db.DatabaseClient")
-            )
-
-            val findings = PreferLazyConstructorInjection(config).lint("""
+            val findings = PreferLazyConstructorInjection(fqnConfig).lint("""
                 import com.example.db.*
 
                 class MyRepo(private val db: DatabaseClient)
