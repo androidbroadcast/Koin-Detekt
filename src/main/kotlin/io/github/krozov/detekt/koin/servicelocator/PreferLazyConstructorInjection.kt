@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 
 internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
 
-    override val issue = Issue(
+    override val issue: Issue = Issue(
         id = "PreferLazyConstructorInjection",
         severity = Severity.Warning,
         description = "Constructor parameter type should be wrapped in Lazy<T> for deferred resolution.",
@@ -44,7 +44,9 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
             if (rawType.startsWith("Lazy<")) return@forEach
             if (rawType.startsWith("(")) return@forEach
 
+            val isNullable = rawType.endsWith("?")
             val shortName = rawType.removeSuffix("?").trim()
+            val lazyType = if (isNullable) "Lazy<$shortName?>" else "Lazy<$shortName>"
             val resolvedFqn = resolveTypeFqn(shortName, file)
 
             if (isExcluded(resolvedFqn, shortName)) return@forEach
@@ -55,10 +57,10 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
                     issue,
                     Entity.from(param),
                     """
-                    $shortName injected eagerly → consider Lazy<$shortName> for deferred resolution
+                    $shortName injected eagerly → consider $lazyType for deferred resolution
 
                     ✗ Current:  ${param.text}
-                    ✓ Preferred: ${param.text.replace(rawType, "Lazy<$shortName>")}
+                    ✓ Preferred: ${param.text.replace(rawType, lazyType)}
 
                     Then access via: ${param.name}.value
                     Note: for Koin DSL modules, the compiler will guide you to update get() → inject()
