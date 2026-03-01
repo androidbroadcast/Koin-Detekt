@@ -53,19 +53,22 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
             if (rawType.startsWith("(")) return@forEach
 
             val isNullable = rawType.endsWith("?")
-            val shortName = rawType.removeSuffix("?").trim()
-            val lazyType = if (isNullable) "Lazy<$shortName?>" else "Lazy<$shortName>"
-            val resolvedFqn = resolveTypeFqn(shortName, file)
+            // Full type text without trailing '?' — may include generic arguments, e.g. "Map<String, Int>"
+            val typeText = rawType.removeSuffix("?").trim()
+            // Outer type name without generics — used for import lookup and entry matching
+            val baseName = typeText.substringBefore("<")
+            val lazyType = if (isNullable) "Lazy<$typeText?>" else "Lazy<$typeText>"
+            val resolvedFqn = resolveTypeFqn(baseName, file)
 
-            if (isExcluded(resolvedFqn, shortName)) return@forEach
-            if (!shouldFlag(resolvedFqn, shortName)) return@forEach
+            if (isExcluded(resolvedFqn, typeText)) return@forEach
+            if (!shouldFlag(resolvedFqn, typeText)) return@forEach
 
             report(
                 CodeSmell(
                     issue,
                     Entity.from(param),
                     """
-                    $shortName injected eagerly → consider $lazyType for deferred resolution
+                    $typeText injected eagerly → consider $lazyType for deferred resolution
 
                     ✗ Current:  ${param.text}
                     ✓ Preferred: ${param.text.replace(rawType, lazyType)}
@@ -78,29 +81,38 @@ internal class PreferLazyConstructorInjection(config: Config) : Rule(config) {
         }
     }
 
-    private fun resolveTypeFqn(shortName: String, file: KtFile): String? {
-        if (shortName.contains('.')) return shortName
+    /**
+     * Resolves [baseName] (outer type name, no generics) to a fully-qualified name via import
+     * directives. Returns the FQN string if resolved, or `null` when unresolvable (e.g. star
+     * import, no import at all). When [baseName] already contains a dot it is treated as inline FQN.
+     *
+     * **Known limitation — import aliases:** `import com.example.Foo as Bar` is not handled;
+     * a parameter typed as `Bar` will not be matched against a `com.example.Foo` config entry.
+     */
+    private fun resolveTypeFqn(baseName: String, file: KtFile): String? {
+        if (baseName.contains('.')) return baseName
         return file.importDirectives
             .mapNotNull { it.importedFqName?.asString() }
-            .firstOrNull { it.substringAfterLast('.') == shortName }
+            .firstOrNull { it.substringAfterLast('.') == baseName }
     }
 
-    private fun isExcluded(fqn: String?, shortName: String): Boolean =
-        excludeTypes.any { entry -> matchesEntry(entry, fqn, shortName) }
+    // typeText — full type text without '?', may include generics, e.g. "Map<String, Int>"
+    private fun isExcluded(fqn: String?, typeText: String): Boolean =
+        excludeTypes.any { entry -> matchesEntry(entry, fqn, typeText) }
 
-    private fun shouldFlag(fqn: String?, shortName: String): Boolean {
+    private fun shouldFlag(fqn: String?, typeText: String): Boolean {
         if (checkAllTypes) return true
-        return lazyTypes.any { entry -> matchesEntry(entry, fqn, shortName) }
+        return lazyTypes.any { entry -> matchesEntry(entry, fqn, typeText) }
     }
 
-    private fun matchesEntry(entry: String, fqn: String?, shortName: String): Boolean {
-        val baseShortName = shortName.substringBefore("<")
+    private fun matchesEntry(entry: String, fqn: String?, typeText: String): Boolean {
+        val baseName = typeText.substringBefore("<")
         val normalizedFqn = fqn?.substringBefore("<")
         return if (entry.contains('.')) {
             val entryShortName = entry.substringAfterLast('.')
-            normalizedFqn == entry || (normalizedFqn == null && (shortName == entryShortName || baseShortName == entryShortName))
+            normalizedFqn == entry || (normalizedFqn == null && (typeText == entryShortName || baseName == entryShortName))
         } else {
-            shortName == entry || baseShortName == entry
+            typeText == entry || baseName == entry
         }
     }
 }
