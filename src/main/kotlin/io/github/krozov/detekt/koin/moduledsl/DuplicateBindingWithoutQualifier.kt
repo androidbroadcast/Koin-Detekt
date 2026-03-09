@@ -30,13 +30,45 @@ internal class DuplicateBindingWithoutQualifier(config: Config) : ImportAwareRul
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
-        super.visitCallExpression(expression)
-
-        // Track module scope - clear when entering new module
+        // Clear state BEFORE visiting children so we start fresh for each module block,
+        // preventing state from a previous module leaking into the next one.
         if (expression.calleeExpression?.text == "module") {
-            if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) return
+            if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) {
+                super.visitCallExpression(expression)
+                return
+            }
             bindingsInCurrentModule.clear()
+            super.visitCallExpression(expression)
+            // After super returns, all child bind expressions have been visited and collected.
+            // Report any duplicates found during that subtree traversal, then clear.
+            bindingsInCurrentModule.values
+                .filter { it.size > 1 }
+                .forEach { duplicates ->
+                    // Report starting from the second occurrence onward
+                    duplicates.drop(1).forEach { expr ->
+                        val boundType = expr.right?.text?.removeSuffix("::class")?.trim() ?: return@forEach
+                        report(
+                            CodeSmell(
+                                issue,
+                                Entity.from(expr),
+                                """
+                                Duplicate binding to $boundType without qualifier → Silent override
+                                → Add named() qualifiers to keep both bindings
+
+                                ✗ Bad:  single { A() } bind Foo::class
+                                        single { B() } bind Foo::class
+                                ✓ Good: single { A() } bind Foo::class named("a")
+                                        single { B() } bind Foo::class named("b")
+                                """.trimIndent()
+                            )
+                        )
+                    }
+                }
+            bindingsInCurrentModule.clear()
+            return
         }
+
+        super.visitCallExpression(expression)
     }
 
     override fun visitBinaryExpression(expression: KtBinaryExpression) {
@@ -57,27 +89,10 @@ internal class DuplicateBindingWithoutQualifier(config: Config) : ImportAwareRul
                           fullText.contains(Regex("""qualifier\s*="""))
 
         if (!hasQualifier) {
+            // Collect the binding; duplicates are reported in visitCallExpression after
+            // super.visitCallExpression() returns and all children have been visited.
             val bindings = bindingsInCurrentModule.getOrPut(boundType) { mutableListOf() }
             bindings.add(expression)
-
-            // Report if duplicate
-            if (bindings.size > 1) {
-                report(
-                    CodeSmell(
-                        issue,
-                        Entity.from(expression),
-                        """
-                        Duplicate binding to $boundType without qualifier → Silent override
-                        → Add named() qualifiers to keep both bindings
-
-                        ✗ Bad:  single { A() } bind Foo::class
-                                single { B() } bind Foo::class
-                        ✓ Good: single { A() } bind Foo::class named("a")
-                                single { B() } bind Foo::class named("b")
-                        """.trimIndent()
-                    )
-                )
-            }
         }
     }
 }

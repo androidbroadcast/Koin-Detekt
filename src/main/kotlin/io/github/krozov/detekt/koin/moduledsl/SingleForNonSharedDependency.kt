@@ -7,7 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.gitlab.arturbosch.detekt.api.config
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
@@ -22,8 +22,9 @@ internal class SingleForNonSharedDependency(config: Config) : ImportAwareRule(co
         debt = Debt.TEN_MINS
     )
 
-    private val namePatterns: List<String> by config(
-        listOf(".*UseCase", ".*Interactor", ".*Mapper")
+    private val namePatterns: List<String> = value(
+        key = "namePatterns",
+        default = listOf(".*UseCase", ".*Interactor", ".*Mapper")
     )
 
     private val patterns by lazy {

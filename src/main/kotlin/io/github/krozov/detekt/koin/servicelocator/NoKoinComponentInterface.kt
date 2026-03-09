@@ -7,7 +7,7 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Rule
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.gitlab.arturbosch.detekt.api.config
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
@@ -21,8 +21,9 @@ internal class NoKoinComponentInterface(config: Config) : Rule(config) {
         debt = Debt.TWENTY_MINS
     )
 
-    private val allowedSuperTypes: List<String> by config(
-        listOf(
+    private val allowedSuperTypes: List<String> = value(
+        key = "allowedSuperTypes",
+        default = listOf(
             "Application",
             "Activity",
             "ComponentActivity",

@@ -9,7 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.gitlab.arturbosch.detekt.api.config
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
@@ -24,7 +24,7 @@ internal class ModuleIncludesOrganization(config: Config) : ImportAwareRule(conf
         debt = Debt.TEN_MINS
     )
 
-    private val maxIncludesWithDefinitions: Int by config(3)
+    private val maxIncludesWithDefinitions: Int = value(key = "maxIncludesWithDefinitions", default = 3)
 
     override fun visitCallExpression(expression: KtCallExpression) {
         val callName = expression.getCallNameExpression()?.text
