@@ -1,6 +1,6 @@
 # Koin Rules Documentation
 
-Complete reference for all 58 Detekt rules for Koin.
+Complete reference for all 59 Detekt rules for Koin.
 
 ---
 
@@ -1494,6 +1494,40 @@ val dslModule = module {
 - ✅ Reports conflicts for `single`, `factory`, and `scoped` definitions
 - ✅ Allows the same type with different qualifiers (not detected as conflict)
 - ✅ Analyzes entire file for conflicts
+
+---
+
+### MultipleKoinDefinitionAnnotations
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects a class annotated with more than one Koin definition annotation (e.g., both `@Single` and `@Factory`).
+
+KSP processes annotations sequentially and picks the first definition annotation it encounters; the remaining annotations are silently ignored. This makes the lifecycle of the component undefined and surprising.
+
+❌ **Bad:**
+```kotlin
+import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
+
+@Single
+@Factory
+class MyService
+```
+
+✅ **Good:**
+```kotlin
+import org.koin.core.annotation.Single
+
+@Single
+class MyService
+```
+
+**Edge Cases:**
+- ✅ Detects two or more Koin definition annotations (`@Single`, `@Factory`, `@Scoped`, etc.)
+- ✅ Ignores non-Koin annotations with the same short name (import-aware)
+- ✅ Does not fire when only a single Koin definition annotation is present
 
 ---
 

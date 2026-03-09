@@ -258,6 +258,10 @@ koin-rules:
   ConflictingBindings:
     active: true
 
+  # Detects a class annotated with multiple Koin definition annotations (e.g., @Single and @Factory).
+  MultipleKoinDefinitionAnnotations:
+    active: true
+
   # Detects @Scoped definitions without a qualifier when multiple exist.
   ScopedWithoutQualifier:
     active: true
