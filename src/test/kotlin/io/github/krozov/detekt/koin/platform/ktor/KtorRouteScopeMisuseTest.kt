@@ -100,6 +100,19 @@ class KtorRouteScopeMisuseTest {
     }
 
     @Test
+    fun `reports koinScope with non-call receiver`() {
+        val code = """
+            fun Application.module() {
+                val scope = someOtherReceiver.koinScope()
+            }
+        """.trimIndent()
+
+        val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+        assertThat(findings[0].message).contains("state leaks")
+    }
+
+    @Test
     fun `does not report koinScope imported from non-Koin package`() {
         val code = """
             import com.example.scope.koinScope
