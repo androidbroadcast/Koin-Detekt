@@ -11,6 +11,9 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
@@ -40,25 +43,31 @@ internal class KtorRouteScopeMisuse(config: Config = Config.empty) : ImportAware
         debt = Debt.TEN_MINS
     )
 
+    private fun extractReceiverName(receiver: KtExpression): String? = when (receiver) {
+        is KtNameReferenceExpression -> receiver.getReferencedName()
+        is KtParenthesizedExpression -> receiver.expression?.let { extractReceiverName(it) }
+        else -> null
+    }
+
     override fun visitProperty(property: KtProperty) {
         super.visitProperty(property)
 
         val initializer = property.initializer ?: return
 
-        // Determine the call name and receiver text depending on whether the
+        // Determine the call name and receiver expression depending on whether the
         // initializer is a plain call (`koinScope()`) or dot-qualified (`x.koinScope()`).
         val callName: String
-        val receiverText: String?
+        val receiverExpression: KtExpression?
 
         when (initializer) {
             is KtDotQualifiedExpression -> {
                 val selector = initializer.selectorExpression as? KtCallExpression ?: return
                 callName = selector.calleeExpression?.text ?: return
-                receiverText = initializer.receiverExpression.text
+                receiverExpression = initializer.receiverExpression
             }
             is KtCallExpression -> {
                 callName = initializer.calleeExpression?.text ?: return
-                receiverText = null
+                receiverExpression = null
             }
             else -> return
         }
@@ -67,7 +76,8 @@ internal class KtorRouteScopeMisuse(config: Config = Config.empty) : ImportAware
         if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
 
         // call.koinScope() is the intended Ktor pattern — do not report.
-        if (receiverText == "call") return
+        // Use PSI-based name extraction to handle parenthesised receivers like (call).koinScope().
+        if (receiverExpression != null && extractReceiverName(receiverExpression) == "call") return
 
         report(
             CodeSmell(
