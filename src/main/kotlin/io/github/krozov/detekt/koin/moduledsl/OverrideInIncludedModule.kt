@@ -10,9 +10,12 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
 /**
@@ -66,32 +69,93 @@ internal class OverrideInIncludedModule(config: Config = Config.empty) : ImportA
 
         if (importContext.resolveKoin("module") == Resolution.NOT_KOIN) return
 
+        // Build a map of top-level module variable/property name → its body expression
+        // so we can look up types defined in included modules.
+        val moduleBodyByName = buildModuleBodyMap(file)
+
         // Collect all module calls in the file
         val moduleCalls = file.collectDescendantsOfType<KtCallExpression>().filter {
             it.calleeExpression?.text == "module"
         }
 
-        // For each module, check if it has includes() and duplicate type registrations
+        // For each module, check if it has includes() and conflicting type registrations
         moduleCalls.forEach { moduleCall ->
-            checkModuleForDuplicates(moduleCall, file)
+            checkModuleForDuplicates(moduleCall, moduleBodyByName)
         }
     }
 
-    private fun checkModuleForDuplicates(moduleCall: KtCallExpression, file: KtFile) {
+    /**
+     * Builds a map from property/variable name → the lambda body of the `module { ... }` call.
+     * Only top-level declarations are considered (val/var at file scope).
+     */
+    private fun buildModuleBodyMap(file: KtFile): Map<String, KtBlockExpression> {
+        val map = mutableMapOf<String, KtBlockExpression>()
+        file.declarations.forEach { decl ->
+            when (decl) {
+                is KtProperty -> {
+                    val name = decl.name ?: return@forEach
+                    val init = decl.initializer as? KtCallExpression ?: return@forEach
+                    if (init.calleeExpression?.text != "module") return@forEach
+                    val body = (init.lambdaArguments.firstOrNull()?.getLambdaExpression()
+                        ?: init.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression)
+                        ?.bodyExpression ?: return@forEach
+                    map[name] = body
+                }
+                is KtNamedFunction -> {
+                    val name = decl.name ?: return@forEach
+                    // fun myModule() = module { ... }
+                    val moduleCall = decl.bodyExpression as? KtCallExpression
+                        ?: (decl.bodyBlockExpression
+                            ?.statements?.lastOrNull() as? KtCallExpression)
+                        ?: return@forEach
+                    if (moduleCall.calleeExpression?.text != "module") return@forEach
+                    val body = (moduleCall.lambdaArguments.firstOrNull()?.getLambdaExpression()
+                        ?: moduleCall.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression)
+                        ?.bodyExpression ?: return@forEach
+                    map[name] = body
+                }
+            }
+        }
+        return map
+    }
+
+    private fun checkModuleForDuplicates(
+        moduleCall: KtCallExpression,
+        moduleBodyByName: Map<String, KtBlockExpression>
+    ) {
         val lambda = moduleCall.lambdaArguments.firstOrNull()?.getLambdaExpression()
             ?: moduleCall.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression
             ?: return
 
         val bodyExpression = lambda.bodyExpression ?: return
 
-        // Check if this module has includes()
-        val hasIncludes = bodyExpression.collectDescendantsOfType<KtCallExpression>().any {
-            it.calleeExpression?.text == "includes"
+        // Collect the names of modules referenced in includes() within this module's body
+        val includedModuleNames = bodyExpression
+            .collectDescendantsOfType<KtCallExpression>()
+            .filter { it.calleeExpression?.text == "includes" }
+            .flatMap { includesCall ->
+                includesCall.valueArguments.mapNotNull { arg ->
+                    // Each arg can be a bare reference (moduleA) or a call (moduleA())
+                    val expr = arg.getArgumentExpression()
+                    // bare reference: text is the name; call: calleeExpression?.text is the name
+                    (expr as? KtCallExpression)?.calleeExpression?.text ?: expr?.text
+                }
+            }
+            .toSet()
+
+        if (includedModuleNames.isEmpty()) return
+
+        // Collect all types registered in the included modules (those in the same file only)
+        val typesInIncludedModules = mutableSetOf<String>()
+        includedModuleNames.forEach { name ->
+            val includedBody = moduleBodyByName[name] ?: return@forEach
+            typesInIncludedModules += collectRegisteredTypes(includedBody)
+            typesInIncludedModules += collectBoundTypes(includedBody)
         }
 
-        if (!hasIncludes) return
+        if (typesInIncludedModules.isEmpty()) return
 
-        // Collect all type registrations in this module
+        // Collect registrations in this includes-module and flag conflicts
         val typesInThisModule = mutableListOf<TypeRegistration>()
 
         bodyExpression.collectDescendantsOfType<KtCallExpression>().forEach { call ->
@@ -102,7 +166,6 @@ internal class OverrideInIncludedModule(config: Config = Config.empty) : ImportA
                     argName == "override" && arg.getArgumentExpression()?.text == "true"
                 }
 
-                // Get type from type arguments
                 val typeArgs = call.typeArgumentList?.arguments
                 val registeredType = typeArgs?.firstOrNull()?.text
 
@@ -125,26 +188,9 @@ internal class OverrideInIncludedModule(config: Config = Config.empty) : ImportA
             }
         }
 
-        // Collect all type registrations in the entire file
-        val allTypes = file.collectDescendantsOfType<KtCallExpression>().mapNotNull { call ->
-            val callName = call.calleeExpression?.text
-            if (callName in setOf("single", "factory", "scoped")) {
-                val typeArgs = call.typeArgumentList?.arguments
-                typeArgs?.firstOrNull()?.text
-            } else null
-        }
-
-        // Also collect bind types
-        val allBindTypes = file.collectDescendantsOfType<KtBinaryExpression>()
-            .filter { it.operationReference.text == "bind" }
-            .mapNotNull { it.right?.text?.replace("::class", "")?.trim() }
-
-        val allTypesInFile = allTypes + allBindTypes
-
-        // Check if any types in this module appear elsewhere in the file
+        // Report any type in this module that is also defined in an included module
         typesInThisModule.forEach { typeReg ->
-            val occurrences = allTypesInFile.count { it == typeReg.type }
-            if (occurrences > 1) {
+            if (typeReg.type in typesInIncludedModules) {
                 report(
                     CodeSmell(
                         issue,
@@ -162,4 +208,18 @@ internal class OverrideInIncludedModule(config: Config = Config.empty) : ImportA
             }
         }
     }
+
+    private fun collectRegisteredTypes(body: KtBlockExpression): Set<String> =
+        body.collectDescendantsOfType<KtCallExpression>().mapNotNull { call ->
+            val callName = call.calleeExpression?.text
+            if (callName in setOf("single", "factory", "scoped")) {
+                call.typeArgumentList?.arguments?.firstOrNull()?.text
+            } else null
+        }.toSet()
+
+    private fun collectBoundTypes(body: KtBlockExpression): Set<String> =
+        body.collectDescendantsOfType<KtBinaryExpression>()
+            .filter { it.operationReference.text == "bind" }
+            .mapNotNull { it.right?.text?.replace("::class", "")?.trim() }
+            .toSet()
 }

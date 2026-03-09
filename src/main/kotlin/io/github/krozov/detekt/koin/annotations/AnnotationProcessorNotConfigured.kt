@@ -2,6 +2,7 @@ package io.github.krozov.detekt.koin.annotations
 
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -73,7 +74,7 @@ internal class AnnotationProcessorNotConfigured(config: Config = Config.empty) :
         debt = Debt.TEN_MINS
     )
 
-    private val skipCheck = valueOrDefault("skipCheck", false)
+    private val skipCheck: Boolean = value(key = "skipCheck", default = false)
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)

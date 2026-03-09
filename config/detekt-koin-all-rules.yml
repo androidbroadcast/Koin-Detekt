@@ -142,12 +142,14 @@ koin-rules:
     active: true
 
   # Detects Closeable beans without onClose {} cleanup.
+  # Inactive by default: text-based heuristics cause false positives; needs PSI-based redesign.
   CloseableWithoutOnClose:
-    active: true
+    active: false
 
   # Detects scope access inside onDestroy() — scope may already be closed.
+  # Inactive by default: text-based matching causes false positives; needs PSI-based redesign.
   ScopeAccessInOnDestroy:
-    active: true
+    active: false
 
   # Detects factory {} inside scope {} blocks (incorrect — use scoped {}).
   # Inactive by default (style rule).

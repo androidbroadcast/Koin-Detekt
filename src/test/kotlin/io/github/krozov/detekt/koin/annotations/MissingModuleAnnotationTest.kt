@@ -270,4 +270,37 @@ class MissingModuleAnnotationTest {
         val findings = MissingModuleAnnotation(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `allows Module with KoinApplication annotation`() {
+        // Regression test for Issue #99: @Module + @KoinApplication should not be flagged as empty
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.KoinApplication
+
+            @Module
+            @KoinApplication
+            class MyApplication
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `allows Module with KoinApplication and ComponentScan`() {
+        val code = """
+            import org.koin.core.annotation.Module
+            import org.koin.core.annotation.KoinApplication
+            import org.koin.core.annotation.ComponentScan
+
+            @Module
+            @KoinApplication
+            @ComponentScan
+            class MyApplication
+        """.trimIndent()
+
+        val findings = MissingModuleAnnotation(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

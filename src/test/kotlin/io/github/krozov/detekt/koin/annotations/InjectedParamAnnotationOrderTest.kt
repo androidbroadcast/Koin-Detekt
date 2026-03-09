@@ -87,4 +87,20 @@ class InjectedParamAnnotationOrderTest {
         val findings = InjectedParamAnnotationOrder(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `should not report when InjectedParam is from non-Koin library`() {
+        val code = """
+            import org.koin.core.annotation.Single
+            import com.other.library.InjectedParam
+
+            @Single
+            class MyService(
+                @Suppress("Unused") @InjectedParam val param: String
+            )
+        """.trimIndent()
+
+        val findings = InjectedParamAnnotationOrder(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

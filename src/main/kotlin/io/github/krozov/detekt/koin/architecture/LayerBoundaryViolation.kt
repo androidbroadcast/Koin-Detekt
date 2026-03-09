@@ -42,7 +42,7 @@ import org.jetbrains.kotlin.psi.KtImportDirective
  * )
  * </compliant>
  */
-public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config) {
+internal class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "LayerBoundaryViolation",
         severity = Severity.Warning,
@@ -93,7 +93,9 @@ public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config
         if (restrictedLayers.isEmpty()) return
 
         val packageName = file.packageFqName.asString()
-        val isRestricted = restrictedLayers.any { packageName.startsWith(it) }
+        val isRestricted = restrictedLayers.any { layer ->
+            packageName == layer || packageName.startsWith("$layer.")
+        }
 
         if (!isRestricted) return
 

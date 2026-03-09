@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
  * }
  * </compliant>
  */
-public class KtorApplicationKoinInit(config: Config = Config.empty) : Rule(config) {
+internal class KtorApplicationKoinInit(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "KtorApplicationKoinInit",
         severity = Severity.Warning,

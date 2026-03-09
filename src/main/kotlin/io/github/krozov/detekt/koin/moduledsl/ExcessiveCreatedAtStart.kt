@@ -3,6 +3,7 @@ package io.github.krozov.detekt.koin.moduledsl
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.resolveKoin
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -51,7 +52,7 @@ internal class ExcessiveCreatedAtStart(config: Config = Config.empty) : ImportAw
         debt = Debt.TEN_MINS
     )
 
-    private val maxCreatedAtStart: Int = valueOrDefault("maxCreatedAtStart", 10)
+    private val maxCreatedAtStart: Int = value(key = "maxCreatedAtStart", default = 10)
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)

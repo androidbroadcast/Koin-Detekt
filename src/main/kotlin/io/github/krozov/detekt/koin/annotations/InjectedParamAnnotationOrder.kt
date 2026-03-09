@@ -1,7 +1,9 @@
 package io.github.krozov.detekt.koin.annotations
 
 import io.github.krozov.detekt.koin.util.ImportAwareRule
+import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
+import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -53,6 +55,11 @@ internal class InjectedParamAnnotationOrder(config: Config = Config.empty) : Imp
     private fun checkParameter(param: KtParameter) {
         val annotations = param.annotationEntries.mapNotNull { it.shortName?.asString() }
         val injectedParamIndex = annotations.indexOf("InjectedParam")
+
+        if (injectedParamIndex < 0) return
+
+        // Skip if @InjectedParam is confirmed to be from a non-Koin library
+        if (importContext.resolveKoin("InjectedParam") == Resolution.NOT_KOIN) return
 
         if (injectedParamIndex > 0) {
             report(

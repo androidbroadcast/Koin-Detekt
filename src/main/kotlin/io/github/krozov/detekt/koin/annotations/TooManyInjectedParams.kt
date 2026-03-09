@@ -3,6 +3,7 @@ package io.github.krozov.detekt.koin.annotations
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.resolveKoin
+import io.github.krozov.detekt.koin.util.value
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
 import io.gitlab.arturbosch.detekt.api.Debt
@@ -45,7 +46,7 @@ internal class TooManyInjectedParams(config: Config = Config.empty) : ImportAwar
     )
 
     @Suppress("MemberVisibilityCanBePrivate")
-    internal val maxInjectedParams = valueOrDefault("maxInjectedParams", 5)
+    internal val maxInjectedParams: Int = value(key = "maxInjectedParams", default = 5)
 
     override fun visitClass(klass: KtClass) {
         super.visitClass(klass)

@@ -68,7 +68,7 @@ class DeprecatedKoinApiTest {
     }
 
     @Test
-    fun `reports viewModel usage`() {
+    fun `does not report viewModel usage (not deprecated in Koin 4 x)`() {
         val code = """
             import org.koin.androidx.viewmodel.dsl.viewModel
 
@@ -78,7 +78,7 @@ class DeprecatedKoinApiTest {
         """.trimIndent()
 
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
-        assertThat(findings).hasSize(1)
+        assertThat(findings).isEmpty()
     }
 
     @Test
@@ -220,9 +220,9 @@ class DeprecatedKoinApiTest {
         assertThat(findings).hasSize(1)
     }
 
-    // Edge case: Deprecated viewModel in multiple modules
+    // Edge case: viewModel is NOT deprecated in Koin 4.x
     @Test
-    fun `reports viewModel usage in multiple modules`() {
+    fun `does not report viewModel usage in multiple modules`() {
         val code = """
             import org.koin.androidx.viewmodel.dsl.viewModel
             import org.koin.dsl.module
@@ -237,7 +237,7 @@ class DeprecatedKoinApiTest {
         """.trimIndent()
 
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
-        assertThat(findings).hasSize(2)
+        assertThat(findings).isEmpty()
     }
 
     // Edge case: Mix of deprecated and current APIs
@@ -284,7 +284,7 @@ class DeprecatedKoinApiTest {
         assertThat(findings).hasSize(1)
     }
 
-    // Named dependency tests for viewModel -> viewModelOf() suggestion
+    // viewModel is the primary lambda-based ViewModel DSL in Koin 4.x — NOT deprecated
     @Test
     fun `does not report viewModel with named dependency in lambda`() {
         val code = """
@@ -302,7 +302,7 @@ class DeprecatedKoinApiTest {
     }
 
     @Test
-    fun `reports viewModel without named dependency`() {
+    fun `does not report viewModel without named dependency`() {
         val code = """
             import org.koin.androidx.viewmodel.dsl.viewModel
             import org.koin.dsl.module
@@ -313,8 +313,7 @@ class DeprecatedKoinApiTest {
         """.trimIndent()
 
         val findings = DeprecatedKoinApi(Config.empty).lint(code)
-        assertThat(findings).hasSize(1)
-        assertThat(findings[0].message).contains("viewModelOf()")
+        assertThat(findings).isEmpty()
     }
 
     @Test

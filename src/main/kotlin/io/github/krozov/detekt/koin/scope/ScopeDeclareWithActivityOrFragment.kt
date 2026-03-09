@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
  * }
  * </compliant>
  */
-public class ScopeDeclareWithActivityOrFragment(config: Config = Config.empty) : Rule(config) {
+internal class ScopeDeclareWithActivityOrFragment(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "ScopeDeclareWithActivityOrFragment",
         severity = Severity.Warning,
