@@ -67,6 +67,34 @@ koin-rules:
     active: false
     maxIncludesWithDefinitions: 3
 
+  ModuleAsTopLevelVal:
+    active: true
+
+  ExcessiveCreatedAtStart:
+    active: true
+    maxCreatedAtStart: 10
+
+  OverrideInIncludedModule:
+    active: true
+
+  ConstructorDslAmbiguousParameters:
+    active: true
+
+  ParameterTypeMatchesReturnType:
+    active: true
+
+  GenericDefinitionWithoutQualifier:
+    active: true
+
+  DuplicateBindingWithoutQualifier:
+    active: true
+
+  EnumQualifierCollision:
+    active: true
+
+  UnassignedQualifierInWithOptions:
+    active: true
+
   # Scope Management Rules
   MissingScopeClose:
     active: true
@@ -83,6 +111,15 @@ koin-rules:
   ScopeDeclareWithActivityOrFragment:
     active: true
     additionalLeakProneTypes: []
+
+  ViewModelAsSingleton:
+    active: true
+
+  CloseableWithoutOnClose:
+    active: true
+
+  ScopeAccessInOnDestroy:
+    active: true
 
   # Platform Rules - Compose
   KoinViewModelOutsideComposable:
@@ -105,6 +142,9 @@ koin-rules:
   AndroidContextNotFromKoin:
     active: true
 
+  StartKoinInActivity:
+    active: true
+
   ActivityFragmentKoinScope:
     active: true
 
@@ -116,6 +156,9 @@ koin-rules:
     active: false
 
   CircularModuleDependency:
+    active: true
+
+  GetConcreteTypeInsteadOfInterface:
     active: true
 
   # Koin Annotations Rules
@@ -136,6 +179,9 @@ koin-rules:
     skipCheck: false
 
   SingleAnnotationOnObject:
+    active: true
+
+  SingleOnAbstractClass:
     active: true
 
   TooManyInjectedParams:
@@ -168,6 +214,9 @@ koin-rules:
   KoinWorkerOnNonWorker:
     active: true
     additionalWorkerSuperTypes: []
+
+  InjectedParamAnnotationOrder:
+    active: true
 
   QualifierObfuscationRisk:
     active: true

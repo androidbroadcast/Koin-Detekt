@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
  * }
  * </compliant>
  */
-public class MissingKoinStopInTest(config: Config = Config.empty) : Rule(config) {
+internal class MissingKoinStopInTest(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "MissingKoinStopInTest",
         severity = Severity.Warning,
