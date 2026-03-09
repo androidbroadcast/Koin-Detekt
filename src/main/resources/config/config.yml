@@ -123,12 +123,6 @@ koin-rules:
   ViewModelAsSingleton:
     active: true
 
-  CloseableWithoutOnClose:
-    active: true
-
-  ScopeAccessInOnDestroy:
-    active: true
-
   # Platform Rules - Compose
   KoinViewModelOutsideComposable:
     active: true
