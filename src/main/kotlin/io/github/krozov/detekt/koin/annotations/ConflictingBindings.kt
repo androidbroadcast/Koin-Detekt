@@ -3,7 +3,6 @@ package io.github.krozov.detekt.koin.annotations
 import io.github.krozov.detekt.koin.util.ImportAwareRule
 import io.github.krozov.detekt.koin.util.Resolution
 import io.github.krozov.detekt.koin.util.hasKoinAnnotationFrom
-import io.github.krozov.detekt.koin.util.koinAnnotationNames
 import io.github.krozov.detekt.koin.util.resolveKoin
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
@@ -12,7 +11,6 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -80,28 +78,6 @@ internal class ConflictingBindings(config: Config = Config.empty) : ImportAwareR
                     )
                 )
             }
-        }
-    }
-
-    override fun visitClass(klass: KtClass) {
-        super.visitClass(klass)
-
-        val koinAnnotations = klass.koinAnnotationNames(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)
-
-        if (koinAnnotations.size > 1) {
-            report(
-                CodeSmell(
-                    issue,
-                    Entity.from(klass),
-                    """
-                    Multiple Koin definition annotations: ${koinAnnotations.joinToString(", ") { "@$it" }}
-                    → KSP picks first annotation; behavior is undefined. Choose one.
-
-                    ✗ Bad:  ${koinAnnotations.joinToString(" ") { "@$it" }} class ${klass.name}
-                    ✓ Good: @${koinAnnotations.first()} class ${klass.name}
-                    """.trimIndent()
-                )
-            )
         }
     }
 

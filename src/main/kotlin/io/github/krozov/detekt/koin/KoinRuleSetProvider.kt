@@ -52,6 +52,7 @@ import io.github.krozov.detekt.koin.architecture.PlatformImportRestriction
 import io.github.krozov.detekt.koin.annotations.MixingDslAndAnnotations
 import io.github.krozov.detekt.koin.annotations.MissingModuleAnnotation
 import io.github.krozov.detekt.koin.annotations.ConflictingBindings
+import io.github.krozov.detekt.koin.annotations.MultipleKoinDefinitionAnnotations
 import io.github.krozov.detekt.koin.annotations.ScopedWithoutQualifier
 import io.github.krozov.detekt.koin.annotations.AnnotationProcessorNotConfigured
 import io.github.krozov.detekt.koin.annotations.SingleAnnotationOnObject
@@ -128,6 +129,7 @@ public class KoinRuleSetProvider : RuleSetProvider {
                 MixingDslAndAnnotations(config),
                 MissingModuleAnnotation(config),
                 ConflictingBindings(config),
+                MultipleKoinDefinitionAnnotations(config),
                 ScopedWithoutQualifier(config),
                 AnnotationProcessorNotConfigured(config),
                 // New annotation rules

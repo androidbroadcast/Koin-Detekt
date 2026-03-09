@@ -173,6 +173,9 @@ koin-rules:
   ConflictingBindings:
     active: true
 
+  MultipleKoinDefinitionAnnotations:
+    active: true
+
   ScopedWithoutQualifier:
     active: true
 
