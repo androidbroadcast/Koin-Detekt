@@ -10,11 +10,11 @@ All notable changes to this project will be documented in this file.
 
 - `SingleOnAbstractClass` — detects `@Single` on abstract classes (#68)
 - `KoinWorkerOnNonWorker` — detects `@KoinWorker` on classes that don't extend `Worker` (#69)
-- `InjectedParamAnnotationOrder` — detects `@InjectedParam` placed after regular constructor parameters (#70)
+- `InjectedParamAnnotationOrder` — detects `@InjectedParam` not placed as the first annotation on a constructor parameter (#70)
 - `MissingKoinStopInTest` — detects tests that start Koin without a matching `stopKoin()` (#71)
 - `KoinViewModelOnNonViewModel` — detects `@KoinViewModel` on classes that don't extend `ViewModel` (#72)
 - `QualifierObfuscationRisk` — detects non-string, non-enum qualifier expressions that hide the actual qualifier value at call sites (#80)
-- `PreferLazyConstructorInjection` — detects `KoinComponent.get()` in constructors; suggests Lazy injection alternative (#85)
+- `PreferLazyConstructorInjection` — detects constructor parameters that should be wrapped in `Lazy<T>` for deferred resolution; configurable via `checkAllTypes`, `lazyTypes`, `excludeTypes` (#85)
 
 ### Improvements
 

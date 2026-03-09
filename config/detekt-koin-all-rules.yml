@@ -301,14 +301,17 @@ koin-rules:
   # Detects @KoinWorker on a class not extending ListenableWorker or Worker.
   KoinWorkerOnNonWorker:
     active: true
+    additionalWorkerSuperTypes: []
 
   # Detects @KoinViewModel on a class not extending ViewModel or AndroidViewModel.
   KoinViewModelOnNonViewModel:
     active: true
+    additionalViewModelSuperTypes: []
 
   # Detects test classes that call startKoin() without stopKoin() in @After/@AfterEach.
   MissingKoinStopInTest:
     active: true
+    additionalTeardownAnnotations: []
 
   # Detects constructor parameters where @InjectedParam is not the first annotation.
   InjectedParamAnnotationOrder:

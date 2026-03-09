@@ -167,18 +167,17 @@ koin-rules:
 
 #### PreferLazyConstructorInjection
 
-Detects `get()` calls inside constructors of `KoinComponent` classes and suggests using `by inject()` or `Lazy` instead to avoid eager initialization.
+Detects constructor parameters whose type should be wrapped in `Lazy<T>` for deferred resolution. Koin resolves `Lazy<T>` natively — wrapping avoids eager instantiation of heavy dependencies.
 
-**Default:** Active, configurable type allowlist.
+**Default:** Inactive (opt-in rule).
 
 ```yaml
 koin-rules:
   PreferLazyConstructorInjection:
-    active: true
-    lazyTypes: []
-    # Override to specify which types should always use Lazy injection:
-    # lazyTypes:
-    #   - 'com.myapp.HeavyService'
+    active: false
+    checkAllTypes: false   # when true, all constructor params must be Lazy<T>
+    lazyTypes: []          # specific types that must be wrapped in Lazy<T>
+    excludeTypes: []       # types exempt from the rule even when checkAllTypes: true
 ```
 
 ### Module DSL Rules
@@ -593,24 +592,30 @@ koin-rules:
 
 Detects `@KoinViewModel` on classes that do not extend `ViewModel`.
 
-**Default:** Active, no configuration options.
+**Default:** Active. `additionalViewModelSuperTypes` extends the built-in set of accepted ViewModel base classes.
 
 ```yaml
 koin-rules:
   KoinViewModelOnNonViewModel:
     active: true
+    additionalViewModelSuperTypes: []
+    # additionalViewModelSuperTypes:
+    #   - 'com.myapp.BaseViewModel'
 ```
 
 #### KoinWorkerOnNonWorker
 
 Detects `@KoinWorker` on classes that do not extend `Worker`.
 
-**Default:** Active, no configuration options.
+**Default:** Active. `additionalWorkerSuperTypes` extends the built-in set of accepted Worker base classes.
 
 ```yaml
 koin-rules:
   KoinWorkerOnNonWorker:
     active: true
+    additionalWorkerSuperTypes: []
+    # additionalWorkerSuperTypes:
+    #   - 'com.myapp.BaseWorker'
 ```
 
 #### InjectedParamAnnotationOrder
