@@ -1810,6 +1810,66 @@ class MyService(@InjectedParam val items: List<StringList>)
 
 ---
 
+### InjectedParamAnnotationOrder
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects constructor parameters where `@InjectedParam` is not the first annotation. Due to a KSP code generator bug ([koin-annotations#315](https://github.com/InsertKoinIO/koin-annotations/issues/315)), placing any annotation before `@InjectedParam` causes a compilation failure in the generated code.
+
+❌ **Bad:**
+```kotlin
+@Single
+class MyService(
+    @Suppress("Unused") @InjectedParam val name: String  // compilation failure
+)
+```
+
+✅ **Good:**
+```kotlin
+@Single
+class MyService(
+    @InjectedParam @Suppress("Unused") val name: String
+)
+```
+
+**Edge Cases:**
+- ✅ Reports when any annotation precedes `@InjectedParam`
+- ✅ Only checks parameters of Koin-annotated classes
+- ✅ Allows `@InjectedParam` as the sole annotation
+
+---
+
+### SingleOnAbstractClass
+
+**Severity:** Warning
+**Active by default:** Yes
+
+Detects `@Single`, `@Factory`, or `@Scoped` applied to abstract classes or interfaces. Abstract types cannot be instantiated — KSP will generate a factory that throws `InstantiationException` at runtime without any compile-time error.
+
+❌ **Bad:**
+```kotlin
+@Single
+abstract class BaseRepository  // InstantiationException at runtime
+
+@Factory
+interface Repository  // cannot instantiate an interface
+```
+
+✅ **Good:**
+```kotlin
+@Single
+class RepositoryImpl : Repository  // concrete class
+```
+
+**Edge Cases:**
+- ✅ Detects abstract classes
+- ✅ Detects interfaces
+- ✅ Checks all provider annotations: `@Single`, `@Factory`, `@Scoped`
+- ✅ Uses import-based resolution to avoid false positives from non-Koin annotations
+
+---
+
 ### MissingKoinStopInTest
 
 **Severity:** Warning

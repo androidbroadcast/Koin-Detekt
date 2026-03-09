@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v1.1.0 - 2026-03-09
+
+### New Rules
+
+- `SingleOnAbstractClass` — detects `@Single` on abstract classes (#68)
+- `KoinWorkerOnNonWorker` — detects `@KoinWorker` on classes that don't extend `Worker` (#69)
+- `InjectedParamAnnotationOrder` — detects `@InjectedParam` placed after regular constructor parameters (#70)
+- `MissingKoinStopInTest` — detects tests that start Koin without a matching `stopKoin()` (#71)
+- `KoinViewModelOnNonViewModel` — detects `@KoinViewModel` on classes that don't extend `ViewModel` (#72)
+- `QualifierObfuscationRisk` — detects non-string, non-enum qualifier expressions that hide the actual qualifier value at call sites (#80)
+- `PreferLazyConstructorInjection` — detects `KoinComponent.get()` in constructors; suggests Lazy injection alternative (#85)
+
+### Improvements
+
+- **Import-based type resolution** (`ImportAwareRule` + `FileImportContext`): all annotation rules now resolve short annotation names against actual imports, eliminating false positives when third-party libraries use the same annotation names (e.g. `@Module`, `@Inject`, `@Qualifier`) (#83, #86)
+- Configurable parameters added to `DeprecatedKoinApi`, `ScopeDeclareWithActivityOrFragment`, `ConflictingBindings`, `MissingModuleAnnotation`, and `ScopedWithoutQualifier`; includes deprecation infrastructure for safe parameter renames (#75, #76)
+
+### Bug Fixes
+
+- `NoGetOutsideModuleDefinition`: eliminate false positives via import-based filter and safe-call receiver support (#73)
+- `NoGetOutsideModuleDefinition`: skip qualified method calls (e.g. `module.get()`) (#60)
+- `NoInjectDelegate`: add `AppCompatActivity` and common subclasses to default `allowedSuperTypes` (#74)
+- `NoInjectDelegate`, `NoKoinComponentInterface`: add `GlanceAppWidget` to allowed types (#59)
+- `AndroidContextNotFromKoin`: add `initKoin` to valid parent call allowlist (#58)
+- `AnnotationProcessorNotConfigured`: downgrade severity to Minor; add Kotlin Compiler Plugin as alternative to KSP (#62)
+- `StartKoinInActivity`: use exact type sets instead of name-only matching to prevent false positives (#67)
+- `GenericDefinitionWithoutQualifier`: detect qualifier inside `withOptions { }` block (#65)
+- `OverrideInIncludedModule`: skip qualified definitions to avoid false positives (#64)
+- `ConstructorDslAmbiguousParameters`: add `scopedOf` to detected DSL functions (#66)
+- Code style: replace all wildcard imports with explicit imports; remove `!!` operators (#79)
+- `resolveTypeFqn`: fix resolution for generic types in `PreferLazyConstructorInjection` (#85)
+
 ## v1.0.0 - 2026-02-20
 
 ## What's Changed
