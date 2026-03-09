@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
@@ -90,14 +91,29 @@ internal class OverrideInIncludedModule(config: Config = Config.empty) : ImportA
     private fun buildModuleBodyMap(file: KtFile): Map<String, KtBlockExpression> {
         val map = mutableMapOf<String, KtBlockExpression>()
         file.declarations.forEach { decl ->
-            if (decl is KtProperty) {
-                val name = decl.name ?: return@forEach
-                val init = decl.initializer as? KtCallExpression ?: return@forEach
-                if (init.calleeExpression?.text != "module") return@forEach
-                val body = (init.lambdaArguments.firstOrNull()?.getLambdaExpression()
-                    ?: init.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression)
-                    ?.bodyExpression ?: return@forEach
-                map[name] = body
+            when (decl) {
+                is KtProperty -> {
+                    val name = decl.name ?: return@forEach
+                    val init = decl.initializer as? KtCallExpression ?: return@forEach
+                    if (init.calleeExpression?.text != "module") return@forEach
+                    val body = (init.lambdaArguments.firstOrNull()?.getLambdaExpression()
+                        ?: init.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression)
+                        ?.bodyExpression ?: return@forEach
+                    map[name] = body
+                }
+                is KtNamedFunction -> {
+                    val name = decl.name ?: return@forEach
+                    // fun myModule() = module { ... }
+                    val moduleCall = decl.bodyExpression as? KtCallExpression
+                        ?: (decl.bodyBlockExpression
+                            ?.statements?.lastOrNull() as? KtCallExpression)
+                        ?: return@forEach
+                    if (moduleCall.calleeExpression?.text != "module") return@forEach
+                    val body = (moduleCall.lambdaArguments.firstOrNull()?.getLambdaExpression()
+                        ?: moduleCall.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression)
+                        ?.bodyExpression ?: return@forEach
+                    map[name] = body
+                }
             }
         }
         return map

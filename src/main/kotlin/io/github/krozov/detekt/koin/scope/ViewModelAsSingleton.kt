@@ -82,8 +82,9 @@ internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
     }
 
     private fun checkConstructorRefIsViewModel(expression: KtCallExpression): Boolean {
-        // Simple heuristic: check if argument contains "::.*ViewModel"
+        // Heuristic: constructor ref class name ends with "ViewModel" (e.g. ::MyViewModel)
+        // Using endsWith (not contains) avoids false positives like ::ViewModelFactory
         val argText = expression.valueArguments.firstOrNull()?.text ?: return false
-        return argText.contains("ViewModel")
+        return argText.removePrefix("::").endsWith("ViewModel")
     }
 }
