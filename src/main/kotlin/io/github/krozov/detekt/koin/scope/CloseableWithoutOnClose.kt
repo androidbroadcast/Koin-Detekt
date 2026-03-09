@@ -19,7 +19,11 @@ internal class CloseableWithoutOnClose(config: Config) : ImportAwareRule(config)
         id = "CloseableWithoutOnClose",
         severity = Severity.Warning,
         description = "Detects Closeable/AutoCloseable types defined in single/scoped blocks " +
-                "without onClose callback. This can lead to resource leaks.",
+                "without onClose callback. This can lead to resource leaks. " +
+                "NOTE: Current implementation uses text-based heuristics (checking for words like " +
+                "'Closeable', 'Connection', 'Resource', 'Stream' in lambda body text), which causes " +
+                "false positives on variable names, string literals, and comments. " +
+                "Needs redesign with PSI-based supertype checking before enabling.",
         debt = Debt.TEN_MINS
     )
 
