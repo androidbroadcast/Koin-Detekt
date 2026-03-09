@@ -23,7 +23,7 @@ Add the plugin to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:1.0.0")
+    detektPlugins("dev.androidbroadcast.rules.koin:detekt-koin4-rules:1.1.0")
 }
 ```
 
@@ -165,6 +165,22 @@ koin-rules:
     active: true
 ```
 
+#### PreferLazyConstructorInjection
+
+Detects `get()` calls inside constructors of `KoinComponent` classes and suggests using `by inject()` or `Lazy` instead to avoid eager initialization.
+
+**Default:** Active, configurable type allowlist.
+
+```yaml
+koin-rules:
+  PreferLazyConstructorInjection:
+    active: true
+    lazyTypes: []
+    # Override to specify which types should always use Lazy injection:
+    # lazyTypes:
+    #   - 'com.myapp.HeavyService'
+```
+
 ### Module DSL Rules
 
 #### EmptyModule
@@ -249,12 +265,17 @@ koin-rules:
 
 Detect deprecated Koin API usage.
 
-**Default:** Active, no configuration options.
+**Default:** Active. `additionalDeprecations` extends the built-in set of deprecated API entries with project-specific ones.
 
 ```yaml
 koin-rules:
   DeprecatedKoinApi:
     active: true
+    additionalDeprecations: []
+    # Add project-specific deprecated API entries:
+    # additionalDeprecations:
+    #   - 'oldFunctionName:newFunctionName'
+    #   - 'anotherOldName:anotherNewName'
 ```
 
 #### ModuleIncludesOrganization
@@ -328,6 +349,25 @@ koin-rules:
   KtorRequestScopeMisuse:
     active: true
 ```
+
+#### ScopeDeclareWithActivityOrFragment
+
+Detect `scope {}` blocks bound to lifecycle-owner types (Activity, Fragment) that risk memory leaks.
+
+**Default:** Active, configurable type list.
+
+```yaml
+koin-rules:
+  ScopeDeclareWithActivityOrFragment:
+    active: true
+    additionalLeakProneTypes: []
+    # Add custom lifecycle-bound types:
+    # additionalLeakProneTypes:
+    #   - 'com.myapp.CustomActivity'
+    #   - 'com.myapp.BaseFragment'
+```
+
+`additionalLeakProneTypes` extends the built-in set of known lifecycle owners.
 
 ### Platform Rules
 
@@ -534,6 +574,85 @@ Detect scoped definitions without qualifiers.
 ```yaml
 koin-rules:
   ScopedWithoutQualifier:
+    active: true
+```
+
+#### SingleOnAbstractClass
+
+Detects `@Single`, `@Factory`, or `@Scoped` on abstract classes or interfaces that cannot be instantiated.
+
+**Default:** Active, no configuration options.
+
+```yaml
+koin-rules:
+  SingleOnAbstractClass:
+    active: true
+```
+
+#### KoinViewModelOnNonViewModel
+
+Detects `@KoinViewModel` on classes that do not extend `ViewModel`.
+
+**Default:** Active, no configuration options.
+
+```yaml
+koin-rules:
+  KoinViewModelOnNonViewModel:
+    active: true
+```
+
+#### KoinWorkerOnNonWorker
+
+Detects `@KoinWorker` on classes that do not extend `Worker`.
+
+**Default:** Active, no configuration options.
+
+```yaml
+koin-rules:
+  KoinWorkerOnNonWorker:
+    active: true
+```
+
+#### InjectedParamAnnotationOrder
+
+Detects `@InjectedParam` not placed as the first annotation on a constructor parameter, which causes KSP compilation failure.
+
+**Default:** Active, no configuration options.
+
+```yaml
+koin-rules:
+  InjectedParamAnnotationOrder:
+    active: true
+```
+
+#### MissingKoinStopInTest
+
+Detects test classes that call `startKoin` without a matching `stopKoin()` in a teardown method.
+
+**Default:** Active, configurable teardown annotations.
+
+```yaml
+koin-rules:
+  MissingKoinStopInTest:
+    active: true
+    additionalTeardownAnnotations: []
+    # Add project-specific teardown annotations:
+    # additionalTeardownAnnotations:
+    #   - 'CustomAfter'
+    #   - 'TearDown'
+```
+
+`additionalTeardownAnnotations` extends the built-in set (`After`, `AfterEach`, `AfterAll`).
+
+#### QualifierObfuscationRisk
+
+Detects non-string, non-enum qualifier expressions that obscure the actual qualifier value at call sites.
+
+**Default:** Active, no configuration options.
+
+```yaml
+koin-rules:
+  QualifierObfuscationRisk:
     active: true
 ```
 
