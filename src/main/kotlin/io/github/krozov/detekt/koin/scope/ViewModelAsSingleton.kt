@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 
 internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
@@ -33,12 +34,18 @@ internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
 
         // Get type reference from lambda body or constructor reference
         val isViewModel = when {
-            // Pattern: single { MyViewModel() }
+            // Pattern: single { MyViewModel() } or single<MyViewModel> { ... }
             callName == "single" -> {
-                val lambda = expression.lambdaArguments.firstOrNull()?.getLambdaExpression()
-                    ?: expression.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression
-                    ?: return
-                checkLambdaReturnsViewModel(lambda)
+                // Heuristic 1: type argument ends in "ViewModel" (e.g. single<MyViewModel> { ... })
+                val typeArgText = expression.typeArgumentList?.arguments?.firstOrNull()?.text
+                if (typeArgText != null && typeArgText.endsWith("ViewModel")) {
+                    true
+                } else {
+                    val lambda = expression.lambdaArguments.firstOrNull()?.getLambdaExpression()
+                        ?: expression.valueArguments.firstOrNull()?.getArgumentExpression() as? KtLambdaExpression
+                        ?: return
+                    checkLambdaReturnsViewModel(lambda)
+                }
             }
             // Pattern: singleOf(::MyViewModel)
             callName == "singleOf" -> {
@@ -65,9 +72,13 @@ internal class ViewModelAsSingleton(config: Config) : ImportAwareRule(config) {
     }
 
     private fun checkLambdaReturnsViewModel(lambda: KtLambdaExpression): Boolean {
-        // Simple heuristic: check if lambda body contains "ViewModel()" call
-        val bodyText = lambda.bodyExpression?.text ?: return false
-        return bodyText.contains("ViewModel()")
+        val body = lambda.bodyExpression ?: return false
+        // Heuristic: any call expression in the lambda body whose callee ends with "ViewModel"
+        // covers: MyViewModel(), MyViewModel(get()), MyViewModel(get(), get()), etc.
+        return body.collectDescendantsOfType<KtCallExpression>().any { call ->
+            val callee = call.calleeExpression?.text ?: return@any false
+            callee.endsWith("ViewModel")
+        }
     }
 
     private fun checkConstructorRefIsViewModel(expression: KtCallExpression): Boolean {

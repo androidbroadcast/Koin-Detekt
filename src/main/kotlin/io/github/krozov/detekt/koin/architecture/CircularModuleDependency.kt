@@ -10,7 +10,9 @@ import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
@@ -47,7 +49,7 @@ internal class CircularModuleDependency(config: Config = Config.empty) : ImportA
 
     private data class ModuleInfo(
         val name: String,
-        val property: KtProperty,
+        val declaration: KtDeclaration,
         val dependencies: Set<String>
     )
 
@@ -72,6 +74,28 @@ internal class CircularModuleDependency(config: Config = Config.empty) : ImportA
         }
     }
 
+    override fun visitNamedFunction(function: KtNamedFunction) {
+        super.visitNamedFunction(function)
+
+        val moduleName = function.name ?: return
+
+        // Match: fun myModule() = module { ... }  or  fun myModule(): Module = module { ... }
+        val bodyExpr = function.bodyExpression as? KtCallExpression
+            ?: (function.bodyBlockExpression
+                ?.statements
+                ?.lastOrNull() as? KtCallExpression)
+
+        val moduleCall = when {
+            bodyExpr?.calleeExpression?.text == "module" -> bodyExpr
+            else -> null
+        } ?: return
+
+        if (importContext.resolveKoin("module") != Resolution.NOT_KOIN) {
+            val includes = findIncludes(moduleCall)
+            modules.add(ModuleInfo(moduleName, function, includes))
+        }
+    }
+
     private fun findIncludes(moduleCall: KtCallExpression): Set<String> {
         val includes = mutableSetOf<String>()
 
@@ -81,7 +105,13 @@ internal class CircularModuleDependency(config: Config = Config.empty) : ImportA
 
                 if (expression.calleeExpression?.text == "includes") {
                     expression.valueArguments.forEach { arg ->
-                        arg.getArgumentExpression()?.text?.let { includes.add(it) }
+                        val expr = arg.getArgumentExpression()
+                        // Normalise both bare references (moduleA) and calls (moduleA())
+                        val name = when (expr) {
+                            is KtCallExpression -> expr.calleeExpression?.text
+                            else -> expr?.text
+                        }
+                        name?.let { includes.add(it) }
                     }
                 }
             }
@@ -100,7 +130,7 @@ internal class CircularModuleDependency(config: Config = Config.empty) : ImportA
                 report(
                     CodeSmell(
                         issue,
-                        Entity.from(module.property),
+                        Entity.from(module.declaration),
                         """
                         Module includes itself → Causes initialization errors
                         → Remove self-reference from includes()
@@ -122,7 +152,7 @@ internal class CircularModuleDependency(config: Config = Config.empty) : ImportA
                     report(
                         CodeSmell(
                             issue,
-                            Entity.from(module.property),
+                            Entity.from(module.declaration),
                             """
                             Circular dependency: $cycleDescription → Causes initialization errors
                             → Refactor to hierarchical structure

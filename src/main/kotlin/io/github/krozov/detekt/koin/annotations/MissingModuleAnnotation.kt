@@ -72,6 +72,8 @@ internal class MissingModuleAnnotation(config: Config = Config.empty) : ImportAw
             val hasComponentScan = klass.hasKoinAnnotationFrom(importContext, setOf("ComponentScan"))
             // @Configuration signals Koin Compiler Plugin auto-discovery; module is valid as-is
             val hasConfiguration = klass.hasKoinAnnotationFrom(importContext, setOf("Configuration"))
+            // @KoinApplication is an auto-configured entry point that doesn't need provider methods
+            val hasKoinApplication = klass.hasKoinAnnotationFrom(importContext, setOf("KoinApplication"))
             val hasIncludes = klass.annotationEntries.any { entry ->
                 entry.shortName?.asString() == "Module" &&
                     importContext.resolveKoin("Module") != Resolution.NOT_KOIN &&
@@ -83,7 +85,7 @@ internal class MissingModuleAnnotation(config: Config = Config.empty) : ImportAw
                 declaration.hasKoinAnnotationFrom(importContext, KoinAnnotationConstants.DEFINITION_ANNOTATIONS)
             }
 
-            if (!hasComponentScan && !hasConfiguration && !hasIncludes && !hasKoinDefinitions) {
+            if (!hasComponentScan && !hasConfiguration && !hasKoinApplication && !hasIncludes && !hasKoinDefinitions) {
                 report(
                     CodeSmell(
                         issue,
