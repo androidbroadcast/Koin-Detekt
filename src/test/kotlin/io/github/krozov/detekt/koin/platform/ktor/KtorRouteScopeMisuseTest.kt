@@ -113,6 +113,22 @@ class KtorRouteScopeMisuseTest {
     }
 
     @Test
+    fun `allows parenthesised call receiver`() {
+        val code = """
+            fun Application.module() {
+                routing {
+                    get("/api") {
+                        val scope = (call).koinScope()
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val findings = KtorRouteScopeMisuse(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
     fun `does not report koinScope imported from non-Koin package`() {
         val code = """
             import com.example.scope.koinScope
