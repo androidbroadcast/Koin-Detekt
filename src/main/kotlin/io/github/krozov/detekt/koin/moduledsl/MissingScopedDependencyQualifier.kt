@@ -9,7 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.gitlab.arturbosch.detekt.api.config
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -25,7 +25,7 @@ internal class MissingScopedDependencyQualifier(config: Config) : ImportAwareRul
         debt = Debt.TEN_MINS
     )
 
-    private val allowOneDefault: Boolean by config(true)
+    private val allowOneDefault: Boolean = value(key = "allowOneDefault", default = true)
 
     private val definitionsByModule = mutableMapOf<KtCallExpression, MutableList<TypeDefinition>>()
 

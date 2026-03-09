@@ -9,7 +9,7 @@ import io.gitlab.arturbosch.detekt.api.Debt
 import io.gitlab.arturbosch.detekt.api.Entity
 import io.gitlab.arturbosch.detekt.api.Issue
 import io.gitlab.arturbosch.detekt.api.Severity
-import io.gitlab.arturbosch.detekt.api.config
+import io.github.krozov.detekt.koin.util.value
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -27,8 +27,9 @@ internal class NoInjectDelegate(config: Config) : ImportAwareRule(config) {
         debt = Debt.TWENTY_MINS
     )
 
-    private val allowedSuperTypes: List<String> by config(
-        listOf(
+    private val allowedSuperTypes: List<String> = value(
+        key = "allowedSuperTypes",
+        default = listOf(
             "Application",
             "Activity",
             "ComponentActivity",

@@ -18,7 +18,7 @@ class ModuleAsTopLevelValTest {
         val findings = ModuleAsTopLevelVal(Config.empty).lint(code)
         assertThat(findings).hasSize(1)
         assertThat(findings[0].message).contains("top-level val")
-        assertThat(findings[0].message).contains("Factory preallocation")
+        assertThat(findings[0].message).contains("Cannot be swapped in tests")
         assertThat(findings[0].message).contains("function")
     }
 

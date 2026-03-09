@@ -15,9 +15,10 @@ import org.jetbrains.kotlin.psi.KtProperty
 /**
  * Detects Koin modules defined as top-level `val` instead of functions.
  *
- * Defining a module as `val myModule = module {}` causes all factory lambdas to be preallocated
- * at module initialization time, even if they're never used. This wastes memory and increases
- * startup time. Using a function `fun myModule() = module {}` defers module creation until needed.
+ * Defining a module as `val myModule = module {}` initializes the module eagerly via JVM class
+ * loading, which makes it impossible to substitute or replace the module in tests. Using a
+ * function `fun myModule() = module {}` allows test code to call a different factory function,
+ * making the module swappable and the code properly testable.
  *
  * Best Practice: Always define modules as functions, not vals.
  *
@@ -39,7 +40,7 @@ internal class ModuleAsTopLevelVal(config: Config = Config.empty) : ImportAwareR
     override val issue: Issue = Issue(
         id = "ModuleAsTopLevelVal",
         severity = Severity.CodeSmell,
-        description = "Module defined as top-level val causes factory preallocation issues",
+        description = "Module defined as top-level val cannot be swapped in tests — use a function instead",
         debt = Debt.FIVE_MINS
     )
 
@@ -60,7 +61,7 @@ internal class ModuleAsTopLevelVal(config: Config = Config.empty) : ImportAwareR
                 issue,
                 Entity.from(property),
                 """
-                Module as top-level val → Factory preallocation issues
+                Module as top-level val → Cannot be swapped in tests
                 → Use function instead: fun ${property.name}() = module {}
 
                 ✗ Bad:  val ${property.name} = module { }
