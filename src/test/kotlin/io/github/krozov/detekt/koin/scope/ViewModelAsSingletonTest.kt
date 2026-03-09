@@ -114,4 +114,57 @@ class ViewModelAsSingletonTest {
         val findings = ViewModelAsSingleton(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports ViewModel with constructor arguments`() {
+        // Regression test for Issue #98: MyViewModel(get(), get()) was not detected
+        val code = """
+            import org.koin.dsl.module
+            import androidx.lifecycle.ViewModel
+
+            class MyViewModel(val repo: Repository) : ViewModel()
+
+            val appModule = module {
+                single { MyViewModel(get()) }
+            }
+        """.trimIndent()
+
+        val findings = ViewModelAsSingleton(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `reports ViewModel via type argument`() {
+        // Regression test for Issue #98: single<MyViewModel> { ... } was not detected
+        val code = """
+            import org.koin.dsl.module
+            import androidx.lifecycle.ViewModel
+
+            class MyViewModel : ViewModel()
+
+            val appModule = module {
+                single<MyViewModel> { MyViewModel() }
+            }
+        """.trimIndent()
+
+        val findings = ViewModelAsSingleton(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
+
+    @Test
+    fun `does not report non-ViewModel class with ViewModel-like name prefix`() {
+        val code = """
+            import org.koin.dsl.module
+
+            class ViewModelFactory
+
+            val appModule = module {
+                single { ViewModelFactory() }
+            }
+        """.trimIndent()
+
+        // "ViewModelFactory" does not end with "ViewModel" — should not be reported
+        val findings = ViewModelAsSingleton(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }

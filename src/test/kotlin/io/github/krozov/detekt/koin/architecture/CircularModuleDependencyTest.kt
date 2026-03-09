@@ -210,4 +210,56 @@ class CircularModuleDependencyTest {
         val findings = CircularModuleDependency(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `reports circular dependency between function-based modules`() {
+        // Regression test for Issue #97: function-based modules were invisible to the rule
+        val code = """
+            import org.koin.dsl.module
+
+            fun moduleA() = module {
+                includes(moduleB())
+            }
+
+            fun moduleB() = module {
+                includes(moduleA())
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isNotEmpty()
+        assertThat(findings[0].message).contains("Circular dependency")
+    }
+
+    @Test
+    fun `allows hierarchical function-based module dependencies`() {
+        val code = """
+            import org.koin.dsl.module
+
+            fun coreModule() = module {
+                single { CoreService() }
+            }
+
+            fun featureModule() = module {
+                includes(coreModule())
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `reports self-referencing function-based module`() {
+        val code = """
+            import org.koin.dsl.module
+
+            fun myModule() = module {
+                includes(myModule())
+            }
+        """.trimIndent()
+
+        val findings = CircularModuleDependency(Config.empty).lint(code)
+        assertThat(findings).hasSize(1)
+    }
 }

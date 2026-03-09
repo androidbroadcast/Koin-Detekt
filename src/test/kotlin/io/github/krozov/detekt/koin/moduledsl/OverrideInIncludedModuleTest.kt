@@ -183,4 +183,48 @@ class OverrideInIncludedModuleTest {
         val findings = OverrideInIncludedModule(Config.empty).lint(code)
         assertThat(findings).isEmpty()
     }
+
+    @Test
+    fun `does not report when two separate modules in the same file define the same type without includes`() {
+        // Regression test for Issue #96: file-wide scan incorrectly flagged standalone module
+        val code = """
+            import org.koin.dsl.module
+
+            val standaloneModule = module {
+                single<String> { "hello" }
+            }
+
+            val includingModule = module {
+                includes(standaloneModule)
+                single<Int> { 42 }
+            }
+        """.trimIndent()
+
+        val findings = OverrideInIncludedModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
+
+    @Test
+    fun `does not report standalone module that shares type with includes-module when standalone has no includes`() {
+        // Regression test for Issue #96: two separate modules, same type, only one uses includes
+        val code = """
+            import org.koin.dsl.module
+
+            val moduleA = module {
+                single<String> { "from A" }
+            }
+
+            val moduleB = module {
+                includes(moduleA)
+                single<Int> { 1 }
+            }
+
+            val moduleC = module {
+                single<String> { "from C" }
+            }
+        """.trimIndent()
+
+        val findings = OverrideInIncludedModule(Config.empty).lint(code)
+        assertThat(findings).isEmpty()
+    }
 }
