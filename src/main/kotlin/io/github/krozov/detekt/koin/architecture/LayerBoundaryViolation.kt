@@ -42,7 +42,7 @@ import org.jetbrains.kotlin.psi.KtImportDirective
  * )
  * </compliant>
  */
-public class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config) {
+internal class LayerBoundaryViolation(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "LayerBoundaryViolation",
         severity = Severity.Warning,

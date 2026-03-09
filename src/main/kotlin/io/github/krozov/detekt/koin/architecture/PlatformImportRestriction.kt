@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.psi.KtImportDirective
  * import org.koin.android.ext.koin.androidContext
  * </compliant>
  */
-public class PlatformImportRestriction(config: Config = Config.empty) : Rule(config) {
+internal class PlatformImportRestriction(config: Config = Config.empty) : Rule(config) {
     override val issue: Issue = Issue(
         id = "PlatformImportRestriction",
         severity = Severity.Warning,
