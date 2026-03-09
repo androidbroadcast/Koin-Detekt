@@ -43,28 +43,44 @@ internal class KtorRouteScopeMisuse(config: Config = Config.empty) : ImportAware
     override fun visitProperty(property: KtProperty) {
         super.visitProperty(property)
 
-        val initializer = property.initializer as? KtCallExpression ?: return
-        val callName = initializer.calleeExpression?.text ?: return
+        val initializer = property.initializer ?: return
 
-        if (callName == "koinScope") {
-            if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
-            // Check if it's call.koinScope() - that's ok
-            val receiver = (initializer.parent as? KtDotQualifiedExpression)?.receiverExpression?.text
-            if (receiver != "call") {
-                report(
-                    CodeSmell(
-                        issue,
-                        Entity.from(property),
-                        """
-                        koinScope() stored in property → Shared scope across all requests, state leaks
-                        → Use call.koinScope() inside route handler for per-request isolation
+        // Determine the call name and receiver text depending on whether the
+        // initializer is a plain call (`koinScope()`) or dot-qualified (`x.koinScope()`).
+        val callName: String
+        val receiverText: String?
 
-                        ✗ Bad:  val scope = koinScope(); get("/api") { scope.get<Service>() }
-                        ✓ Good: get("/api") { call.koinScope().get<Service>() }
-                        """.trimIndent()
-                    )
-                )
+        when (initializer) {
+            is KtDotQualifiedExpression -> {
+                val selector = initializer.selectorExpression as? KtCallExpression ?: return
+                callName = selector.calleeExpression?.text ?: return
+                receiverText = initializer.receiverExpression.text
             }
+            is KtCallExpression -> {
+                callName = initializer.calleeExpression?.text ?: return
+                receiverText = null
+            }
+            else -> return
         }
+
+        if (callName != "koinScope") return
+        if (importContext.resolveKoin(callName) == Resolution.NOT_KOIN) return
+
+        // call.koinScope() is the intended Ktor pattern — do not report.
+        if (receiverText == "call") return
+
+        report(
+            CodeSmell(
+                issue,
+                Entity.from(property),
+                """
+                koinScope() stored in property → Shared scope across all requests, state leaks
+                → Use call.koinScope() inside route handler for per-request isolation
+
+                ✗ Bad:  val scope = koinScope(); get("/api") { scope.get<Service>() }
+                ✓ Good: get("/api") { call.koinScope().get<Service>() }
+                """.trimIndent()
+            )
+        )
     }
 }
