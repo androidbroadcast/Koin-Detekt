@@ -15,7 +15,11 @@ internal class ScopeAccessInOnDestroy(config: Config) : Rule(config) {
         id = "ScopeAccessInOnDestroy",
         severity = Severity.Warning,
         description = "Detects scope access (get(), inject()) in onDestroy/onDestroyView methods. " +
-                "The scope may already be closed, causing ClosedScopeException.",
+                "The scope may already be closed, causing ClosedScopeException. " +
+                "NOTE: Current implementation uses text-based matching ('get(', 'inject(') which " +
+                "causes false positives on unrelated calls like list.get(0), map.getOrDefault(), " +
+                "or any method containing 'inject' in its name. No import guard exists. " +
+                "Needs redesign with proper PSI-based call resolution before enabling.",
         debt = Debt.FIVE_MINS
     )
 

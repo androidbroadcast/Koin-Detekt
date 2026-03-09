@@ -53,7 +53,7 @@ internal class RememberKoinModulesLeak(config: Config = Config.empty) : ImportAw
 
         // Check if inside remember {} lambda
         val parentLambda = expression.getStrictParentOfType<KtLambdaExpression>() ?: return
-        val rememberCall = parentLambda.parent?.parent as? KtCallExpression ?: return
+        val rememberCall = parentLambda.getStrictParentOfType<KtCallExpression>() ?: return
         val rememberName = rememberCall.calleeExpression?.text ?: return
 
         if (rememberName == "remember") {

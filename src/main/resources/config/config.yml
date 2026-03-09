@@ -99,6 +99,14 @@ koin-rules:
   MissingScopeClose:
     active: true
 
+  # Inactive by default: text-based heuristics cause false positives; needs PSI-based redesign.
+  CloseableWithoutOnClose:
+    active: false
+
+  # Inactive by default: text-based matching causes false positives; needs PSI-based redesign.
+  ScopeAccessInOnDestroy:
+    active: false
+
   ScopedDependencyOutsideScopeBlock:
     active: true
 
