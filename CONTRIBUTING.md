@@ -16,7 +16,7 @@ Thank you for your interest in contributing to detekt-rules-koin! This document 
 
 ### Prerequisites
 
-- **JDK 21** - Java Development Kit 21 or later
+- **JDK 17** - Java Development Kit 17 or later
 - **Gradle 8.x** - The project uses Gradle 8.x (wrapper included)
 - **Git** - For version control
 
@@ -513,7 +513,7 @@ The project enforces strict compilation settings:
 - **All warnings as errors** - No compilation warnings allowed
 - **Progressive mode** - Uses latest Kotlin compiler features
 - **Explicit API mode** - Public APIs must be explicit
-- **JVM target 21** - Targets Java 21
+- **JVM target 17** - Targets Java 17
 
 These settings ensure high code quality and maintainability.
 
