@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.androidbroadcast.rules.koin"
-version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: "1.1.0"
+version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: "1.1.1"
 
 java {
     toolchain {
