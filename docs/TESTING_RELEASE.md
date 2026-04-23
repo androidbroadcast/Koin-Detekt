@@ -71,7 +71,7 @@ Check the following steps:
 - [ ] **Extract version from tag**: Version extracted correctly (e.g., `0.1.0-test.1`)
 - [ ] **Validate version format**: Tag format validated against semver pattern
 - [ ] **Check if pre-release**: Pre-release flag set correctly (`true` for test versions)
-- [ ] **Set up JDK 21**: Java Development Kit installed
+- [ ] **Set up JDK 17**: Java Development Kit installed
 - [ ] **Setup Gradle**: Gradle wrapper configured with caching
 - [ ] **Build with Gradle**: Compilation successful with version override `-Pversion=X.Y.Z`
 - [ ] **Generate all JARs**: Main JAR, sources JAR, javadoc JAR generated
