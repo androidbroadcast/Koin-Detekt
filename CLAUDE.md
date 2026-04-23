@@ -36,7 +36,7 @@ After first clone run `ast-index rebuild` once. If you use Claude Code with hook
 
 ## Architecture
 
-Single-module Gradle project. JDK 21, Kotlin 2.0.21, Detekt API 1.23.8.
+Single-module Gradle project. JDK 17, Kotlin 2.0.21, Detekt API 1.23.8.
 
 ```
 src/main/kotlin/io/github/krozov/detekt/koin/

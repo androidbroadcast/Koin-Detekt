@@ -14,7 +14,7 @@ version = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?:
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
     // Generate sources and javadoc JARs (required by Maven Central)
     withSourcesJar()
@@ -173,7 +173,7 @@ kotlin {
         freeCompilerArgs.add("-Xcontext-receivers")
 
         // Explicit JVM target (matches Java toolchain)
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
 
         // Progressive mode: Enable progressive compiler features
         progressiveMode.set(true)
