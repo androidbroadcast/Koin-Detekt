@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## v1.1.1 - 2026-04-23
+
+### New Rules
+
+- `MultipleKoinDefinitionAnnotations` — detects classes annotated with two or more Koin definition annotations (e.g. `@Single` + `@Factory`) (#100)
+
+### Bug Fixes
+
+- `KtorRouteScopeMisuse`: use PSI identifier extraction for receiver check to avoid false positives (#109, #110)
+- `KtorRouteScopeMisuse`: correct PSI receiver check (#92, #107)
+- `DuplicateBindingWithoutQualifier`: clear state before `super.visitCallExpression()` so child bindings are available for reporting (#88)
+- `LayerBoundaryViolation`: use safe package prefix matching to avoid false positives (#93)
+- `ScopeAccessInOnDestroy`: marked `active: false` — substring matching caused false positives on `list.get()` etc. (#90)
+- `CloseableWithoutOnClose`: marked `active: false` — text-based heuristics caused false positives (#89)
+- `DeprecatedKoinApi`: remove `viewModel→viewModelOf()` from built-in deprecations (false positive in KMP projects)
+- `ViewModelAsSingleton`: detect `single<MyViewModel> { ... }` via type argument, not only lambda body (#98)
+- Add 16 missing rules to `config.yml` (#87, #91)
+- Replace deprecated `valueOrDefault` / `by config()` delegates with `config.value()` in 10 rules (#94, #95)
+- Make 5 rule classes `internal` (#91)
+
+### Improvements
+
+- `ConflictingBindings` scope narrowed: now covers only cross-paradigm DSL+Annotations conflicts; per-class multi-annotation case moved to the new `MultipleKoinDefinitionAnnotations` rule (#100)
+
 ## v1.1.0 - 2026-03-09
 
 ### New Rules
